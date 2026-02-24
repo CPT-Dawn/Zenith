@@ -82,28 +82,86 @@ window {{
     color: #ff0055; /* Dawn Red */
 }}
 
-/* ── Calendar Popover & Button ─────────────────────────────────── */
+/* ── Arch Logo ─────────────────────────────────────────────────── */
+.zenith-logo {{
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 18px;
+    color: #00ccff;
+    text-shadow: 0px 0px 10px rgba(0, 204, 255, 0.5);
+    padding: 0 2px;
+}}
+
+/* ── Calendar: Clickable Date Button ───────────────────────────── */
 .zenith-calendar-btn {{
     background: transparent;
     border: none;
-    padding: 4px 8px;
+    box-shadow: none;
+    padding: 4px 10px;
     color: #ffffff;
-    font-size: 16px;
+    font-size: 14px;
+    font-weight: 800;
+    min-height: 0;
+    min-width: 0;
 }}
 
 .zenith-calendar-btn:hover {{
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+}}
+
+.zenith-calendar-btn:active {{
+    background: rgba(255, 255, 255, 0.14);
+}}
+
+/* ── Calendar: Slide-down Popover ──────────────────────────────── */
+.zenith-calendar-popup {{
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 8px;
+}}
+
+/* GTK popover inner contents wrapper */
+.zenith-calendar-popup > contents {{
+    background-color: #0d1117;
+    border-radius: 12px;
+    padding: 4px;
 }}
 
 .zenith-calendar {{
-    background-color: #0d1117;
-    border: 1px solid #30363d;
+    background-color: transparent;
+    color: #cdd6f4;
+    font-family: "Inter", "JetBrainsMono Nerd Font", sans-serif;
+    font-size: 13px;
 }}
 
-.zenith-calendar-popup {{
-    background-color: #0d1117;
-    border-radius: 8px;
+/* Calendar header (month/year navigation) */
+.zenith-calendar > header {{
+    color: #ffffff;
+    font-weight: 700;
+}}
+
+.zenith-calendar > header > button {{
+    color: #00ccff;
+    background: transparent;
+    border: none;
+}}
+
+.zenith-calendar > header > button:hover {{
+    background: rgba(0, 204, 255, 0.15);
+    border-radius: 6px;
+}}
+
+/* Day cells */
+.zenith-calendar :selected {{
+    background-color: #7700ff;
+    color: #ffffff;
+    border-radius: 50%;
+}}
+
+.zenith-calendar .day-number:hover {{
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
 }}
 
 /* ── Keyframes: The Endless Engine Flow ────────────────────────── */

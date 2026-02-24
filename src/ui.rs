@@ -62,15 +62,21 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     let center_box = CenterBox::new();
     center_box.set_hexpand(true);
 
-    // Center: Clock and Calendar
+    // Center: Date │  │ Time
     if cfg.modules.clock {
-        let time_container = gtk4::Box::new(gtk4::Orientation::Horizontal, 12);
+        let time_container = gtk4::Box::new(gtk4::Orientation::Horizontal, 10);
+        time_container.set_halign(gtk4::Align::Center);
 
-        // Calendar (date display with popover)
+        // Date (clickable → calendar popover)
         let calendar = modules::calendar::create();
         time_container.append(&calendar);
 
-        // Clock (time)
+        // Arch logo separator
+        let logo = gtk4::Label::new(Some("\u{f303}")); // Nerd Font: 
+        logo.add_css_class("zenith-logo");
+        time_container.append(&logo);
+
+        // Clock (ticking time)
         let clock = modules::clock::create(&cfg.modules.clock_format);
         time_container.append(&clock);
 
