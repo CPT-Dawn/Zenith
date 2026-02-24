@@ -42,6 +42,7 @@ pub struct ModulesConfig {
     pub clock: bool,
     pub clock_format: String,
     pub system_stats: bool,
+    pub todo: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -69,6 +70,7 @@ impl Default for ModulesConfig {
             clock: true,
             clock_format: "%H:%M:%S".into(),
             system_stats: true,
+            todo: true,
         }
     }
 }

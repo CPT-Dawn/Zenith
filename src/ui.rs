@@ -83,6 +83,12 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
         center_box.set_center_widget(Some(&time_container));
     }
 
+    // Left: Todo module
+    if cfg.modules.todo {
+        let todo = modules::todo::create();
+        center_box.set_start_widget(Some(&todo));
+    }
+
     // Right: System stats / tray placeholder
     if cfg.modules.system_stats {
         let sys = modules::system::create();

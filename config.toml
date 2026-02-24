@@ -33,6 +33,7 @@ background = "rgba(30, 30, 46, 0.6)"
 # Toggle modules on or off.
 clock = true
 system_stats = true
+todo = true
 
 # strftime-compatible format string for the clock module.
 clock_format = "%H:%M:%S"
