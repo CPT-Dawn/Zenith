@@ -1,0 +1,29 @@
+[package]
+name = "zenith"
+version = "0.1.0"
+edition = "2021"
+authors = ["cptdawn"]
+description = "A sleek, animated Wayland status bar for Hyprland"
+license = "MIT"
+readme = "README.md"
+keywords = ["wayland", "statusbar", "hyprland", "gtk4"]
+categories = ["gui"]
+
+[dependencies]
+gtk4 = { version = "0.9", features = ["v4_12"] }
+gtk4-layer-shell = "0.4"
+glib = "0.20"
+gdk4 = "0.9"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+chrono = "0.4"
+dirs = "6"
+log = "0.4"
+env_logger = "0.11"
+anyhow = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1

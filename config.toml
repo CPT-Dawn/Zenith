@@ -1,0 +1,39 @@
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║                    Zenith – Configuration                       ║
+# ╚══════════════════════════════════════════════════════════════════╝
+# Place this file at:  ~/.config/zenith/config.toml
+
+[bar]
+# Monitor connector name.  Leave commented out to use the default monitor.
+# Examples: "eDP-1" (laptop), "DP-1", "HDMI-A-1"
+# monitor = "eDP-1"
+
+# Bar height in pixels.
+height = 40
+
+# Horizontal gap (left & right margins) in pixels.
+gap_horizontal = 8
+
+# Gap from the top screen edge in pixels.
+gap_top = 6
+
+# Corner radius of the inner bar surface.
+border_radius = 12
+
+# Animated RGB border thickness in pixels.
+border_width = 2
+
+# Duration of one full RGB gradient animation cycle (seconds).
+rgb_cycle_seconds = 4.0
+
+# Inner bar background – translucent for the acrylic / blur effect.
+background = "rgba(30, 30, 46, 0.6)"
+
+[modules]
+# Toggle modules on or off.
+workspaces = true
+clock = true
+system_stats = true
+
+# strftime-compatible format string for the clock module.
+clock_format = "%H:%M:%S"
