@@ -62,16 +62,19 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     let center_box = CenterBox::new();
     center_box.set_hexpand(true);
 
-    // Left: Workspaces
-    if cfg.modules.workspaces {
-        let ws = modules::workspaces::create();
-        center_box.set_start_widget(Some(&ws));
-    }
-
-    // Center: Clock
+    // Center: Clock and Calendar
     if cfg.modules.clock {
+        let time_container = gtk4::Box::new(gtk4::Orientation::Horizontal, 12);
+
+        // Calendar (date display with popover)
+        let calendar = modules::calendar::create();
+        time_container.append(&calendar);
+
+        // Clock (time)
         let clock = modules::clock::create(&cfg.modules.clock_format);
-        center_box.set_center_widget(Some(&clock));
+        time_container.append(&clock);
+
+        center_box.set_center_widget(Some(&time_container));
     }
 
     // Right: System stats / tray placeholder

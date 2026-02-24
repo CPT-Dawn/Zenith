@@ -39,7 +39,6 @@ pub struct BarConfig {
 #[derive(Debug, Deserialize, Clone)]
 #[serde(default)]
 pub struct ModulesConfig {
-    pub workspaces: bool,
     pub clock: bool,
     pub clock_format: String,
     pub system_stats: bool,
@@ -67,7 +66,6 @@ impl Default for BarConfig {
 impl Default for ModulesConfig {
     fn default() -> Self {
         Self {
-            workspaces: true,
             clock: true,
             clock_format: "%H:%M:%S".into(),
             system_stats: true,

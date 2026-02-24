@@ -2,75 +2,112 @@ use crate::config::BarConfig;
 
 /// Generate the complete GTK4 CSS for the Zenith bar.
 ///
-/// The stylesheet accomplishes:
-///   1. A fully transparent application window so the compositor can blur
-///      whatever is behind it.
-///   2. An animated RGB gradient border that continuously rotates via
-///      `@keyframes`.
-///   3. A translucent dark interior that creates the frosted-glass look once
-///      the compositor applies an acrylic / Gaussian blur underneath.
+/// Redesigned to bypass Hyprland blur/shadow bugs:
+///   1. Fully transparent root window.
+///   2. Outer frame uses the animated RGB gradient (No CSS drop-shadows!).
+///   3. Inner panel uses a solid, deep-space opaque color since blur is disabled.
+///   4. Font stack utilizes Inter for clean UI, and JetBrainsMono for hardware numbers/icons.
 pub fn build_css(bar: &BarConfig) -> String {
     let radius = bar.border_radius;
     let bw = bar.border_width;
-    let bg = &bar.background;
     let cycle = bar.rgb_cycle_seconds;
+    let inner_radius = radius.saturating_sub(bw);
 
     format!(
         r#"
-/* ── Reset & transparent foundation ────────────────────────────── */
+/* ── Reset & Transparent Foundation ────────────────────────────── */
 window {{
+    /* This must be 0 to let the border shape define the bar */
     background-color: rgba(0, 0, 0, 0);
 }}
 
-/* ── Outer frame: animated RGB gradient border ─────────────────── */
+/* ── Outer Frame: The Solid Cosmic Strip ───────────────────────── */
 .zenith-border {{
     border-radius: {radius}px;
     padding: {bw}px;
-    /* CSS background gradients for the moving rainbow edge */
-    background-image: linear-gradient(
-        var(--rgb-angle, 0deg),
-        #f38ba8,
-        #fab387,
-        #f9e2af,
-        #a6e3a1,
-        #89dceb,
-        #b4befe,
-        #cba6f7,
-        #f38ba8
+    
+    /* High-contrast synthwave gradient */
+    background: linear-gradient(
+        45deg,
+        #ff0055, 
+        #7700ff, 
+        #00ccff, 
+        #00ff99, 
+        #7700ff, 
+        #ff0055
     );
     background-size: 300% 300%;
-    animation: rgb-shift {cycle}s linear infinite;
+    animation: cosmic-flow {cycle}s linear infinite;
+    
+    /* BUG FIX: Zero box-shadows to prevent Hyprland bounding box artifacts */
+    box-shadow: none;
+    border: none;
 }}
 
-/* ── Inner surface: translucent dark panel ─────────────────────── */
+/* ── Inner Surface: Opaque Command Deck ────────────────────────── */
 .zenith-inner {{
-    background-color: {bg};
+    /* BUG FIX: A solid, premium deep-space black instead of broken blur */
+    background-color: #0d1117; 
     border-radius: {inner_radius}px;
-    padding: 0 12px;
+    padding: 2px 18px; 
 }}
 
-/* ── Module labels ─────────────────────────────────────────────── */
+/* ── Base Typography: Inter ────────────────────────────────────── */
 .zenith-module {{
-    color: #cdd6f4;
-    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", monospace;
+    /* Inter primary for clean text, JetBrains fallback for icons */
+    font-family: "Inter", "JetBrainsMono Nerd Font", sans-serif;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
 }}
 
+/* ── Data Typography: JetBrains Mono ───────────────────────────── */
+/* Target your Clock and Hardware numbers specifically for tabular spacing */
+.zenith-module-center,
+.zenith-module-right {{
+    font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
+    font-weight: 800;
+}}
+
+/* Accent Colors */
 .zenith-module-left {{
-    color: #89b4fa;
+    color: #00ccff; /* Neon Cyan */
 }}
 
 .zenith-module-center {{
-    color: #cdd6f4;
+    color: #ffffff; /* Pure White */
+    text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.3); /* Slight text glow */
 }}
 
 .zenith-module-right {{
-    color: #a6adc8;
+    color: #ff0055; /* Dawn Red */
 }}
 
-/* ── Keyframes: rotate the gradient angle ──────────────────────── */
-@keyframes rgb-shift {{
+/* ── Calendar Popover & Button ─────────────────────────────────── */
+.zenith-calendar-btn {{
+    background: transparent;
+    border: none;
+    padding: 4px 8px;
+    color: #ffffff;
+    font-size: 16px;
+}}
+
+.zenith-calendar-btn:hover {{
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}}
+
+.zenith-calendar {{
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+}}
+
+.zenith-calendar-popup {{
+    background-color: #0d1117;
+    border-radius: 8px;
+}}
+
+/* ── Keyframes: The Endless Engine Flow ────────────────────────── */
+@keyframes cosmic-flow {{
     0%   {{ background-position: 0% 50%; }}
     50%  {{ background-position: 100% 50%; }}
     100% {{ background-position: 0% 50%; }}
@@ -78,8 +115,7 @@ window {{
 "#,
         radius = radius,
         bw = bw,
-        bg = bg,
-        inner_radius = radius.saturating_sub(bw),
+        inner_radius = inner_radius,
         cycle = cycle,
     )
 }

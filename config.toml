@@ -31,7 +31,6 @@ background = "rgba(30, 30, 46, 0.6)"
 
 [modules]
 # Toggle modules on or off.
-workspaces = true
 clock = true
 system_stats = true
 
