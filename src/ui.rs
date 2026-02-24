@@ -19,7 +19,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     // ── Layer-shell setup ────────────────────────────────────────────
     window.init_layer_shell();
     window.set_layer(Layer::Top);
-    window.set_namespace("zenith");
+    window.set_namespace(Some("zenith"));
 
     // Anchor to top, left, and right so the bar stretches across the monitor.
     window.set_anchor(Edge::Top, true);
@@ -38,7 +38,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     // ── Target a specific monitor if configured ──────────────────────
     if let Some(ref connector) = cfg.bar.monitor {
         if let Some(monitor) = find_monitor_by_connector(connector) {
-            window.set_monitor(&monitor);
+            window.set_monitor(Some(&monitor));
         } else {
             log::warn!(
                 "Monitor '{}' not found – falling back to default",
