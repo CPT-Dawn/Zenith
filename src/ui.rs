@@ -43,10 +43,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
         if let Some(monitor) = find_monitor_by_connector(connector) {
             window.set_monitor(Some(&monitor));
         } else {
-            log::warn!(
-                "Monitor '{}' not found – falling back to default",
-                connector
-            );
+            log::warn!("Monitor '{connector}' not found – falling back to default");
         }
     }
 

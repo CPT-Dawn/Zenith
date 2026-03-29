@@ -55,7 +55,9 @@ pub fn create() -> GtkBox {
         let progress = progress.downgrade();
         let button = button.downgrade();
         move |_| {
-            let _ = Command::new("playerctl").arg("play-pause").output();
+            if let Err(err) = Command::new("playerctl").arg("play-pause").output() {
+                log::debug!("playerctl play-pause failed: {err}");
+            }
 
             if let (Some(t), Some(p), Some(b)) =
                 (title.upgrade(), progress.upgrade(), button.upgrade())
@@ -162,18 +164,21 @@ fn read_player_snapshot() -> Option<PlayerSnapshot> {
 }
 
 fn parse_microseconds(input: &str) -> u64 {
-    input
-        .trim()
-        .parse::<u64>()
-        .ok()
-        .or_else(|| {
-            input
-                .trim()
-                .parse::<f64>()
-                .ok()
-                .map(|value| value.max(0.0) as u64)
-        })
-        .unwrap_or(0)
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return 0;
+    }
+
+    if let Ok(value) = trimmed.parse::<u64>() {
+        return value;
+    }
+
+    // Fallback: handle values like "12345.0" without lossy float casting.
+    if let Some((whole, _fraction)) = trimmed.split_once('.') {
+        return whole.trim().parse::<u64>().unwrap_or(0);
+    }
+
+    0
 }
 
 fn progress_fraction(position_us: u64, length_us: u64) -> f64 {
@@ -181,7 +186,18 @@ fn progress_fraction(position_us: u64, length_us: u64) -> f64 {
         return 0.0;
     }
 
-    (position_us as f64 / length_us as f64).clamp(0.0, 1.0)
+    // Compute the ratio in milliseconds to avoid lossy wide-int -> float casts.
+    let current_ms_u64 = position_us / 1_000;
+    let total_ms_u64 = length_us / 1_000;
+    if total_ms_u64 == 0 {
+        return 0.0;
+    }
+
+    let current_ms_u64 = current_ms_u64.min(total_ms_u64);
+    let current_ms = u32::try_from(current_ms_u64).unwrap_or(u32::MAX);
+    let total_ms = u32::try_from(total_ms_u64).unwrap_or(u32::MAX);
+
+    (f64::from(current_ms) / f64::from(total_ms)).clamp(0.0, 1.0)
 }
 
 fn format_microseconds(microseconds: u64) -> String {

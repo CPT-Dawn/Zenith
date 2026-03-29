@@ -50,8 +50,8 @@ pub fn create() -> GtkBox {
 
             // CPU usage (sysinfo 0.30+ syntax)
             if let Some(lbl) = cpu_label.upgrade() {
-                let cpu_pct = (sys.global_cpu_usage() as i32).min(100);
-                lbl.set_label(&format!(" {:>3}%", cpu_pct)); // Pad to 3 chars to stop UI jitter
+                let cpu_pct = sys.global_cpu_usage().clamp(0.0, 100.0);
+                lbl.set_label(&format!(" {cpu_pct:>3.0}%")); // Pad to 3 chars to stop UI jitter
             }
 
             // Memory usage
@@ -59,11 +59,12 @@ pub fn create() -> GtkBox {
                 let total = sys.total_memory();
                 let used = sys.used_memory();
                 let mem_pct = if total > 0 {
-                    ((used as f64 / total as f64) * 100.0) as i32
+                    used.saturating_mul(100) / total
                 } else {
                     0
                 };
-                lbl.set_label(&format!("  {:>3}%", mem_pct.min(100)));
+                let mem_pct = mem_pct.min(100);
+                lbl.set_label(&format!("  {mem_pct:>3}%"));
             }
 
             // Temperature
@@ -81,7 +82,7 @@ pub fn create() -> GtkBox {
                         lbl.add_css_class("zenith-module-temp-hot");
                     }
 
-                    lbl.set_label(&format!(" CPU: {:>3.0}°C", temp));
+                    lbl.set_label(&format!(" CPU: {temp:>3.0}°C"));
                 } else {
                     lbl.remove_css_class("zenith-module-temp-cool");
                     lbl.remove_css_class("zenith-module-temp-warm");
@@ -115,12 +116,9 @@ fn read_cpu_temperature() -> Option<f64> {
                 let name = path.file_name().unwrap_or_default();
                 if let Some(name_str) = name.to_str() {
                     if name_str.starts_with("thermal_zone") {
-                        let temp = read_zone_temp(&path);
-                        if temp.is_none() {
+                        let Some(temp) = read_zone_temp(&path) else {
                             continue;
-                        }
-
-                        let temp = temp.unwrap_or_default();
+                        };
                         let zone_type = fs::read_to_string(path.join("type"))
                             .unwrap_or_default()
                             .to_lowercase();

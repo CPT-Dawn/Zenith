@@ -15,7 +15,7 @@ fn main() -> Result<()> {
 
     // Load configuration early so we can report errors before GTK spins up.
     let cfg = config::load()?;
-    log::debug!("Config: {:#?}", cfg);
+    log::debug!("Config: {cfg:#?}");
 
     let app = Application::builder().application_id(APP_ID).build();
 

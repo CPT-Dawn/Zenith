@@ -2,8 +2,6 @@ use chrono::Local;
 use glib;
 use gtk4::prelude::*;
 use gtk4::Label;
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::time::Duration;
 
 /// Create a clock label that ticks every second.
@@ -20,14 +18,13 @@ pub fn create(format: &str) -> Label {
     label.set_label(&now);
 
     // Keep an owned copy of the format string for the closure.
-    let fmt = Rc::new(RefCell::new(format.to_owned()));
+    let fmt = format.to_owned();
 
     // Tick every second.
     let weak_label = label.downgrade();
-    let fmt_clone = Rc::clone(&fmt);
     glib::timeout_add_local(Duration::from_secs(1), move || {
         if let Some(lbl) = weak_label.upgrade() {
-            let text = Local::now().format(&fmt_clone.borrow()).to_string();
+            let text = Local::now().format(&fmt).to_string();
             lbl.set_label(&text);
             glib::ControlFlow::Continue
         } else {

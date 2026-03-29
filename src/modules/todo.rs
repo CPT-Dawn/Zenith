@@ -32,20 +32,51 @@ impl TodoStore {
     }
 
     pub fn load() -> Self {
-        Self::storage_path()
-            .and_then(|p| fs::read_to_string(p).ok())
-            .and_then(|s| serde_json::from_str(&s).ok())
-            .unwrap_or_default()
+        let Some(path) = Self::storage_path() else {
+            return Self::default();
+        };
+
+        match fs::read_to_string(&path) {
+            Ok(raw) => match serde_json::from_str(&raw) {
+                Ok(store) => store,
+                Err(err) => {
+                    log::warn!("Invalid todo store at {}: {err}", path.display());
+                    Self::default()
+                }
+            },
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => Self::default(),
+            Err(err) => {
+                log::warn!("Failed to read todo store at {}: {err}", path.display());
+                Self::default()
+            }
+        }
     }
 
     pub fn save(&self) {
-        if let Some(path) = Self::storage_path() {
-            if let Some(parent) = path.parent() {
-                let _ = fs::create_dir_all(parent);
+        let Some(path) = Self::storage_path() else {
+            return;
+        };
+
+        if let Some(parent) = path.parent() {
+            if let Err(err) = fs::create_dir_all(parent) {
+                log::warn!(
+                    "Failed to create todo directory {}: {err}",
+                    parent.display()
+                );
+                return;
             }
-            if let Ok(json) = serde_json::to_string_pretty(self) {
-                let _ = fs::write(path, json);
+        }
+
+        let json = match serde_json::to_string_pretty(self) {
+            Ok(json) => json,
+            Err(err) => {
+                log::warn!("Failed to serialize todo store: {err}");
+                return;
             }
+        };
+
+        if let Err(err) = fs::write(&path, json) {
+            log::warn!("Failed to write todo store at {}: {err}", path.display());
         }
     }
 
@@ -62,7 +93,7 @@ impl TodoStore {
 
 // ─── Widget Construction ─────────────────────────────────────────────────────
 
-/// Type alias for the refresh callback wrapped in Rc<RefCell<Option<...>>>.
+/// Type alias for the refresh callback wrapped in `Rc<RefCell<Option<...>>>`.
 type RefreshCallback = Rc<RefCell<Option<Box<dyn Fn()>>>>;
 
 /// Create the todo bar widget: a button that shows the top task or "+" when empty.
@@ -164,7 +195,7 @@ pub fn create() -> GtkBox {
 
     // This closure rebuilds the full list and bar label from the current store.
     let refresh: RefreshCallback = Rc::new(RefCell::new(None));
-    let refresh_clone = Rc::clone(&refresh);
+    let refresh_weak = Rc::downgrade(&refresh);
 
     let store_for_refresh = Rc::clone(&store_rc);
     let bar_btn_for_refresh = bar_btn_weak.clone();
@@ -178,7 +209,7 @@ pub fn create() -> GtkBox {
         let list_box = Rc::clone(&list_box_for_refresh);
         let prog_lbl = Rc::clone(&progress_label_for_refresh);
         let prog_fill = Rc::clone(&progress_fill_for_refresh);
-        let refresh_self = Rc::clone(&refresh_clone);
+        let refresh_for_rows = refresh_weak.clone();
 
         Box::new(move || {
             let s = store.borrow();
@@ -201,9 +232,9 @@ pub fn create() -> GtkBox {
                         .collect::<String>();
 
                     let label = if pending == 0 {
-                        format!("✓ {}", top)
+                        format!("✓ {top}")
                     } else {
-                        format!(" {} [{}]", top, pending)
+                        format!(" {top} [{pending}]")
                     };
                     btn.set_label(&label);
 
@@ -225,25 +256,30 @@ pub fn create() -> GtkBox {
             // ── Update progress label & bar ──────────────────────
             let total = s.items.len();
             let done = s.items.iter().filter(|t| t.done).count();
-            prog_lbl.set_label(&format!("{}/{}", done, total));
+            prog_lbl.set_label(&format!("{done}/{total}"));
 
-            let pct = if total > 0 {
-                (done as f64 / total as f64) * 100.0
+            let completion_pct = if total > 0 {
+                done.saturating_mul(100) / total
             } else {
-                0.0
+                0
             };
-            // We use margin-end trick: fill goes full width, we clip via CSS
-            // Actually, set a size-request proportional fraction of 300px track
-            let fill_px = ((pct / 100.0) * 296.0) as i32;
+
+            // Fill width proportional to the 296px inner progress track.
+            let fill_px_usize = if total > 0 {
+                done.saturating_mul(296) / total
+            } else {
+                0
+            };
+            let fill_px = i32::try_from(fill_px_usize).unwrap_or(296);
             prog_fill.set_width_request(fill_px.max(0));
 
             // Color the progress fill based on completion
             prog_fill.remove_css_class("zenith-todo-fill-low");
             prog_fill.remove_css_class("zenith-todo-fill-mid");
             prog_fill.remove_css_class("zenith-todo-fill-high");
-            if pct >= 75.0 {
+            if completion_pct >= 75 {
                 prog_fill.add_css_class("zenith-todo-fill-high");
-            } else if pct >= 40.0 {
+            } else if completion_pct >= 40 {
                 prog_fill.add_css_class("zenith-todo-fill-mid");
             } else {
                 prog_fill.add_css_class("zenith-todo-fill-low");
@@ -258,6 +294,10 @@ pub fn create() -> GtkBox {
             let items_snapshot: Vec<(usize, TodoItem)> =
                 s.items.iter().cloned().enumerate().collect();
             drop(s); // release borrow before building rows
+
+            let Some(refresh_self) = refresh_for_rows.upgrade() else {
+                return;
+            };
 
             for (idx, item) in items_snapshot {
                 let row = build_todo_row(idx, &item, &store, &refresh_self);
@@ -299,12 +339,15 @@ pub fn create() -> GtkBox {
             // Parse optional priority prefix: "3:Deploy server" → priority=3
             let (priority, task_text) = parse_priority(&text);
 
-            store.borrow_mut().items.push(TodoItem {
-                text: task_text,
-                done: false,
-                priority,
-            });
-            store.borrow().save();
+            {
+                let mut s = store.borrow_mut();
+                s.items.push(TodoItem {
+                    text: task_text,
+                    done: false,
+                    priority,
+                });
+                s.save();
+            }
             entry.set_text("");
 
             if let Some(ref f) = *refresh.borrow() {
@@ -323,15 +366,18 @@ pub fn create() -> GtkBox {
     container
 }
 
-/// Parse "N:text" for priority shorthand. Returns (priority, clean_text).
+/// Parse "N:text" for priority shorthand. Returns `(priority, clean_text)`.
 fn parse_priority(input: &str) -> (u8, String) {
-    if input.len() >= 2 {
-        let first = input.as_bytes()[0];
-        if first.is_ascii_digit() && input.as_bytes()[1] == b':' {
-            let prio = first - b'0';
-            return (prio, input[2..].trim().to_string());
+    if let Some((priority, text)) = input.split_once(':') {
+        if priority.len() == 1 {
+            if let Ok(priority) = priority.parse::<u8>() {
+                if priority <= 9 {
+                    return (priority, text.trim().to_string());
+                }
+            }
         }
     }
+
     (0, input.to_string())
 }
 
@@ -397,12 +443,14 @@ fn build_todo_row(
         let store_c = Rc::clone(store);
         let refresh_c = Rc::clone(refresh);
         up_btn.connect_clicked(move |_| {
-            let mut s = store_c.borrow_mut();
-            if idx > 0 && idx < s.items.len() {
-                s.items.swap(idx, idx - 1);
-                s.save();
+            {
+                let mut s = store_c.borrow_mut();
+                if idx > 0 && idx < s.items.len() {
+                    s.items.swap(idx, idx - 1);
+                    s.save();
+                }
             }
-            drop(s);
+
             if let Some(ref f) = *refresh_c.borrow() {
                 f();
             }
@@ -416,12 +464,14 @@ fn build_todo_row(
     let store_c = Rc::clone(store);
     let refresh_c = Rc::clone(refresh);
     del_btn.connect_clicked(move |_| {
-        let mut s = store_c.borrow_mut();
-        if idx < s.items.len() {
-            s.items.remove(idx);
-            s.save();
+        {
+            let mut s = store_c.borrow_mut();
+            if idx < s.items.len() {
+                s.items.remove(idx);
+                s.save();
+            }
         }
-        drop(s);
+
         if let Some(ref f) = *refresh_c.borrow() {
             f();
         }
@@ -432,12 +482,14 @@ fn build_todo_row(
     let store_c = Rc::clone(store);
     let refresh_c = Rc::clone(refresh);
     check.connect_toggled(move |cb| {
-        let mut s = store_c.borrow_mut();
-        if idx < s.items.len() {
-            s.items[idx].done = cb.is_active();
-            s.save();
+        {
+            let mut s = store_c.borrow_mut();
+            if idx < s.items.len() {
+                s.items[idx].done = cb.is_active();
+                s.save();
+            }
         }
-        drop(s);
+
         if let Some(ref f) = *refresh_c.borrow() {
             f();
         }
