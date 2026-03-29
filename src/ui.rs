@@ -16,6 +16,9 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
         .default_height(cfg.bar.height)
         .build();
 
+    // Keep height config authoritative; default_height is only an initial size hint.
+    window.set_size_request(-1, cfg.bar.height);
+
     // ── Layer-shell setup ────────────────────────────────────────────
     window.init_layer_shell();
     window.set_layer(Layer::Top);
@@ -53,6 +56,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     // ── Widget tree ──────────────────────────────────────────────────
     let outer = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
     outer.add_css_class("zenith-border");
+    outer.set_height_request(cfg.bar.height);
     outer.set_hexpand(true);
 
     let inner = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
@@ -72,7 +76,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
         time_container.append(&calendar);
 
         // Arch logo separator
-        let logo = gtk4::Label::new(Some("\u{f303}")); // Nerd Font: 
+        let logo = gtk4::Label::new(Some("\u{f303}")); // Nerd Font:
         logo.add_css_class("zenith-logo");
         time_container.append(&logo);
 

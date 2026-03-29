@@ -8,7 +8,7 @@ const DEFAULT_CONFIG_TEMPLATE: &str = include_str!("../Default_Config.toml");
 
 /// Top-level configuration for Zenith bar.
 #[derive(Debug, Deserialize, Clone)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 #[derive(Default)]
 pub struct ZenithConfig {
     pub bar: BarConfig,
@@ -17,7 +17,7 @@ pub struct ZenithConfig {
 
 /// Configuration for bar geometry, positioning, and appearance.
 #[derive(Debug, Deserialize, Clone)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct BarConfig {
     /// Monitor connector name to anchor to (e.g. "DP-1", "eDP-1").
     /// If `None`, anchors to the default/primary monitor.
@@ -40,7 +40,7 @@ pub struct BarConfig {
 
 /// Toggle individual bar modules on or off.
 #[derive(Debug, Deserialize, Clone)]
-#[serde(default)]
+#[serde(default, deny_unknown_fields)]
 pub struct ModulesConfig {
     pub clock: bool,
     pub clock_format: String,
@@ -82,10 +82,19 @@ impl Default for ModulesConfig {
 // Loading
 // ---------------------------------------------------------------------------
 
+/// Return the canonical config directory: `~/.config/zenith`.
+pub fn config_dir() -> Result<PathBuf> {
+    let base = dirs::config_dir().context("Could not determine XDG config directory")?;
+    Ok(base.join("zenith"))
+}
+
 /// Return the canonical config path: `~/.config/zenith/config.toml`.
 pub fn config_path() -> Result<PathBuf> {
-    let config_dir = dirs::config_dir().context("Could not determine XDG config directory")?;
-    Ok(config_dir.join("zenith").join("config.toml"))
+    if let Some(path) = std::env::var_os("ZENITH_CONFIG") {
+        return Ok(PathBuf::from(path));
+    }
+
+    Ok(config_dir()?.join("config.toml"))
 }
 
 /// Ensure the config directory and file exist.
@@ -121,20 +130,82 @@ fn ensure_config_file(path: &Path) -> Result<()> {
     }
 }
 
+/// Merge `overlay` into `base`, replacing scalar/array values and recursively
+/// merging tables.
+fn merge_toml_value(base: &mut toml::Value, overlay: toml::Value) {
+    match (base, overlay) {
+        (toml::Value::Table(base_table), toml::Value::Table(overlay_table)) => {
+            for (key, value) in overlay_table {
+                if let Some(base_value) = base_table.get_mut(&key) {
+                    merge_toml_value(base_value, value);
+                } else {
+                    base_table.insert(key, value);
+                }
+            }
+        }
+        (base_slot, overlay_value) => {
+            *base_slot = overlay_value;
+        }
+    }
+}
+
 /// Load configuration from `~/.config/zenith/config.toml`.
 ///
 /// If the file does not exist, it is created from `Default_Config.toml`.
-/// Individual missing keys still fall back to struct defaults via `serde`.
+/// Missing keys in the user config fall back to values from the default
+/// template so template edits are applied consistently.
 pub fn load() -> Result<ZenithConfig> {
     let path = config_path()?;
     ensure_config_file(&path)?;
 
+    if let Ok(cwd) = std::env::current_dir() {
+        let local_cfg = cwd.join("config.toml");
+        if local_cfg.exists() && local_cfg != path {
+            log::warn!(
+                "Ignoring local config at {}; using {}",
+                local_cfg.display(),
+                path.display()
+            );
+        }
+    }
+
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read config at {}", path.display()))?;
 
-    let config: ZenithConfig =
+    let mut merged: toml::Value = toml::from_str(DEFAULT_CONFIG_TEMPLATE)
+        .context("Failed to parse embedded default config template")?;
+    let user_value: toml::Value =
         toml::from_str(&raw).with_context(|| format!("Failed to parse {}", path.display()))?;
 
+    merge_toml_value(&mut merged, user_value);
+
+    let config: ZenithConfig = merged.try_into().with_context(|| {
+        format!(
+            "Failed to deserialize merged config from {}",
+            path.display()
+        )
+    })?;
+
     log::info!("Loaded configuration from {}", path.display());
+    log::info!(
+        "Applied config: height={}, gap_h={}, gap_top={}, radius={}, border_w={}, cycle={}s, clock={}, system_stats={}, todo={}",
+        config.bar.height,
+        config.bar.gap_horizontal,
+        config.bar.gap_top,
+        config.bar.border_radius,
+        config.bar.border_width,
+        config.bar.rgb_cycle_seconds,
+        config.modules.clock,
+        config.modules.system_stats,
+        config.modules.todo
+    );
+
+    if let Some(override_path) = std::env::var_os("ZENITH_CONFIG") {
+        log::info!(
+            "ZENITH_CONFIG override active: {}",
+            PathBuf::from(override_path).display()
+        );
+    }
+
     Ok(config)
 }

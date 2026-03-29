@@ -6,7 +6,7 @@
 [bar]
 # Monitor connector name.  Leave commented out to use the default monitor.
 # Examples: "eDP-1" (laptop), "DP-1", "HDMI-A-1"
-monitor = "eDP-1"
+# monitor = "eDP-1"
 
 # Bar height in pixels.
 height = 40
@@ -31,6 +31,7 @@ background = "rgba(30, 30, 46, 0.6)"
 
 [modules]
 # Toggle modules on or off.
+# Set to `false` explicitly to disable a module.
 clock = true
 system_stats = true
 todo = true

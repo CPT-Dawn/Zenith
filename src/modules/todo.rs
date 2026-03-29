@@ -26,7 +26,9 @@ pub struct TodoStore {
 impl TodoStore {
     /// Path: ~/.config/zenith/todos.json
     fn storage_path() -> Option<PathBuf> {
-        dirs::config_dir().map(|d| d.join("zenith").join("todos.json"))
+        crate::config::config_dir()
+            .ok()
+            .map(|d| d.join("todos.json"))
     }
 
     pub fn load() -> Self {
@@ -54,10 +56,7 @@ impl TodoStore {
 
     /// First incomplete item text (the one shown on the bar).
     pub fn top_task(&self) -> Option<&str> {
-        self.items
-            .iter()
-            .find(|t| !t.done)
-            .map(|t| t.text.as_str())
+        self.items.iter().find(|t| !t.done).map(|t| t.text.as_str())
     }
 }
 
