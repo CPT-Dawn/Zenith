@@ -11,6 +11,7 @@ use std::time::Duration;
 pub fn create(format: &str) -> Label {
     let label = Label::new(None);
     label.add_css_class("zenith-module");
+    label.add_css_class("zenith-module-surface");
     label.add_css_class("zenith-module-center");
 
     // Immediately show the current time so there's no blank frame.

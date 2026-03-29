@@ -17,6 +17,7 @@ const TEMP_CLASS_BASE: &str = ".zenith-module-temp";
 const TEMP_CLASS_COOL: &str = ".zenith-module-temp-cool";
 const TEMP_CLASS_WARM: &str = ".zenith-module-temp-warm";
 const TEMP_CLASS_HOT: &str = ".zenith-module-temp-hot";
+const MODULE_SURFACE_CLASS: &str = ".zenith-module-surface";
 const TODO_PLUS_CLASS: &str = ".zenith-todo-btn-plus";
 const PLAYER_BTN_CLASS: &str = ".zenith-player-btn";
 const PLAYER_TITLE_CLASS: &str = ".zenith-player-title";
@@ -89,6 +90,7 @@ fn ensure_compat_style_rules(css: &str) -> String {
     let has_cool = css.contains(TEMP_CLASS_COOL);
     let has_warm = css.contains(TEMP_CLASS_WARM);
     let has_hot = css.contains(TEMP_CLASS_HOT);
+    let has_module_surface = css.contains(MODULE_SURFACE_CLASS);
     let has_todo_plus = css.contains(TODO_PLUS_CLASS);
     let has_player_btn = css.contains(PLAYER_BTN_CLASS);
     let has_player_title = css.contains(PLAYER_TITLE_CLASS);
@@ -98,6 +100,7 @@ fn ensure_compat_style_rules(css: &str) -> String {
         && has_cool
         && has_warm
         && has_hot
+        && has_module_surface
         && has_todo_plus
         && has_player_btn
         && has_player_title
@@ -121,6 +124,15 @@ fn ensure_compat_style_rules(css: &str) -> String {
     }
     if !has_hot {
         out.push_str(".zenith-module-temp-hot { color: #ff5555; }\n");
+    }
+    if !has_module_surface {
+        out.push_str(
+            ".zenith-module-surface { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 8px; padding: 4px 10px; transition: background 160ms ease, border-color 160ms ease; }\n",
+        );
+        out.push_str(
+            ".zenith-module-surface:hover { background: rgba(255, 255, 255, 0.10); border-color: rgba(255, 255, 255, 0.18); }\n",
+        );
+        out.push_str(".zenith-module-surface:active { background: rgba(255, 255, 255, 0.14); }\n");
     }
     if !has_todo_plus {
         out.push_str(

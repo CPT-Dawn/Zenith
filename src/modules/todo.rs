@@ -107,6 +107,7 @@ pub fn create() -> GtkBox {
     let bar_btn = Button::new();
     bar_btn.add_css_class("zenith-todo-btn");
     bar_btn.add_css_class("zenith-module");
+    bar_btn.add_css_class("zenith-module-surface");
     bar_btn.add_css_class("zenith-module-left");
     container.append(&bar_btn);
 

@@ -15,18 +15,21 @@ pub fn create() -> GtkBox {
     // CPU label with Nerd Font Icon
     let cpu_label = Label::new(Some(" CPU: --%"));
     cpu_label.add_css_class("zenith-module");
+    cpu_label.add_css_class("zenith-module-surface");
     cpu_label.add_css_class("zenith-module-right");
     container.append(&cpu_label);
 
     // Memory label with Nerd Font Icon
     let mem_label = Label::new(Some("  MEM: --%"));
     mem_label.add_css_class("zenith-module");
+    mem_label.add_css_class("zenith-module-surface");
     mem_label.add_css_class("zenith-module-right");
     container.append(&mem_label);
 
     // Temperature label with Nerd Font Icon
     let temp_label = Label::new(Some(" CPU: --°C"));
     temp_label.add_css_class("zenith-module");
+    temp_label.add_css_class("zenith-module-surface");
     temp_label.add_css_class("zenith-module-right");
     temp_label.add_css_class("zenith-module-temp");
     container.append(&temp_label);

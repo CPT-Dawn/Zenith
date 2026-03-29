@@ -13,6 +13,7 @@ pub fn create() -> Button {
     let btn = Button::new();
     btn.add_css_class("zenith-calendar-btn");
     btn.add_css_class("zenith-module");
+    btn.add_css_class("zenith-module-surface");
     btn.add_css_class("zenith-module-center");
     update_button_label(&btn);
 

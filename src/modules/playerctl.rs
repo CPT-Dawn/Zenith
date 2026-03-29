@@ -22,6 +22,7 @@ pub fn create() -> GtkBox {
     let button = Button::new();
     button.add_css_class("zenith-player-btn");
     button.add_css_class("zenith-module");
+    button.add_css_class("zenith-module-surface");
     button.add_css_class("zenith-module-right");
 
     let content = GtkBox::new(Orientation::Vertical, 2);
