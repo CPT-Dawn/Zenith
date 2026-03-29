@@ -26,6 +26,7 @@ pub fn create() -> Button {
     popover.set_cascade_popdown(true);
     popover.set_has_arrow(false);
     popover.set_position(gtk4::PositionType::Bottom);
+    popover.set_offset(0, 10);
     popover.add_css_class("zenith-calendar-popup");
     popover.set_parent(&btn);
 
