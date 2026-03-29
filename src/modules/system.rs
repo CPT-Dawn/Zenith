@@ -25,9 +25,10 @@ pub fn create() -> GtkBox {
     container.append(&mem_label);
 
     // Temperature label with Nerd Font Icon
-    let temp_label = Label::new(Some(" TEMP: --°C"));
+    let temp_label = Label::new(Some(" CPU: --°C"));
     temp_label.add_css_class("zenith-module");
     temp_label.add_css_class("zenith-module-right");
+    temp_label.add_css_class("zenith-module-temp");
     container.append(&temp_label);
 
     // Shared system state (Using new() instead of new_all() to save memory)
@@ -68,7 +69,24 @@ pub fn create() -> GtkBox {
             // Temperature
             if let Some(lbl) = temp_label.upgrade() {
                 if let Some(temp) = read_cpu_temperature() {
-                    lbl.set_label(&format!(" {:.0}°C", temp));
+                    lbl.remove_css_class("zenith-module-temp-cool");
+                    lbl.remove_css_class("zenith-module-temp-warm");
+                    lbl.remove_css_class("zenith-module-temp-hot");
+
+                    if temp < 50.0 {
+                        lbl.add_css_class("zenith-module-temp-cool");
+                    } else if temp < 75.0 {
+                        lbl.add_css_class("zenith-module-temp-warm");
+                    } else {
+                        lbl.add_css_class("zenith-module-temp-hot");
+                    }
+
+                    lbl.set_label(&format!(" CPU: {:>3.0}°C", temp));
+                } else {
+                    lbl.remove_css_class("zenith-module-temp-cool");
+                    lbl.remove_css_class("zenith-module-temp-warm");
+                    lbl.remove_css_class("zenith-module-temp-hot");
+                    lbl.set_label(" CPU: --°C");
                 }
             }
 
@@ -86,8 +104,8 @@ fn read_cpu_temperature() -> Option<f64> {
         return None;
     }
 
-    let mut max_temp: f64 = 0.0;
-    let mut found_any = false;
+    let mut cpu_temp: Option<f64> = None;
+    let mut fallback_temp: Option<f64> = None;
 
     if let Ok(entries) = fs::read_dir(thermal_zone_dir) {
         for entry in entries.flatten() {
@@ -97,19 +115,21 @@ fn read_cpu_temperature() -> Option<f64> {
                 let name = path.file_name().unwrap_or_default();
                 if let Some(name_str) = name.to_str() {
                     if name_str.starts_with("thermal_zone") {
-                        // OPTIONAL PRO-TIP: You can read the "type" file here to filter out
-                        // battery temps or Wi-Fi card temps if your numbers look weird.
-                        // e.g., if fs::read_to_string(path.join("type")) == "x86_pkg_temp"
+                        let temp = read_zone_temp(&path);
+                        if temp.is_none() {
+                            continue;
+                        }
 
-                        let temp_path = path.join("temp");
-                        if let Ok(contents) = fs::read_to_string(temp_path) {
-                            if let Ok(millidegrees) = contents.trim().parse::<f64>() {
-                                let temp_celsius = millidegrees / 1000.0;
-                                if temp_celsius > 0.0 && temp_celsius < 150.0 {
-                                    max_temp = max_temp.max(temp_celsius);
-                                    found_any = true;
-                                }
-                            }
+                        let temp = temp.unwrap_or_default();
+                        let zone_type = fs::read_to_string(path.join("type"))
+                            .unwrap_or_default()
+                            .to_lowercase();
+
+                        if is_cpu_zone_type(&zone_type) {
+                            cpu_temp = Some(cpu_temp.map_or(temp, |current| current.max(temp)));
+                        } else {
+                            fallback_temp =
+                                Some(fallback_temp.map_or(temp, |current| current.max(temp)));
                         }
                     }
                 }
@@ -117,9 +137,27 @@ fn read_cpu_temperature() -> Option<f64> {
         }
     }
 
-    if found_any {
-        Some(max_temp)
+    cpu_temp.or(fallback_temp)
+}
+
+fn read_zone_temp(path: &Path) -> Option<f64> {
+    let contents = fs::read_to_string(path.join("temp")).ok()?;
+    let millidegrees = contents.trim().parse::<f64>().ok()?;
+    let temp_celsius = millidegrees / 1000.0;
+
+    if (0.0..150.0).contains(&temp_celsius) {
+        Some(temp_celsius)
     } else {
         None
     }
+}
+
+fn is_cpu_zone_type(zone_type: &str) -> bool {
+    let ty = zone_type.trim();
+
+    ty.contains("cpu")
+        || ty.contains("x86_pkg_temp")
+        || ty.contains("coretemp")
+        || ty.contains("k10temp")
+        || ty.contains("package")
 }

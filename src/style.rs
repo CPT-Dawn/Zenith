@@ -13,6 +13,11 @@ const TOKEN_INNER_RADIUS: &str = "__ZENITH_INNER_RADIUS__";
 const TOKEN_CYCLE_SECONDS: &str = "__ZENITH_CYCLE_SECONDS__";
 const TOKEN_BACKGROUND: &str = "__ZENITH_BACKGROUND__";
 
+const TEMP_CLASS_BASE: &str = ".zenith-module-temp";
+const TEMP_CLASS_COOL: &str = ".zenith-module-temp-cool";
+const TEMP_CLASS_WARM: &str = ".zenith-module-temp-warm";
+const TEMP_CLASS_HOT: &str = ".zenith-module-temp-hot";
+
 /// Return the canonical style path: `~/.config/zenith/style.css`.
 pub fn style_path() -> Result<PathBuf> {
     if let Some(path) = std::env::var_os("ZENITH_STYLE") {
@@ -73,6 +78,38 @@ fn render_template(template: &str, bar: &BarConfig) -> String {
         .replace(TOKEN_BACKGROUND, &bar.background)
 }
 
+/// Append fallback temperature rules when older user stylesheets don't define
+/// the new temperature classes yet.
+fn ensure_temperature_style_rules(css: &str) -> String {
+    let has_base = css.contains(TEMP_CLASS_BASE);
+    let has_cool = css.contains(TEMP_CLASS_COOL);
+    let has_warm = css.contains(TEMP_CLASS_WARM);
+    let has_hot = css.contains(TEMP_CLASS_HOT);
+
+    if has_base && has_cool && has_warm && has_hot {
+        return css.to_string();
+    }
+
+    let mut out = String::with_capacity(css.len() + 220);
+    out.push_str(css);
+    out.push_str("\n\n/* Injected defaults for CPU temperature styling */\n");
+
+    if !has_base {
+        out.push_str(".zenith-module-temp { color: #ffcc00; }\n");
+    }
+    if !has_cool {
+        out.push_str(".zenith-module-temp-cool { color: #00ccff; }\n");
+    }
+    if !has_warm {
+        out.push_str(".zenith-module-temp-warm { color: #ffcc00; }\n");
+    }
+    if !has_hot {
+        out.push_str(".zenith-module-temp-hot { color: #ff5555; }\n");
+    }
+
+    out
+}
+
 /// Load the user stylesheet from disk and apply config-driven template values.
 pub fn load(bar: &BarConfig) -> Result<String> {
     let path = style_path()?;
@@ -92,7 +129,7 @@ pub fn load(bar: &BarConfig) -> Result<String> {
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read style at {}", path.display()))?;
 
-    let css = render_template(&raw, bar);
+    let css = ensure_temperature_style_rules(&render_template(&raw, bar));
 
     log::info!("Loaded style from {}", path.display());
 

@@ -8,20 +8,18 @@ window {
 .zenith-border {
     border-radius: __ZENITH_RADIUS__px;
     padding: __ZENITH_BORDER_WIDTH__px;
-    
+
     /* High-contrast synthwave gradient */
-    background: linear-gradient(
-        45deg,
-        #ff0055, 
-        #7700ff, 
-        #00ccff, 
-        #00ff99, 
-        #7700ff, 
-        #ff0055
-    );
+    background: linear-gradient(45deg,
+            #ff0055,
+            #7700ff,
+            #00ccff,
+            #00ff99,
+            #7700ff,
+            #ff0055);
     background-size: 300% 300%;
     animation: cosmic-flow __ZENITH_CYCLE_SECONDS__s linear infinite;
-    
+
     /* BUG FIX: Zero box-shadows to prevent Hyprland bounding box artifacts */
     box-shadow: none;
     border: none;
@@ -31,7 +29,7 @@ window {
 .zenith-inner {
     background-color: __ZENITH_BACKGROUND__;
     border-radius: __ZENITH_INNER_RADIUS__px;
-    padding: 2px 18px; 
+    padding: 2px 18px;
 }
 
 /* -- Base Typography: Inter -------------------------------------- */
@@ -52,16 +50,41 @@ window {
 
 /* Accent Colors */
 .zenith-module-left {
-    color: #00ccff; /* Neon Cyan */
+    color: #00ccff;
+    /* Neon Cyan */
 }
 
 .zenith-module-center {
-    color: #ffffff; /* Pure White */
-    text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.3); /* Slight text glow */
+    color: #ffffff;
+    /* Pure White */
+    text-shadow: 0px 0px 8px rgba(255, 255, 255, 0.3);
+    /* Slight text glow */
 }
 
 .zenith-module-right {
-    color: #ff0055; /* Dawn Red */
+    color: #ff0055;
+    /* Dawn Red */
+}
+
+/* CPU temperature styling options */
+.zenith-module-temp {
+    color: #ffcc00;
+    /* Base/fallback temperature color */
+}
+
+/* Cool (<50C) */
+.zenith-module-temp-cool {
+    color: #00ccff;
+}
+
+/* Warm (50C-74C) */
+.zenith-module-temp-warm {
+    color: #ffcc00;
+}
+
+/* Hot (>=75C) */
+.zenith-module-temp-hot {
+    color: #ff5555;
 }
 
 /* -- Arch Logo --------------------------------------------------- */
@@ -104,7 +127,7 @@ window {
 }
 
 /* GTK popover inner contents wrapper */
-.zenith-calendar-popup > contents {
+.zenith-calendar-popup>contents {
     background-color: #0d1117;
     border-radius: 12px;
     padding: 4px;
@@ -118,18 +141,18 @@ window {
 }
 
 /* Calendar header (month/year navigation) */
-.zenith-calendar > header {
+.zenith-calendar>header {
     color: #ffffff;
     font-weight: 700;
 }
 
-.zenith-calendar > header > button {
+.zenith-calendar>header>button {
     color: #00ccff;
     background: transparent;
     border: none;
 }
 
-.zenith-calendar > header > button:hover {
+.zenith-calendar>header>button:hover {
     background: rgba(0, 204, 255, 0.15);
     border-radius: 6px;
 }
@@ -201,7 +224,7 @@ window {
     padding: 0;
 }
 
-.zenith-todo-popup > contents {
+.zenith-todo-popup>contents {
     background-color: #0d1117;
     border-radius: 14px;
     padding: 0;
@@ -426,18 +449,40 @@ window {
 
 /* -- Keyframes --------------------------------------------------- */
 @keyframes todo-pulse {
-    0%, 100% { text-shadow: 0px 0px 8px rgba(0, 204, 255, 0.3); }
-    50%      { text-shadow: 0px 0px 16px rgba(0, 204, 255, 0.7); }
+
+    0%,
+    100% {
+        text-shadow: 0px 0px 8px rgba(0, 204, 255, 0.3);
+    }
+
+    50% {
+        text-shadow: 0px 0px 16px rgba(0, 204, 255, 0.7);
+    }
 }
 
 @keyframes todo-urgent {
-    0%, 100% { text-shadow: 0px 0px 6px rgba(255, 85, 85, 0.3); }
-    50%      { text-shadow: 0px 0px 14px rgba(255, 85, 85, 0.6); }
+
+    0%,
+    100% {
+        text-shadow: 0px 0px 6px rgba(255, 85, 85, 0.3);
+    }
+
+    50% {
+        text-shadow: 0px 0px 14px rgba(255, 85, 85, 0.6);
+    }
 }
 
 /* -- Keyframes: The Endless Engine Flow -------------------------- */
 @keyframes cosmic-flow {
-    0%   { background-position: 0% 50%; }
-    50%  { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
