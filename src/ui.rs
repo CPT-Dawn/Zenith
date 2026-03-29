@@ -8,7 +8,6 @@ use crate::config::ZenithConfig;
 use crate::modules;
 use crate::style;
 
-const CENTER_CLUSTER_SPACING: i32 = 0;
 const RIGHT_CLUSTER_SPACING: i32 = 14;
 
 /// Build and present the bar window for the given GTK `Application`.
@@ -68,23 +67,40 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
 
     // Center: Date │  │ Time
     if cfg.modules.clock {
-        let time_container = gtk4::Box::new(gtk4::Orientation::Horizontal, CENTER_CLUSTER_SPACING);
+        let time_container = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
+        time_container.set_homogeneous(true);
         time_container.set_halign(gtk4::Align::Center);
 
         // Date (clickable → calendar popover)
         let calendar = modules::calendar::create();
-        time_container.append(&calendar);
+        let date_slot = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
+        date_slot.set_halign(gtk4::Align::End);
+        date_slot.set_hexpand(true);
+        date_slot.append(&calendar);
 
-        // Arch logo separator
+        // Arch logo separator inside a transparent module shell
+        let logo_module = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
+        logo_module.add_css_class("zenith-module-surface");
+        logo_module.add_css_class("zenith-logo-module");
+        logo_module.set_halign(gtk4::Align::Center);
+        logo_module.set_valign(gtk4::Align::Center);
+
         let logo = gtk4::Label::new(Some("\u{f303}")); // Nerd Font:
         logo.add_css_class("zenith-logo");
-        logo.set_margin_start(2);
-        logo.set_margin_end(2);
-        time_container.append(&logo);
+        logo.set_halign(gtk4::Align::Center);
+        logo.set_valign(gtk4::Align::Center);
+        logo_module.append(&logo);
 
         // Clock (ticking time)
         let clock = modules::clock::create(&cfg.modules.clock_format);
-        time_container.append(&clock);
+        let clock_slot = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
+        clock_slot.set_halign(gtk4::Align::Start);
+        clock_slot.set_hexpand(true);
+        clock_slot.append(&clock);
+
+        time_container.append(&date_slot);
+        time_container.append(&logo_module);
+        time_container.append(&clock_slot);
 
         center_box.set_center_widget(Some(&time_container));
     }
