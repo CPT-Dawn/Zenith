@@ -1,7 +1,10 @@
 use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+
+/// Embedded default template copied to disk on first launch.
+const DEFAULT_CONFIG_TEMPLATE: &str = include_str!("../Default_Config.toml");
 
 /// Top-level configuration for Zenith bar.
 #[derive(Debug, Deserialize, Clone)]
@@ -85,18 +88,46 @@ pub fn config_path() -> Result<PathBuf> {
     Ok(config_dir.join("zenith").join("config.toml"))
 }
 
-/// Load configuration from disk, falling back to defaults when the file is
-/// absent or individual keys are missing.
+/// Ensure the config directory and file exist.
+///
+/// If `config.toml` is missing, this writes `Default_Config.toml` as the
+/// initial user-facing configuration.
+fn ensure_config_file(path: &Path) -> Result<()> {
+    let parent = path
+        .parent()
+        .context("Config path has no parent directory")?;
+
+    fs::create_dir_all(parent)
+        .with_context(|| format!("Failed to create config directory {}", parent.display()))?;
+
+    match fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(path)
+    {
+        Ok(mut file) => {
+            use std::io::Write;
+
+            file.write_all(DEFAULT_CONFIG_TEMPLATE.as_bytes())
+                .with_context(|| format!("Failed to write default config to {}", path.display()))?;
+
+            log::info!("Created default config at {}", path.display());
+            Ok(())
+        }
+        Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => Ok(()),
+        Err(err) => {
+            Err(err).with_context(|| format!("Failed to create config file {}", path.display()))
+        }
+    }
+}
+
+/// Load configuration from `~/.config/zenith/config.toml`.
+///
+/// If the file does not exist, it is created from `Default_Config.toml`.
+/// Individual missing keys still fall back to struct defaults via `serde`.
 pub fn load() -> Result<ZenithConfig> {
     let path = config_path()?;
-
-    if !path.exists() {
-        log::info!(
-            "Config file not found at {}, using defaults",
-            path.display()
-        );
-        return Ok(ZenithConfig::default());
-    }
+    ensure_config_file(&path)?;
 
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read config at {}", path.display()))?;

@@ -11,6 +11,7 @@ pub fn build_css(bar: &BarConfig) -> String {
     let radius = bar.border_radius;
     let bw = bar.border_width;
     let cycle = bar.rgb_cycle_seconds;
+    let background = &bar.background;
     let inner_radius = radius.saturating_sub(bw);
 
     format!(
@@ -46,8 +47,7 @@ window {{
 
 /* ── Inner Surface: Opaque Command Deck ────────────────────────── */
 .zenith-inner {{
-    /* BUG FIX: A solid, premium deep-space black instead of broken blur */
-    background-color: #211f49; 
+    background-color: {background};
     border-radius: {inner_radius}px;
     padding: 2px 18px; 
 }}
@@ -462,6 +462,7 @@ window {{
 "#,
         radius = radius,
         bw = bw,
+        background = background,
         inner_radius = inner_radius,
         cycle = cycle,
     )

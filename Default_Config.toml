@@ -1,12 +1,12 @@
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║                    Zenith – Configuration                       ║
+# ║                    Zenith – Configuration                        ║
 # ╚══════════════════════════════════════════════════════════════════╝
 # Place this file at:  ~/.config/zenith/config.toml
 
 [bar]
 # Monitor connector name.  Leave commented out to use the default monitor.
 # Examples: "eDP-1" (laptop), "DP-1", "HDMI-A-1"
-# monitor = "eDP-1"
+monitor = "eDP-1"
 
 # Bar height in pixels.
 height = 40
