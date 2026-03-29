@@ -108,10 +108,10 @@ window {
 /* -- Arch Logo --------------------------------------------------- */
 .zenith-logo {
     font-family: "JetBrainsMono Nerd Font", monospace;
-    font-size: 18px;
+    font-size: 22px;
     color: #00ccff;
-    text-shadow: 0px 0px 10px rgba(0, 204, 255, 0.5);
-    padding: 0 2px;
+    text-shadow: 0px 0px 12px rgba(0, 204, 255, 0.55);
+    padding: 0 8px;
 }
 
 /* -- Calendar: Clickable Date Button ----------------------------- */

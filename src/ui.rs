@@ -8,6 +8,9 @@ use crate::config::ZenithConfig;
 use crate::modules;
 use crate::style;
 
+const CENTER_CLUSTER_SPACING: i32 = 0;
+const RIGHT_CLUSTER_SPACING: i32 = 14;
+
 /// Build and present the bar window for the given GTK `Application`.
 pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     let window = ApplicationWindow::builder()
@@ -65,7 +68,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
 
     // Center: Date │  │ Time
     if cfg.modules.clock {
-        let time_container = gtk4::Box::new(gtk4::Orientation::Horizontal, 10);
+        let time_container = gtk4::Box::new(gtk4::Orientation::Horizontal, CENTER_CLUSTER_SPACING);
         time_container.set_halign(gtk4::Align::Center);
 
         // Date (clickable → calendar popover)
@@ -75,6 +78,8 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
         // Arch logo separator
         let logo = gtk4::Label::new(Some("\u{f303}")); // Nerd Font:
         logo.add_css_class("zenith-logo");
+        logo.set_margin_start(2);
+        logo.set_margin_end(2);
         time_container.append(&logo);
 
         // Clock (ticking time)
@@ -92,7 +97,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
 
     // Right: Player + system stats
     if cfg.modules.system_stats || cfg.modules.playerctl {
-        let end_container = gtk4::Box::new(gtk4::Orientation::Horizontal, 10);
+        let end_container = gtk4::Box::new(gtk4::Orientation::Horizontal, RIGHT_CLUSTER_SPACING);
         end_container.set_halign(gtk4::Align::End);
 
         if cfg.modules.playerctl {
