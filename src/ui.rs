@@ -93,10 +93,22 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
         center_box.set_start_widget(Some(&todo));
     }
 
-    // Right: System stats / tray placeholder
-    if cfg.modules.system_stats {
-        let sys = modules::system::create();
-        center_box.set_end_widget(Some(&sys));
+    // Right: Player + system stats
+    if cfg.modules.system_stats || cfg.modules.playerctl {
+        let end_container = gtk4::Box::new(gtk4::Orientation::Horizontal, 10);
+        end_container.set_halign(gtk4::Align::End);
+
+        if cfg.modules.playerctl {
+            let player = modules::playerctl::create();
+            end_container.append(&player);
+        }
+
+        if cfg.modules.system_stats {
+            let sys = modules::system::create();
+            end_container.append(&sys);
+        }
+
+        center_box.set_end_widget(Some(&end_container));
     }
 
     inner.append(&center_box);

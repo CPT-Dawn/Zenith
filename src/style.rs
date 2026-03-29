@@ -18,6 +18,9 @@ const TEMP_CLASS_COOL: &str = ".zenith-module-temp-cool";
 const TEMP_CLASS_WARM: &str = ".zenith-module-temp-warm";
 const TEMP_CLASS_HOT: &str = ".zenith-module-temp-hot";
 const TODO_PLUS_CLASS: &str = ".zenith-todo-btn-plus";
+const PLAYER_BTN_CLASS: &str = ".zenith-player-btn";
+const PLAYER_TITLE_CLASS: &str = ".zenith-player-title";
+const PLAYER_PROGRESS_CLASS: &str = ".zenith-player-progress";
 
 /// Return the canonical style path: `~/.config/zenith/style.css`.
 pub fn style_path() -> Result<PathBuf> {
@@ -87,12 +90,23 @@ fn ensure_compat_style_rules(css: &str) -> String {
     let has_warm = css.contains(TEMP_CLASS_WARM);
     let has_hot = css.contains(TEMP_CLASS_HOT);
     let has_todo_plus = css.contains(TODO_PLUS_CLASS);
+    let has_player_btn = css.contains(PLAYER_BTN_CLASS);
+    let has_player_title = css.contains(PLAYER_TITLE_CLASS);
+    let has_player_progress = css.contains(PLAYER_PROGRESS_CLASS);
 
-    if has_base && has_cool && has_warm && has_hot && has_todo_plus {
+    if has_base
+        && has_cool
+        && has_warm
+        && has_hot
+        && has_todo_plus
+        && has_player_btn
+        && has_player_title
+        && has_player_progress
+    {
         return css.to_string();
     }
 
-    let mut out = String::with_capacity(css.len() + 340);
+    let mut out = String::with_capacity(css.len() + 980);
     out.push_str(css);
     out.push_str("\n\n/* Injected defaults for backward-compatible styling */\n");
 
@@ -111,6 +125,25 @@ fn ensure_compat_style_rules(css: &str) -> String {
     if !has_todo_plus {
         out.push_str(
             ".zenith-todo-btn-plus { font-size: 18px; font-weight: 800; min-width: 28px; padding: 2px 12px; line-height: 1; }\n",
+        );
+    }
+    if !has_player_btn {
+        out.push_str(
+            ".zenith-player-btn { background: transparent; border: none; box-shadow: none; padding: 2px 10px; min-height: 0; min-width: 180px; }\n",
+        );
+    }
+    if !has_player_title {
+        out.push_str(
+            ".zenith-player-title { font-family: \"JetBrainsMono Nerd Font\", \"Inter\", monospace; font-size: 12px; font-weight: 700; color: #cdd6f4; }\n",
+        );
+    }
+    if !has_player_progress {
+        out.push_str(".zenith-player-progress { min-height: 3px; }\n");
+        out.push_str(
+            ".zenith-player-progress trough { min-height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); }\n",
+        );
+        out.push_str(
+            ".zenith-player-progress progress { min-height: 3px; border-radius: 2px; background: linear-gradient(90deg, #00ccff, #00ff99); }\n",
         );
     }
 

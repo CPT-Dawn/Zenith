@@ -46,6 +46,7 @@ pub struct ModulesConfig {
     pub clock_format: String,
     pub system_stats: bool,
     pub todo: bool,
+    pub playerctl: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -74,6 +75,7 @@ impl Default for ModulesConfig {
             clock_format: "%H:%M:%S".into(),
             system_stats: true,
             todo: true,
+            playerctl: true,
         }
     }
 }
@@ -188,7 +190,7 @@ pub fn load() -> Result<ZenithConfig> {
 
     log::info!("Loaded configuration from {}", path.display());
     log::info!(
-        "Applied config: height={}, gap_h={}, gap_top={}, radius={}, border_w={}, cycle={}s, clock={}, system_stats={}, todo={}",
+        "Applied config: height={}, gap_h={}, gap_top={}, radius={}, border_w={}, cycle={}s, clock={}, system_stats={}, todo={}, playerctl={}",
         config.bar.height,
         config.bar.gap_horizontal,
         config.bar.gap_top,
@@ -197,7 +199,8 @@ pub fn load() -> Result<ZenithConfig> {
         config.bar.rgb_cycle_seconds,
         config.modules.clock,
         config.modules.system_stats,
-        config.modules.todo
+        config.modules.todo,
+        config.modules.playerctl
     );
 
     if let Some(override_path) = std::env::var_os("ZENITH_CONFIG") {

@@ -35,6 +35,7 @@ background = "rgba(30, 30, 46, 0.6)"
 # Set to `false` explicitly to disable a module.
 clock = true
 system_stats = true
+playerctl = true
 todo = true
 
 # strftime-compatible format string for the clock module.

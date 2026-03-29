@@ -170,6 +170,51 @@ window {
 }
 
 /* ===================================================================
+   PLAYERCTL MODULE: Now Playing
+   =================================================================== */
+
+.zenith-player-btn {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 2px 10px;
+    min-height: 0;
+    min-width: 180px;
+}
+
+.zenith-player-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+}
+
+.zenith-player-btn:active {
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.zenith-player-title {
+    font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #cdd6f4;
+}
+
+.zenith-player-progress {
+    min-height: 3px;
+}
+
+.zenith-player-progress trough {
+    min-height: 3px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.zenith-player-progress progress {
+    min-height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #00ccff, #00ff99);
+}
+
+/* ===================================================================
    TODO MODULE: Task Pulse
    =================================================================== */
 
