@@ -2,6 +2,7 @@
 # ║                    Zenith – Configuration                        ║
 # ╚══════════════════════════════════════════════════════════════════╝
 # Place this file at:  ~/.config/zenith/config.toml
+# Style file location: ~/.config/zenith/style.css
 
 [bar]
 # Monitor connector name.  Leave commented out to use the default monitor.

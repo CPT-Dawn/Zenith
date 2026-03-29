@@ -109,7 +109,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
 
 /// Load the generated CSS into the default GTK display.
 fn load_css(bar: &crate::config::BarConfig) -> Result<()> {
-    let css_text = style::build_css(bar);
+    let css_text = style::load(bar)?;
     let provider = CssProvider::new();
     provider.load_from_string(&css_text);
 
