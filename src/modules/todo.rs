@@ -185,10 +185,11 @@ pub fn create() -> GtkBox {
             // ── Update bar button ────────────────────────────────
             if let Some(btn) = bar_btn_w.upgrade() {
                 if s.items.is_empty() {
-                    btn.set_label(" ");
+                    btn.set_label("+");
                     btn.remove_css_class("zenith-todo-btn-active");
                     btn.remove_css_class("zenith-todo-btn-urgent");
                     btn.add_css_class("zenith-todo-btn-empty");
+                    btn.add_css_class("zenith-todo-btn-plus");
                 } else {
                     let pending = s.pending_count();
                     let top = s
@@ -208,6 +209,7 @@ pub fn create() -> GtkBox {
                     btn.remove_css_class("zenith-todo-btn-empty");
                     btn.remove_css_class("zenith-todo-btn-urgent");
                     btn.remove_css_class("zenith-todo-btn-active");
+                    btn.remove_css_class("zenith-todo-btn-plus");
 
                     if pending == 0 {
                         btn.add_css_class("zenith-todo-btn-active");

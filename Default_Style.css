@@ -194,6 +194,15 @@ window {
     animation: todo-pulse 2s ease-in-out infinite;
 }
 
+/* Empty-state plus icon sizing for bar visual balance */
+.zenith-todo-btn-plus {
+    font-size: 18px;
+    font-weight: 800;
+    min-width: 28px;
+    padding: 2px 12px;
+    line-height: 1;
+}
+
 /* Active state: has tasks, calm glow */
 .zenith-todo-btn-active {
     color: #00ff99;

@@ -17,6 +17,7 @@ const TEMP_CLASS_BASE: &str = ".zenith-module-temp";
 const TEMP_CLASS_COOL: &str = ".zenith-module-temp-cool";
 const TEMP_CLASS_WARM: &str = ".zenith-module-temp-warm";
 const TEMP_CLASS_HOT: &str = ".zenith-module-temp-hot";
+const TODO_PLUS_CLASS: &str = ".zenith-todo-btn-plus";
 
 /// Return the canonical style path: `~/.config/zenith/style.css`.
 pub fn style_path() -> Result<PathBuf> {
@@ -78,21 +79,22 @@ fn render_template(template: &str, bar: &BarConfig) -> String {
         .replace(TOKEN_BACKGROUND, &bar.background)
 }
 
-/// Append fallback temperature rules when older user stylesheets don't define
-/// the new temperature classes yet.
-fn ensure_temperature_style_rules(css: &str) -> String {
+/// Append fallback rules when older user stylesheets don't define newer
+/// classes yet.
+fn ensure_compat_style_rules(css: &str) -> String {
     let has_base = css.contains(TEMP_CLASS_BASE);
     let has_cool = css.contains(TEMP_CLASS_COOL);
     let has_warm = css.contains(TEMP_CLASS_WARM);
     let has_hot = css.contains(TEMP_CLASS_HOT);
+    let has_todo_plus = css.contains(TODO_PLUS_CLASS);
 
-    if has_base && has_cool && has_warm && has_hot {
+    if has_base && has_cool && has_warm && has_hot && has_todo_plus {
         return css.to_string();
     }
 
-    let mut out = String::with_capacity(css.len() + 220);
+    let mut out = String::with_capacity(css.len() + 340);
     out.push_str(css);
-    out.push_str("\n\n/* Injected defaults for CPU temperature styling */\n");
+    out.push_str("\n\n/* Injected defaults for backward-compatible styling */\n");
 
     if !has_base {
         out.push_str(".zenith-module-temp { color: #ffcc00; }\n");
@@ -105,6 +107,11 @@ fn ensure_temperature_style_rules(css: &str) -> String {
     }
     if !has_hot {
         out.push_str(".zenith-module-temp-hot { color: #ff5555; }\n");
+    }
+    if !has_todo_plus {
+        out.push_str(
+            ".zenith-todo-btn-plus { font-size: 18px; font-weight: 800; min-width: 28px; padding: 2px 12px; line-height: 1; }\n",
+        );
     }
 
     out
@@ -129,7 +136,7 @@ pub fn load(bar: &BarConfig) -> Result<String> {
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read style at {}", path.display()))?;
 
-    let css = ensure_temperature_style_rules(&render_template(&raw, bar));
+    let css = ensure_compat_style_rules(&render_template(&raw, bar));
 
     log::info!("Loaded style from {}", path.display());
 
