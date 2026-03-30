@@ -24,6 +24,32 @@
    ====================================================================== */
 
 /* ----------------------------------------------------------------------
+   Theme Tokens (CSS Variables)
+   ---------------------------------------------------------------------- */
+:root {
+    /* Geometry tokens injected from config.toml at runtime. */
+    --zenith-radius: __ZENITH_RADIUS__px;
+    --zenith-border-width: __ZENITH_BORDER_WIDTH__px;
+    --zenith-inner-radius: __ZENITH_INNER_RADIUS__px;
+    --zenith-background: __ZENITH_BACKGROUND__;
+
+    /* Tokyo Night / One Dark-inspired palette */
+    --zenith-fg: #c0caf5;
+    --zenith-fg-muted: rgba(192, 202, 245, 0.72);
+    --zenith-accent: #7aa2f7;
+    --zenith-accent-2: #2ac3de;
+    --zenith-warn: #e0af68;
+    --zenith-danger: #f7768e;
+
+    /* Surfaces */
+    --zenith-surface: rgba(255, 255, 255, 0.06);
+    --zenith-surface-hover: rgba(255, 255, 255, 0.10);
+    --zenith-surface-active: rgba(255, 255, 255, 0.13);
+    --zenith-border: rgba(255, 255, 255, 0.10);
+    --zenith-shadow: rgba(0, 0, 0, 0.35);
+}
+
+/* ----------------------------------------------------------------------
    Window Foundation
    ---------------------------------------------------------------------- */
 window {
@@ -36,20 +62,15 @@ window {
    ---------------------------------------------------------------------- */
 .zenith-border {
     border-radius: __ZENITH_RADIUS__px;
+    border-radius: var(--zenith-radius);
+
     padding: __ZENITH_BORDER_WIDTH__px;
+    padding: var(--zenith-border-width);
 
-    /* Smooth, modern spectrum with restrained saturation. */
-    background: linear-gradient(120deg,
-            #0891b2,
-            #22d3ee,
-            #f59e0b,
-            #fb7185,
-            #0891b2);
-    background-size: 300% 300%;
-    animation: zenith-border-flow __ZENITH_CYCLE_SECONDS__s linear infinite;
-
-    /* Prevent compositor edge artifacts. */
-    box-shadow: none;
+    /* Calm glass rim (no aggressive spectrum animation). */
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 10px 26px var(--zenith-shadow);
     border: none;
 }
 
@@ -58,8 +79,12 @@ window {
    ---------------------------------------------------------------------- */
 .zenith-inner {
     background-color: __ZENITH_BACKGROUND__;
+    background-color: var(--zenith-background);
+
     border-radius: __ZENITH_INNER_RADIUS__px;
-    padding: 4px 14px;
+    border-radius: var(--zenith-inner-radius);
+    padding: 6px 12px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /* ----------------------------------------------------------------------
@@ -68,64 +93,76 @@ window {
 .zenith-module {
     font-family: "Manrope", "Inter", "JetBrainsMono Nerd Font", sans-serif;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 650;
 }
 
 .zenith-module-surface {
-    background: rgba(255, 255, 255, 0.055);
-    border: 1px solid rgba(255, 255, 255, 0.11);
-    border-radius: 10px;
-    padding: 4px 10px;
-    transition: background 180ms ease, border-color 180ms ease;
+    background: rgba(255, 255, 255, 0.06);
+    background: var(--zenith-surface);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 999px;
+    padding: 6px 12px;
+    transition: background 160ms ease, border-color 160ms ease, box-shadow 200ms ease;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
 .zenith-module-surface:hover {
-    background: rgba(255, 255, 255, 0.095);
-    border-color: rgba(255, 255, 255, 0.19);
+    background: rgba(255, 255, 255, 0.10);
+    background: var(--zenith-surface-hover);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
 }
 
 .zenith-module-surface:active {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.13);
+    background: var(--zenith-surface-active);
 }
 
 /* Monospace alignment for rapidly changing values (clock/stats). */
 .zenith-module-center,
 .zenith-module-right {
     font-family: "JetBrainsMono Nerd Font", "Manrope", monospace;
-    font-weight: 800;
+    font-weight: 700;
 }
 
 /* Accent zones across start/center/end clusters. */
 .zenith-module-left {
-    color: #67e8f9;
+    color: #2ac3de;
+    color: var(--zenith-accent-2);
 }
 
 .zenith-module-center {
-    color: #f8fafc;
-    text-shadow: 0 0 8px rgba(248, 250, 252, 0.22);
+    color: #c0caf5;
+    color: var(--zenith-fg);
+    text-shadow: none;
 }
 
 .zenith-module-right {
-    color: #fbbf24;
+    color: #2ac3de;
+    color: var(--zenith-accent-2);
 }
 
 /* ----------------------------------------------------------------------
    Temperature States
    ---------------------------------------------------------------------- */
 .zenith-module-temp {
-    color: #f59e0b;
+    color: #e0af68;
+    color: var(--zenith-warn);
 }
 
 .zenith-module-temp-cool {
-    color: #22d3ee;
+    color: #2ac3de;
+    color: var(--zenith-accent-2);
 }
 
 .zenith-module-temp-warm {
-    color: #f59e0b;
+    color: #e0af68;
+    color: var(--zenith-warn);
 }
 
 .zenith-module-temp-hot {
-    color: #ef4444;
+    color: #f7768e;
+    color: var(--zenith-danger);
 }
 
 /* ----------------------------------------------------------------------
@@ -134,8 +171,9 @@ window {
 .zenith-logo {
     font-family: "JetBrainsMono Nerd Font", monospace;
     font-size: 22px;
-    color: #22d3ee;
-    text-shadow: 0 0 12px rgba(34, 211, 238, 0.50);
+    color: #2ac3de;
+    color: var(--zenith-accent-2);
+    text-shadow: 0 0 18px rgba(42, 195, 222, 0.18);
     padding: 0 3px;
 }
 
@@ -153,60 +191,80 @@ window {
 .zenith-calendar-btn {
     box-shadow: none;
     padding: 4px 10px;
-    color: #f8fafc;
+    color: #c0caf5;
+    color: var(--zenith-fg);
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
     min-height: 0;
     min-width: 0;
 }
 
 .zenith-calendar-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.10);
+    background: var(--zenith-surface-hover);
 }
 
 .zenith-calendar-btn:active {
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.13);
+    background: var(--zenith-surface-active);
+}
+
+/* Segment the center pill: Date on the left, Clock on the right. */
+.zenith-calendar-btn {
+    border-right: none;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.zenith-module-center:not(.zenith-calendar-btn) {
+    border-left: none;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
 }
 
 .zenith-calendar-popup {
-    background-color: #0b1220;
-    border: 1px solid #273449;
+    background-color: #1f2335;
+    border: 1px solid rgba(255, 255, 255, 0.10);
     border-radius: 12px;
     padding: 8px;
 }
 
 .zenith-calendar-popup>contents {
-    background-color: #0b1220;
+    background-color: #1f2335;
     border-radius: 12px;
     padding: 4px;
 }
 
 .zenith-calendar {
     background-color: transparent;
-    color: #dbe5f3;
+    color: rgba(192, 202, 245, 0.72);
+    color: var(--zenith-fg-muted);
     font-family: "Manrope", "Inter", sans-serif;
     font-size: 13px;
 }
 
 .zenith-calendar>header {
-    color: #f8fafc;
+    color: #c0caf5;
+    color: var(--zenith-fg);
     font-weight: 700;
 }
 
 .zenith-calendar>header>button {
-    color: #22d3ee;
+    color: #2ac3de;
+    color: var(--zenith-accent-2);
     background: transparent;
     border: none;
 }
 
 .zenith-calendar>header>button:hover {
-    background: rgba(34, 211, 238, 0.16);
+    background: rgba(42, 195, 222, 0.16);
     border-radius: 6px;
 }
 
 .zenith-calendar :selected {
-    background-color: #0ea5a4;
-    color: #f8fafc;
+    background-color: rgba(42, 195, 222, 0.30);
+    color: #c0caf5;
+    color: var(--zenith-fg);
     border-radius: 50%;
 }
 
@@ -226,47 +284,51 @@ window {
 }
 
 .zenith-player-btn.zenith-module-surface {
-    /* Bottom “glass glow” so the progress bar feels embedded. */
+    /* Subtle tint so the media module feels cohesive. */
     background:
-        radial-gradient(ellipse at 50% 120%,
-            rgba(34, 211, 238, 0.26) 0%,
-            rgba(34, 211, 238, 0.12) 26%,
-            rgba(0, 0, 0, 0) 60%),
-        radial-gradient(ellipse at 15% 100%,
-            rgba(103, 232, 249, 0.12) 0%,
-            rgba(0, 0, 0, 0) 55%),
-        rgba(255, 255, 255, 0.055);
+        linear-gradient(180deg,
+            rgba(122, 162, 247, 0.12) 0%,
+            rgba(42, 195, 222, 0.04) 100%),
+        rgba(255, 255, 255, 0.06);
+    background:
+        linear-gradient(180deg,
+            rgba(122, 162, 247, 0.12) 0%,
+            rgba(42, 195, 222, 0.04) 100%),
+        var(--zenith-surface);
 }
 
 .zenith-player-btn.zenith-module-surface:hover {
     background:
-        radial-gradient(ellipse at 50% 120%,
-            rgba(34, 211, 238, 0.32) 0%,
-            rgba(34, 211, 238, 0.14) 26%,
-            rgba(0, 0, 0, 0) 60%),
-        radial-gradient(ellipse at 15% 100%,
-            rgba(103, 232, 249, 0.14) 0%,
-            rgba(0, 0, 0, 0) 55%),
-        rgba(255, 255, 255, 0.12);
+        linear-gradient(180deg,
+            rgba(122, 162, 247, 0.16) 0%,
+            rgba(42, 195, 222, 0.06) 100%),
+        rgba(255, 255, 255, 0.10);
+    background:
+        linear-gradient(180deg,
+            rgba(122, 162, 247, 0.16) 0%,
+            rgba(42, 195, 222, 0.06) 100%),
+        var(--zenith-surface-hover);
 }
 
 .zenith-player-btn.zenith-module-surface:active {
     background:
-        radial-gradient(ellipse at 50% 120%,
-            rgba(34, 211, 238, 0.38) 0%,
-            rgba(34, 211, 238, 0.16) 26%,
-            rgba(0, 0, 0, 0) 60%),
-        radial-gradient(ellipse at 15% 100%,
-            rgba(103, 232, 249, 0.16) 0%,
-            rgba(0, 0, 0, 0) 55%),
-        rgba(255, 255, 255, 0.16);
+        linear-gradient(180deg,
+            rgba(122, 162, 247, 0.20) 0%,
+            rgba(42, 195, 222, 0.08) 100%),
+        rgba(255, 255, 255, 0.13);
+    background:
+        linear-gradient(180deg,
+            rgba(122, 162, 247, 0.20) 0%,
+            rgba(42, 195, 222, 0.08) 100%),
+        var(--zenith-surface-active);
 }
 
 .zenith-player-title {
     font-family: "JetBrainsMono Nerd Font", "Manrope", monospace;
     font-size: 12px;
     font-weight: 700;
-    color: #e2ebf6;
+    color: #c0caf5;
+    color: var(--zenith-fg);
 }
 
 .zenith-player-progress {
@@ -276,22 +338,17 @@ window {
 .zenith-player-progress trough {
     min-height: 8px;
     border-radius: 999px;
-    /* Radial falloff simulates blur/glow without unsupported filters. */
-    background:
-        radial-gradient(ellipse at 50% 140%,
-            rgba(34, 211, 238, 0.35) 0%,
-            rgba(34, 211, 238, 0.10) 34%,
-            rgba(0, 0, 0, 0) 66%),
-        rgba(255, 255, 255, 0.10);
-    box-shadow: 0 0 18px rgba(34, 211, 238, 0.18);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: none;
 }
 
 .zenith-player-progress progress {
     min-height: 8px;
     border-radius: 999px;
-    background:
-        linear-gradient(90deg, #67e8f9, #0891b2, #0ea5a4);
-    box-shadow: 0 0 16px rgba(34, 211, 238, 0.42);
+    background: linear-gradient(90deg,
+        rgba(42, 195, 222, 0.95),
+        rgba(122, 162, 247, 0.95));
+    box-shadow: 0 0 12px rgba(122, 162, 247, 0.22);
 }
 
 /* ----------------------------------------------------------------------
@@ -309,9 +366,9 @@ window {
 }
 
 .zenith-todo-btn-empty {
-    color: #22d3ee;
-    text-shadow: 0 0 12px rgba(34, 211, 238, 0.50);
-    animation: zenith-todo-pulse 2.2s ease-in-out infinite;
+    color: #2ac3de;
+    color: var(--zenith-accent-2);
+    text-shadow: 0 0 10px rgba(42, 195, 222, 0.22);
 }
 
 .zenith-todo-btn-plus {
@@ -323,36 +380,39 @@ window {
 }
 
 .zenith-todo-btn-active {
-    color: #0ea5a4;
-    text-shadow: 0 0 6px rgba(14, 165, 164, 0.35);
+    color: #2ac3de;
+    color: var(--zenith-accent-2);
+    text-shadow: 0 0 8px rgba(42, 195, 222, 0.18);
 }
 
 .zenith-todo-btn-urgent {
-    color: #ef4444;
-    text-shadow: 0 0 9px rgba(239, 68, 68, 0.42);
-    animation: zenith-todo-urgent 1.6s ease-in-out infinite;
+    color: #f7768e;
+    color: var(--zenith-danger);
+    text-shadow: 0 0 10px rgba(247, 118, 142, 0.22);
 }
 
 .zenith-todo-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.10);
+    background: var(--zenith-surface-hover);
 }
 
 .zenith-todo-btn:active {
-    background: rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.13);
+    background: var(--zenith-surface-active);
 }
 
 /* ----------------------------------------------------------------------
    Todo Popover
    ---------------------------------------------------------------------- */
 .zenith-todo-popup {
-    background-color: #0b1220;
-    border: 1px solid #273449;
+    background-color: #1f2335;
+    border: 1px solid rgba(255, 255, 255, 0.10);
     border-radius: 14px;
     padding: 0;
 }
 
 .zenith-todo-popup>contents {
-    background-color: #0b1220;
+    background-color: #1f2335;
     border-radius: 14px;
     padding: 0;
 }
@@ -369,16 +429,18 @@ window {
     font-family: "Manrope", "Inter", sans-serif;
     font-size: 14px;
     font-weight: 800;
-    color: #f8fafc;
-    text-shadow: 0 0 8px rgba(248, 250, 252, 0.16);
+    color: #c0caf5;
+    color: var(--zenith-fg);
+    text-shadow: none;
 }
 
 .zenith-todo-progress {
     font-family: "JetBrainsMono Nerd Font", monospace;
     font-size: 11px;
     font-weight: 700;
-    color: #a8b4c5;
-    background: rgba(255, 255, 255, 0.08);
+    color: rgba(192, 202, 245, 0.72);
+    color: var(--zenith-fg-muted);
+    background: rgba(255, 255, 255, 0.07);
     border-radius: 8px;
     padding: 2px 8px;
 }
@@ -386,7 +448,7 @@ window {
 .zenith-todo-progress-track {
     margin: 4px 14px 2px 14px;
     min-height: 3px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.07);
     border-radius: 2px;
 }
 
@@ -397,20 +459,26 @@ window {
 }
 
 .zenith-todo-fill-low {
-    background: linear-gradient(90deg, #ef4444, #f97316);
+    background: linear-gradient(90deg,
+        rgba(247, 118, 142, 0.95),
+        rgba(249, 115, 22, 0.75));
 }
 
 .zenith-todo-fill-mid {
-    background: linear-gradient(90deg, #f59e0b, #facc15);
+    background: linear-gradient(90deg,
+        rgba(224, 175, 104, 0.95),
+        rgba(250, 204, 21, 0.55));
 }
 
 .zenith-todo-fill-high {
-    background: linear-gradient(90deg, #22d3ee, #0ea5a4);
+    background: linear-gradient(90deg,
+        rgba(42, 195, 222, 0.95),
+        rgba(122, 162, 247, 0.80));
 }
 
 .zenith-todo-sep {
     margin: 4px 14px;
-    background: #243246;
+    background: rgba(255, 255, 255, 0.08);
     min-height: 1px;
 }
 
@@ -429,7 +497,7 @@ window {
 }
 
 .zenith-todo-row:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.07);
 }
 
 .zenith-todo-row-done {
@@ -443,20 +511,23 @@ window {
 }
 
 .zenith-todo-prio-high {
-    background: #ef4444;
-    box-shadow: 0 0 4px rgba(239, 68, 68, 0.42);
+    background: #f7768e;
+    background: var(--zenith-danger);
+    box-shadow: 0 0 6px rgba(247, 118, 142, 0.18);
 }
 
 .zenith-todo-prio-mid {
-    background: #f59e0b;
+    background: #e0af68;
+    background: var(--zenith-warn);
 }
 
 .zenith-todo-prio-low {
-    background: #22d3ee;
+    background: #2ac3de;
+    background: var(--zenith-accent-2);
 }
 
 .zenith-todo-prio-none {
-    background: #334155;
+    background: rgba(255, 255, 255, 0.12);
 }
 
 .zenith-todo-check {
@@ -468,12 +539,13 @@ window {
     font-family: "Manrope", "Inter", sans-serif;
     font-size: 13px;
     font-weight: 500;
-    color: #e2ebf6;
+    color: #c0caf5;
+    color: var(--zenith-fg);
 }
 
 .zenith-todo-text-done {
     text-decoration: line-through;
-    color: #8b9bb2;
+    color: rgba(192, 202, 245, 0.45);
 }
 
 .zenith-todo-badge {
@@ -486,18 +558,21 @@ window {
 }
 
 .zenith-todo-badge-high {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.15);
+    color: #f7768e;
+    color: var(--zenith-danger);
+    background: rgba(247, 118, 142, 0.14);
 }
 
 .zenith-todo-badge-mid {
-    color: #f59e0b;
-    background: rgba(245, 158, 11, 0.14);
+    color: #e0af68;
+    color: var(--zenith-warn);
+    background: rgba(224, 175, 104, 0.14);
 }
 
 .zenith-todo-badge-low {
-    color: #22d3ee;
-    background: rgba(34, 211, 238, 0.14);
+    color: #2ac3de;
+    color: var(--zenith-accent-2);
+    background: rgba(42, 195, 222, 0.14);
 }
 
 .zenith-todo-move-btn,
@@ -515,13 +590,15 @@ window {
 }
 
 .zenith-todo-move-btn:hover {
-    background: rgba(34, 211, 238, 0.14);
-    color: #22d3ee;
+    background: rgba(42, 195, 222, 0.14);
+    color: #2ac3de;
+    color: var(--zenith-accent-2);
 }
 
 .zenith-todo-del-btn:hover {
-    background: rgba(239, 68, 68, 0.14);
-    color: #ef4444;
+    background: rgba(247, 118, 142, 0.14);
+    color: #f7768e;
+    color: var(--zenith-danger);
 }
 
 .zenith-todo-input-row {
@@ -530,22 +607,26 @@ window {
 
 .zenith-todo-entry {
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid #334155;
+    border: 1px solid rgba(255, 255, 255, 0.10);
     border-radius: 8px;
-    color: #e2ebf6;
+    color: #c0caf5;
+    color: var(--zenith-fg);
     padding: 6px 10px;
     font-family: "Manrope", "Inter", sans-serif;
     font-size: 13px;
-    caret-color: #22d3ee;
+    caret-color: #2ac3de;
+    caret-color: var(--zenith-accent-2);
 }
 
 .zenith-todo-entry:focus {
-    border-color: #22d3ee;
-    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.32);
+    border-color: rgba(42, 195, 222, 0.55);
+    box-shadow: 0 0 0 1px rgba(42, 195, 222, 0.28);
 }
 
 .zenith-todo-add-btn {
-    background: linear-gradient(135deg, #0891b2, #67e8f9);
+    background: linear-gradient(135deg,
+        rgba(122, 162, 247, 0.95),
+        rgba(42, 195, 222, 0.95));
     border: none;
     border-radius: 8px;
     color: #ffffff;
@@ -554,12 +635,12 @@ window {
     min-width: 34px;
     min-height: 34px;
     padding: 0;
-    box-shadow: 0 0 10px rgba(34, 211, 238, 0.24);
+    box-shadow: 0 0 10px rgba(122, 162, 247, 0.20);
     transition: all 200ms ease;
 }
 
 .zenith-todo-add-btn:hover {
-    box-shadow: 0 0 14px rgba(34, 211, 238, 0.38);
+    box-shadow: 0 0 14px rgba(122, 162, 247, 0.30);
 }
 
 /* ----------------------------------------------------------------------

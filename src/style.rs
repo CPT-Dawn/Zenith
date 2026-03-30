@@ -31,38 +31,26 @@ const PLAYER_UI_OVERRIDES: &str = r#"
 /* Zenith Player Module Aesthetic Overrides */
 .zenith-player-btn.zenith-module-surface {
     background:
-        radial-gradient(ellipse at 50% 120%,
-            rgba(34, 211, 238, 0.26) 0%,
-            rgba(34, 211, 238, 0.12) 26%,
-            rgba(0, 0, 0, 0) 60%),
-        radial-gradient(ellipse at 15% 100%,
-            rgba(103, 232, 249, 0.12) 0%,
-            rgba(0, 0, 0, 0) 55%),
-        rgba(255, 255, 255, 0.055);
+        linear-gradient(180deg,
+            rgba(122, 162, 247, 0.12) 0%,
+            rgba(42, 195, 222, 0.04) 100%),
+        rgba(255, 255, 255, 0.06);
 }
 
 .zenith-player-btn.zenith-module-surface:hover {
     background:
-        radial-gradient(ellipse at 50% 120%,
-            rgba(34, 211, 238, 0.32) 0%,
-            rgba(34, 211, 238, 0.14) 26%,
-            rgba(0, 0, 0, 0) 60%),
-        radial-gradient(ellipse at 15% 100%,
-            rgba(103, 232, 249, 0.14) 0%,
-            rgba(0, 0, 0, 0) 55%),
-        rgba(255, 255, 255, 0.12);
+        linear-gradient(180deg,
+            rgba(122, 162, 247, 0.16) 0%,
+            rgba(42, 195, 222, 0.06) 100%),
+        rgba(255, 255, 255, 0.10);
 }
 
 .zenith-player-btn.zenith-module-surface:active {
     background:
-        radial-gradient(ellipse at 50% 120%,
-            rgba(34, 211, 238, 0.38) 0%,
-            rgba(34, 211, 238, 0.16) 26%,
-            rgba(0, 0, 0, 0) 60%),
-        radial-gradient(ellipse at 15% 100%,
-            rgba(103, 232, 249, 0.16) 0%,
-            rgba(0, 0, 0, 0) 55%),
-        rgba(255, 255, 255, 0.16);
+        linear-gradient(180deg,
+            rgba(122, 162, 247, 0.20) 0%,
+            rgba(42, 195, 222, 0.08) 100%),
+        rgba(255, 255, 255, 0.13);
 }
 
 .zenith-player-progress {
@@ -72,22 +60,17 @@ const PLAYER_UI_OVERRIDES: &str = r#"
 .zenith-player-progress trough {
     min-height: 8px;
     border-radius: 999px;
-    /* Radial falloff simulates blur/glow without unsupported filters. */
-    background:
-        radial-gradient(ellipse at 50% 140%,
-            rgba(34, 211, 238, 0.35) 0%,
-            rgba(34, 211, 238, 0.10) 34%,
-            rgba(0, 0, 0, 0) 66%),
-        rgba(255, 255, 255, 0.10);
-    box-shadow: 0 0 18px rgba(34, 211, 238, 0.18);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: none;
 }
 
 .zenith-player-progress progress {
     min-height: 8px;
     border-radius: 999px;
-    background:
-        linear-gradient(90deg, #67e8f9, #0891b2, #0ea5a4);
-    box-shadow: 0 0 16px rgba(34, 211, 238, 0.42);
+    background: linear-gradient(90deg,
+        rgba(42, 195, 222, 0.95),
+        rgba(122, 162, 247, 0.95));
+    box-shadow: 0 0 12px rgba(122, 162, 247, 0.22);
 }
 "#;
 
@@ -232,25 +215,25 @@ fn ensure_compat_style_rules(css: &str) -> String {
     out.push_str("\n\n/* Injected defaults for backward-compatible styling */\n");
 
     if !has_base {
-        out.push_str(".zenith-module-temp { color: #ffcc00; }\n");
+        out.push_str(".zenith-module-temp { color: #e0af68; }\n");
     }
     if !has_cool {
-        out.push_str(".zenith-module-temp-cool { color: #00ccff; }\n");
+        out.push_str(".zenith-module-temp-cool { color: #2ac3de; }\n");
     }
     if !has_warm {
-        out.push_str(".zenith-module-temp-warm { color: #ffcc00; }\n");
+        out.push_str(".zenith-module-temp-warm { color: #e0af68; }\n");
     }
     if !has_hot {
-        out.push_str(".zenith-module-temp-hot { color: #ff5555; }\n");
+        out.push_str(".zenith-module-temp-hot { color: #f7768e; }\n");
     }
     if !has_module_surface {
         out.push_str(
-            ".zenith-module-surface { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 8px; padding: 4px 10px; transition: background 160ms ease, border-color 160ms ease; }\n",
+            ".zenith-module-surface { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 999px; padding: 6px 12px; transition: background 160ms ease, border-color 160ms ease, box-shadow 200ms ease; }\n",
         );
         out.push_str(
-            ".zenith-module-surface:hover { background: rgba(255, 255, 255, 0.10); border-color: rgba(255, 255, 255, 0.18); }\n",
+            ".zenith-module-surface:hover { background: rgba(255, 255, 255, 0.10); border-color: rgba(255, 255, 255, 0.14); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28); }\n",
         );
-        out.push_str(".zenith-module-surface:active { background: rgba(255, 255, 255, 0.14); }\n");
+        out.push_str(".zenith-module-surface:active { background: rgba(255, 255, 255, 0.13); }\n");
     }
     if !has_todo_plus {
         out.push_str(
@@ -270,10 +253,10 @@ fn ensure_compat_style_rules(css: &str) -> String {
     if !has_player_progress {
         out.push_str(".zenith-player-progress { min-height: 8px; }\n");
         out.push_str(
-            ".zenith-player-progress trough { min-height: 8px; border-radius: 999px; background: radial-gradient(ellipse at 50% 140%, rgba(34, 211, 238, 0.35) 0%, rgba(34, 211, 238, 0.10) 34%, rgba(0, 0, 0, 0) 66%), rgba(255, 255, 255, 0.10); box-shadow: 0 0 18px rgba(34, 211, 238, 0.18); }\n",
+            ".zenith-player-progress trough { min-height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); box-shadow: none; }\n",
         );
         out.push_str(
-            ".zenith-player-progress progress { min-height: 8px; border-radius: 999px; background: linear-gradient(90deg, #67e8f9, #0891b2, #0ea5a4); box-shadow: 0 0 16px rgba(34, 211, 238, 0.42); }\n",
+            ".zenith-player-progress progress { min-height: 8px; border-radius: 999px; background: linear-gradient(90deg, rgba(42, 195, 222, 0.95), rgba(122, 162, 247, 0.95)); box-shadow: 0 0 12px rgba(122, 162, 247, 0.22); }\n",
         );
     }
 
