@@ -3,6 +3,7 @@ use gtk4::{Align, Box as GtkBox, Button, Label, Orientation, ProgressBar};
 use std::cell::Cell;
 use std::process::Command;
 use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 const METADATA_FORMAT: &str = "{{status}}\t{{artist}}\t{{title}}\t{{position}}\t{{mpris:length}}";
@@ -17,6 +18,11 @@ struct PlayerSnapshot {
 }
 
 /// Create a playerctl-powered now-playing module with a progress bar.
+///
+/// Polling is performed on a **dedicated background thread** so that a slow or
+/// hung `playerctl` process never blocks the GTK main loop.  The latest
+/// snapshot is stored in a shared `Arc<Mutex<>>` which the UI timer reads
+/// without blocking.
 pub fn create() -> GtkBox {
     let container = GtkBox::new(Orientation::Horizontal, 0);
     container.set_halign(Align::End);
@@ -52,92 +58,135 @@ pub fn create() -> GtkBox {
     button.set_child(Some(&content));
     container.append(&button);
 
-    // Animate progress smoothly between `playerctl` metadata refreshes.
-    // We only query `playerctl` once per second, but we interpolate the bar
-    // at a higher frame rate for a more polished feel.
+    // Animate progress smoothly between metadata refreshes.
     let current_fraction = Rc::new(Cell::new(0.0));
     let target_fraction = Rc::new(Cell::new(0.0));
 
-    refresh_widgets(&title, &button, target_fraction.as_ref());
+    // Shared latest snapshot: written by background thread, read by UI timer.
+    // The mutex is held for nanoseconds (just a pointer swap), so there is
+    // zero contention in practice.
+    let latest: Arc<Mutex<Option<PlayerSnapshot>>> = Arc::new(Mutex::new(None));
+
+    // Synchronous initial poll — one-time cost for an instant first frame.
+    {
+        let snap = read_player_snapshot();
+        apply_snapshot(&title, &button, &target_fraction, snap.as_ref());
+        *latest.lock().unwrap_or_else(|e| e.into_inner()) = snap;
+    }
     let init = target_fraction.get();
     current_fraction.set(init);
     progress.set_fraction(init);
 
-    button.connect_clicked({
-        let title = title.downgrade();
-        let button = button.downgrade();
-        let target_fraction = target_fraction.clone();
-        move |_| {
-            if let Err(err) = Command::new("playerctl").arg("play-pause").output() {
-                log::debug!("playerctl play-pause failed: {err}");
+    // ── Background polling thread ───────────────────────────────────────
+    // The thread uses a simple `Arc<Mutex<bool>>` flag to know when to stop.
+    let alive = Arc::new(Mutex::new(true));
+    {
+        let latest = Arc::clone(&latest);
+        let alive = Arc::clone(&alive);
+        std::thread::spawn(move || {
+            loop {
+                std::thread::sleep(Duration::from_secs(1));
+                if !*alive.lock().unwrap_or_else(|e| e.into_inner()) {
+                    break;
+                }
+                let snapshot = read_player_snapshot();
+                *latest.lock().unwrap_or_else(|e| e.into_inner()) = snapshot;
             }
+        });
+    }
 
-            if let (Some(t), Some(b)) = (title.upgrade(), button.upgrade())
-            {
-                refresh_widgets(&t, &b, target_fraction.as_ref());
-            }
+    // Click handler: fire-and-forget on a detached thread.
+    button.connect_clicked({
+        let latest = Arc::clone(&latest);
+        move |_| {
+            let latest = Arc::clone(&latest);
+            std::thread::spawn(move || {
+                if let Err(err) = Command::new("playerctl").arg("play-pause").output() {
+                    log::debug!("playerctl play-pause failed: {err}");
+                }
+                // Brief pause for MPRIS state to propagate before re-polling.
+                std::thread::sleep(Duration::from_millis(150));
+                *latest.lock().unwrap_or_else(|e| e.into_inner()) = read_player_snapshot();
+            });
         }
     });
 
-    let title_weak = title.downgrade();
-    let button_weak = button.downgrade();
-    let target_fraction = target_fraction.clone();
-    let current_fraction_anim = current_fraction.clone();
-    let target_fraction_anim = target_fraction.clone();
-    let progress_weak_anim = progress.downgrade();
+    // ── UI update timer (reads latest snapshot, never blocks on I/O) ────
+    {
+        let title_weak = title.downgrade();
+        let button_weak = button.downgrade();
+        let target = target_fraction.clone();
+        let latest = Arc::clone(&latest);
+        let alive = Arc::clone(&alive);
+        glib::timeout_add_local(Duration::from_secs(1), move || {
+            let Some(t) = title_weak.upgrade() else {
+                *alive.lock().unwrap_or_else(|e| e.into_inner()) = false;
+                return glib::ControlFlow::Break;
+            };
+            let Some(b) = button_weak.upgrade() else {
+                *alive.lock().unwrap_or_else(|e| e.into_inner()) = false;
+                return glib::ControlFlow::Break;
+            };
+            let snap = latest.lock().unwrap_or_else(|e| e.into_inner()).clone();
+            apply_snapshot(&t, &b, &target, snap.as_ref());
+            glib::ControlFlow::Continue
+        });
+    }
 
-    // Frame-rate animation loop for the progress bar.
-    glib::timeout_add_local(Duration::from_millis(16), move || {
-        let Some(p) = progress_weak_anim.upgrade() else {
-            return glib::ControlFlow::Break;
-        };
+    // Frame-rate animation loop for the progress bar (~60 fps lerp).
+    {
+        let current = current_fraction;
+        let target = target_fraction;
+        let progress_weak = progress.downgrade();
+        glib::timeout_add_local(Duration::from_millis(16), move || {
+            let Some(p) = progress_weak.upgrade() else {
+                return glib::ControlFlow::Break;
+            };
 
-        let current = current_fraction_anim.get();
-        let target = target_fraction_anim.get();
-        let delta = target - current;
+            let cur = current.get();
+            let tgt = target.get();
+            let delta = tgt - cur;
 
-        // Exponential smoothing: fast response, but it never "jumps".
-        let next = if delta.abs() < 0.0004 {
-            target
-        } else {
-            current + delta * 0.25
-        };
+            // Exponential smoothing: fast response without visual jumps.
+            let next = if delta.abs() < 0.0004 {
+                tgt
+            } else {
+                cur + delta * 0.25
+            };
 
-        current_fraction_anim.set(next);
-        p.set_fraction(next);
-        glib::ControlFlow::Continue
-    });
-
-    glib::timeout_add_local(Duration::from_secs(1), move || {
-        let Some(t) = title_weak.upgrade() else {
-            return glib::ControlFlow::Break;
-        };
-        let Some(b) = button_weak.upgrade() else {
-            return glib::ControlFlow::Break;
-        };
-
-        refresh_widgets(&t, &b, target_fraction.as_ref());
-        glib::ControlFlow::Continue
-    });
+            current.set(next);
+            p.set_fraction(next);
+            glib::ControlFlow::Continue
+        });
+    }
 
     container
 }
 
-fn refresh_widgets(title: &Label, button: &Button, target_fraction: &Cell<f64>) {
-    if let Some(snapshot) = read_player_snapshot() {
-        let icon = match snapshot.status.as_str() {
-            "Playing" => "",
-            "Paused" => "",
-            "Stopped" => "",
+/// Apply a pre-fetched player snapshot to the UI widgets.
+///
+/// This function performs **no I/O** — it only mutates GTK widget state and is
+/// always called on the main thread.
+fn apply_snapshot(
+    title: &Label,
+    button: &Button,
+    target_fraction: &Cell<f64>,
+    snapshot: Option<&PlayerSnapshot>,
+) {
+    if let Some(snap) = snapshot {
+        let icon = match snap.status.as_str() {
+            "Playing" => "",
+            "Paused" => "",
+            "Stopped" => "",
             _ => "󰎈",
         };
 
-        let display_title = if snapshot.title.trim().is_empty() {
+        let display_title = if snap.title.trim().is_empty() {
             "Unknown title".to_string()
         } else {
-            snapshot.title.trim().to_string()
+            snap.title.trim().to_string()
         };
-        let display_artist = snapshot.artist.trim();
+        let display_artist = snap.artist.trim();
 
         let label_text = if display_artist.is_empty() {
             format!("{icon} {display_title}")
@@ -146,8 +195,8 @@ fn refresh_widgets(title: &Label, button: &Button, target_fraction: &Cell<f64>) 
         };
         title.set_label(&label_text);
 
-        let elapsed = format_microseconds(snapshot.position_us);
-        let total = format_microseconds(snapshot.length_us);
+        let elapsed = format_microseconds(snap.position_us);
+        let total = format_microseconds(snap.length_us);
         let tooltip = if display_artist.is_empty() {
             format!("{display_title}\n{elapsed} / {total}\nLeft click: play/pause")
         } else {
@@ -157,10 +206,7 @@ fn refresh_widgets(title: &Label, button: &Button, target_fraction: &Cell<f64>) 
         };
         button.set_tooltip_text(Some(&tooltip));
 
-        target_fraction.set(progress_fraction(
-            snapshot.position_us,
-            snapshot.length_us,
-        ));
+        target_fraction.set(progress_fraction(snap.position_us, snap.length_us));
     } else {
         title.set_label("󰝛 No media");
         target_fraction.set(0.0);
@@ -223,7 +269,7 @@ fn progress_fraction(position_us: u64, length_us: u64) -> f64 {
         return 0.0;
     }
 
-    // Compute the ratio in milliseconds to avoid lossy wide-int -> float casts.
+    // Compute the ratio in milliseconds to avoid lossy wide-int → float casts.
     let current_ms_u64 = position_us / 1_000;
     let total_ms_u64 = length_us / 1_000;
     if total_ms_u64 == 0 {

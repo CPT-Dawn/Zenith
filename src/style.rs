@@ -23,41 +23,7 @@ const PLAYER_BTN_CLASS: &str = ".zenith-player-btn";
 const PLAYER_TITLE_CLASS: &str = ".zenith-player-title";
 const PLAYER_PROGRESS_CLASS: &str = ".zenith-player-progress";
 
-/// Always-appended player module aesthetic overrides.
-///
-/// Rationale: if a user already has an older `style.css` (where the player
-/// selectors exist) the backward-compat injection won't update them.
-const PLAYER_UI_OVERRIDES: &str = r#"
-/* Zenith Player Module Aesthetic Overrides */
-.zenith-player-btn.zenith-module-surface {
-    background: transparent;
-}
 
-.zenith-player-btn.zenith-module-surface:hover {
-    background: rgba(115, 218, 202, 0.08);
-}
-
-.zenith-player-btn.zenith-module-surface:active {
-    background: rgba(115, 218, 202, 0.14);
-}
-
-.zenith-player-progress {
-    min-height: 3px;
-}
-
-.zenith-player-progress trough {
-    min-height: 3px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.zenith-player-progress progress {
-    min-height: 3px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #73daca, #7dcfff);
-    box-shadow: 0 0 6px rgba(115, 218, 202, 0.30);
-}
-"#;
 
 /// Return the canonical style path: `~/.config/zenith/style.css`.
 pub fn style_path() -> Result<PathBuf> {
@@ -269,7 +235,7 @@ pub fn load(bar: &BarConfig) -> Result<String> {
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read style at {}", path.display()))?;
 
-    let css = ensure_compat_style_rules(&render_template(&raw, bar)) + PLAYER_UI_OVERRIDES;
+    let css = ensure_compat_style_rules(&render_template(&raw, bar));
 
     log::info!("Loaded style from {}", path.display());
 

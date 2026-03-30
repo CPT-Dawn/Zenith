@@ -75,8 +75,27 @@ impl TodoStore {
             }
         };
 
-        if let Err(err) = fs::write(&path, json) {
-            log::warn!("Failed to write todo store at {}: {err}", path.display());
+        // Atomic write: write to a temp file, then rename.
+        // fs::rename is atomic on POSIX within the same directory, so
+        // todos.json is always in a valid state even if the process is
+        // killed mid-write.
+        let tmp_path = path.with_extension("json.tmp");
+        if let Err(err) = fs::write(&tmp_path, &json) {
+            log::warn!(
+                "Failed to write todo store at {}: {err}",
+                tmp_path.display()
+            );
+            return;
+        }
+
+        if let Err(err) = fs::rename(&tmp_path, &path) {
+            log::warn!(
+                "Failed to commit todo store {} → {}: {err}",
+                tmp_path.display(),
+                path.display()
+            );
+            // Best-effort cleanup of the orphaned temp file.
+            let _ = fs::remove_file(&tmp_path);
         }
     }
 
