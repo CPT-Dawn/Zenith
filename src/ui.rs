@@ -20,6 +20,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
 
     // Keep height config authoritative; default_height is only an initial size hint.
     window.set_resizable(false);
+    // Width is handled below once we know the target monitor size.
     window.set_default_size(1, cfg.bar.height);
     window.set_size_request(-1, cfg.bar.height);
     window.set_height_request(cfg.bar.height);
@@ -44,12 +45,41 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     window.auto_exclusive_zone_enable();
 
     // ── Target a specific monitor if configured ──────────────────────
+    let mut target_monitor: Option<gdk4::Monitor> = None;
     if let Some(ref connector) = cfg.bar.monitor {
-        if let Some(monitor) = find_monitor_by_connector(connector) {
-            window.set_monitor(Some(&monitor));
-        } else {
+        target_monitor = find_monitor_by_connector(connector);
+        if target_monitor.is_none() {
             log::warn!("Monitor '{connector}' not found – falling back to default");
         }
+    }
+
+    if target_monitor.is_none() {
+        // Fallback: pick the first monitor available.
+        // (This avoids relying on APIs that differ between GTK/GDK versions.)
+        let display = Display::default();
+        if let Some(display) = display {
+            let monitors = display.monitors();
+            for i in 0..monitors.n_items() {
+                if let Some(obj) = monitors.item(i) {
+                    if let Ok(mon) = obj.downcast::<gdk4::Monitor>() {
+                        target_monitor = Some(mon);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if let Some(ref monitor) = target_monitor {
+        window.set_monitor(Some(monitor));
+
+        // For layer-shell windows, explicit width helps ensure the bar
+        // stretches across the whole monitor (anchors + margins).
+        let geom = monitor.geometry();
+        let gap_total = (cfg.bar.gap_horizontal as i64) * 2;
+        let width = (geom.width() as i64 - gap_total).max(1) as i32;
+        window.set_default_size(width, cfg.bar.height);
+        window.set_size_request(width, cfg.bar.height);
     }
 
     // ── CSS ──────────────────────────────────────────────────────────
@@ -62,6 +92,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     outer.set_height_request(cfg.bar.height);
     outer.set_vexpand(false);
     outer.set_hexpand(true);
+    outer.set_halign(gtk4::Align::Fill);
 
     let inner = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
     inner.add_css_class("zenith-inner");
@@ -70,9 +101,11 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     inner.set_height_request(inner_height);
     inner.set_vexpand(false);
     inner.set_hexpand(true);
+    inner.set_halign(gtk4::Align::Fill);
 
     let center_box = CenterBox::new();
     center_box.set_hexpand(true);
+    center_box.set_halign(gtk4::Align::Fill);
 
     // Center: Date │  │ Time
     if cfg.modules.clock {

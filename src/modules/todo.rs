@@ -265,13 +265,14 @@ pub fn create() -> GtkBox {
                 0
             };
 
-            // Fill width proportional to the 296px inner progress track.
+            // Fill width proportional to the actual inner progress track width.
+            // (pop_box width_request=320; .zenith-todo-progress-track margins=14px+14px)
             let fill_px_usize = if total > 0 {
-                done.saturating_mul(296) / total
+                done.saturating_mul(292) / total
             } else {
                 0
             };
-            let fill_px = i32::try_from(fill_px_usize).unwrap_or(296);
+            let fill_px = i32::try_from(fill_px_usize).unwrap_or(292);
             prog_fill.set_width_request(fill_px.max(0));
 
             // Color the progress fill based on completion
