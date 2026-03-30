@@ -19,7 +19,10 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
         .build();
 
     // Keep height config authoritative; default_height is only an initial size hint.
+    window.set_resizable(false);
+    window.set_default_size(1, cfg.bar.height);
     window.set_size_request(-1, cfg.bar.height);
+    window.set_height_request(cfg.bar.height);
 
     // ── Layer-shell setup ────────────────────────────────────────────
     window.init_layer_shell();
@@ -55,11 +58,17 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     // ── Widget tree ──────────────────────────────────────────────────
     let outer = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
     outer.add_css_class("zenith-border");
+    outer.set_size_request(-1, cfg.bar.height);
     outer.set_height_request(cfg.bar.height);
+    outer.set_vexpand(false);
     outer.set_hexpand(true);
 
     let inner = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
     inner.add_css_class("zenith-inner");
+    let inner_height = (cfg.bar.height - (cfg.bar.border_width * 2)).max(1);
+    inner.set_size_request(-1, inner_height);
+    inner.set_height_request(inner_height);
+    inner.set_vexpand(false);
     inner.set_hexpand(true);
 
     let center_box = CenterBox::new();
