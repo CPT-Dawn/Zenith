@@ -225,12 +225,41 @@ window {
     min-width: 180px;
 }
 
-.zenith-player-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
+.zenith-player-btn.zenith-module-surface {
+    /* Bottom “glass glow” so the progress bar feels embedded. */
+    background:
+        radial-gradient(ellipse at 50% 120%,
+            rgba(34, 211, 238, 0.26) 0%,
+            rgba(34, 211, 238, 0.12) 26%,
+            rgba(0, 0, 0, 0) 60%),
+        radial-gradient(ellipse at 15% 100%,
+            rgba(103, 232, 249, 0.12) 0%,
+            rgba(0, 0, 0, 0) 55%),
+        rgba(255, 255, 255, 0.055);
 }
 
-.zenith-player-btn:active {
-    background: rgba(255, 255, 255, 0.16);
+.zenith-player-btn.zenith-module-surface:hover {
+    background:
+        radial-gradient(ellipse at 50% 120%,
+            rgba(34, 211, 238, 0.32) 0%,
+            rgba(34, 211, 238, 0.14) 26%,
+            rgba(0, 0, 0, 0) 60%),
+        radial-gradient(ellipse at 15% 100%,
+            rgba(103, 232, 249, 0.14) 0%,
+            rgba(0, 0, 0, 0) 55%),
+        rgba(255, 255, 255, 0.12);
+}
+
+.zenith-player-btn.zenith-module-surface:active {
+    background:
+        radial-gradient(ellipse at 50% 120%,
+            rgba(34, 211, 238, 0.38) 0%,
+            rgba(34, 211, 238, 0.16) 26%,
+            rgba(0, 0, 0, 0) 60%),
+        radial-gradient(ellipse at 15% 100%,
+            rgba(103, 232, 249, 0.16) 0%,
+            rgba(0, 0, 0, 0) 55%),
+        rgba(255, 255, 255, 0.16);
 }
 
 .zenith-player-title {
@@ -241,19 +270,28 @@ window {
 }
 
 .zenith-player-progress {
-    min-height: 3px;
+    min-height: 8px;
 }
 
 .zenith-player-progress trough {
-    min-height: 3px;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.10);
+    min-height: 8px;
+    border-radius: 999px;
+    /* Radial falloff simulates blur/glow without unsupported filters. */
+    background:
+        radial-gradient(ellipse at 50% 140%,
+            rgba(34, 211, 238, 0.35) 0%,
+            rgba(34, 211, 238, 0.10) 34%,
+            rgba(0, 0, 0, 0) 66%),
+        rgba(255, 255, 255, 0.10);
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.18);
 }
 
 .zenith-player-progress progress {
-    min-height: 3px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, #67e8f9, #0891b2);
+    min-height: 8px;
+    border-radius: 999px;
+    background:
+        linear-gradient(90deg, #67e8f9, #0891b2, #0ea5a4);
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.42);
 }
 
 /* ----------------------------------------------------------------------

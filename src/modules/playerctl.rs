@@ -1,6 +1,8 @@
 use gtk4::prelude::*;
 use gtk4::{Align, Box as GtkBox, Button, Label, Orientation, ProgressBar};
+use std::cell::Cell;
 use std::process::Command;
+use std::rc::Rc;
 use std::time::Duration;
 
 const METADATA_FORMAT: &str = "{{status}}\t{{artist}}\t{{title}}\t{{position}}\t{{mpris:length}}";
@@ -28,6 +30,7 @@ pub fn create() -> GtkBox {
     let content = GtkBox::new(Orientation::Vertical, 2);
     content.set_width_request(220);
     content.set_hexpand(false);
+    content.set_valign(Align::End);
 
     let title = Label::new(Some("󰝛 No media"));
     title.add_css_class("zenith-player-title");
@@ -49,48 +52,78 @@ pub fn create() -> GtkBox {
     button.set_child(Some(&content));
     container.append(&button);
 
-    refresh_widgets(&title, &progress, &button);
+    // Animate progress smoothly between `playerctl` metadata refreshes.
+    // We only query `playerctl` once per second, but we interpolate the bar
+    // at a higher frame rate for a more polished feel.
+    let current_fraction = Rc::new(Cell::new(0.0));
+    let target_fraction = Rc::new(Cell::new(0.0));
+
+    refresh_widgets(&title, &button, target_fraction.as_ref());
+    let init = target_fraction.get();
+    current_fraction.set(init);
+    progress.set_fraction(init);
 
     button.connect_clicked({
         let title = title.downgrade();
-        let progress = progress.downgrade();
         let button = button.downgrade();
+        let target_fraction = target_fraction.clone();
         move |_| {
             if let Err(err) = Command::new("playerctl").arg("play-pause").output() {
                 log::debug!("playerctl play-pause failed: {err}");
             }
 
-            if let (Some(t), Some(p), Some(b)) =
-                (title.upgrade(), progress.upgrade(), button.upgrade())
+            if let (Some(t), Some(b)) = (title.upgrade(), button.upgrade())
             {
-                refresh_widgets(&t, &p, &b);
+                refresh_widgets(&t, &b, target_fraction.as_ref());
             }
         }
     });
 
     let title_weak = title.downgrade();
-    let progress_weak = progress.downgrade();
     let button_weak = button.downgrade();
+    let target_fraction = target_fraction.clone();
+    let current_fraction_anim = current_fraction.clone();
+    let target_fraction_anim = target_fraction.clone();
+    let progress_weak_anim = progress.downgrade();
+
+    // Frame-rate animation loop for the progress bar.
+    glib::timeout_add_local(Duration::from_millis(16), move || {
+        let Some(p) = progress_weak_anim.upgrade() else {
+            return glib::ControlFlow::Break;
+        };
+
+        let current = current_fraction_anim.get();
+        let target = target_fraction_anim.get();
+        let delta = target - current;
+
+        // Exponential smoothing: fast response, but it never "jumps".
+        let next = if delta.abs() < 0.0004 {
+            target
+        } else {
+            current + delta * 0.25
+        };
+
+        current_fraction_anim.set(next);
+        p.set_fraction(next);
+        glib::ControlFlow::Continue
+    });
 
     glib::timeout_add_local(Duration::from_secs(1), move || {
         let Some(t) = title_weak.upgrade() else {
-            return glib::ControlFlow::Break;
-        };
-        let Some(p) = progress_weak.upgrade() else {
             return glib::ControlFlow::Break;
         };
         let Some(b) = button_weak.upgrade() else {
             return glib::ControlFlow::Break;
         };
 
-        refresh_widgets(&t, &p, &b);
+        refresh_widgets(&t, &b, target_fraction.as_ref());
         glib::ControlFlow::Continue
     });
 
     container
 }
 
-fn refresh_widgets(title: &Label, progress: &ProgressBar, button: &Button) {
+fn refresh_widgets(title: &Label, button: &Button, target_fraction: &Cell<f64>) {
     if let Some(snapshot) = read_player_snapshot() {
         let icon = match snapshot.status.as_str() {
             "Playing" => "",
@@ -113,8 +146,6 @@ fn refresh_widgets(title: &Label, progress: &ProgressBar, button: &Button) {
         };
         title.set_label(&label_text);
 
-        progress.set_fraction(progress_fraction(snapshot.position_us, snapshot.length_us));
-
         let elapsed = format_microseconds(snapshot.position_us);
         let total = format_microseconds(snapshot.length_us);
         let tooltip = if display_artist.is_empty() {
@@ -125,9 +156,14 @@ fn refresh_widgets(title: &Label, progress: &ProgressBar, button: &Button) {
             )
         };
         button.set_tooltip_text(Some(&tooltip));
+
+        target_fraction.set(progress_fraction(
+            snapshot.position_us,
+            snapshot.length_us,
+        ));
     } else {
         title.set_label("󰝛 No media");
-        progress.set_fraction(0.0);
+        target_fraction.set(0.0);
         button.set_tooltip_text(Some("No active player found\nLeft click: play/pause"));
     }
 }

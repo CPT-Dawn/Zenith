@@ -23,6 +23,74 @@ const PLAYER_BTN_CLASS: &str = ".zenith-player-btn";
 const PLAYER_TITLE_CLASS: &str = ".zenith-player-title";
 const PLAYER_PROGRESS_CLASS: &str = ".zenith-player-progress";
 
+/// Always-appended player module aesthetic overrides.
+///
+/// Rationale: if a user already has an older `style.css` (where the player
+/// selectors exist) the backward-compat injection won't update them.
+const PLAYER_UI_OVERRIDES: &str = r#"
+/* Zenith Player Module Aesthetic Overrides */
+.zenith-player-btn.zenith-module-surface {
+    background:
+        radial-gradient(ellipse at 50% 120%,
+            rgba(34, 211, 238, 0.26) 0%,
+            rgba(34, 211, 238, 0.12) 26%,
+            rgba(0, 0, 0, 0) 60%),
+        radial-gradient(ellipse at 15% 100%,
+            rgba(103, 232, 249, 0.12) 0%,
+            rgba(0, 0, 0, 0) 55%),
+        rgba(255, 255, 255, 0.055);
+}
+
+.zenith-player-btn.zenith-module-surface:hover {
+    background:
+        radial-gradient(ellipse at 50% 120%,
+            rgba(34, 211, 238, 0.32) 0%,
+            rgba(34, 211, 238, 0.14) 26%,
+            rgba(0, 0, 0, 0) 60%),
+        radial-gradient(ellipse at 15% 100%,
+            rgba(103, 232, 249, 0.14) 0%,
+            rgba(0, 0, 0, 0) 55%),
+        rgba(255, 255, 255, 0.12);
+}
+
+.zenith-player-btn.zenith-module-surface:active {
+    background:
+        radial-gradient(ellipse at 50% 120%,
+            rgba(34, 211, 238, 0.38) 0%,
+            rgba(34, 211, 238, 0.16) 26%,
+            rgba(0, 0, 0, 0) 60%),
+        radial-gradient(ellipse at 15% 100%,
+            rgba(103, 232, 249, 0.16) 0%,
+            rgba(0, 0, 0, 0) 55%),
+        rgba(255, 255, 255, 0.16);
+}
+
+.zenith-player-progress {
+    min-height: 8px;
+}
+
+.zenith-player-progress trough {
+    min-height: 8px;
+    border-radius: 999px;
+    /* Radial falloff simulates blur/glow without unsupported filters. */
+    background:
+        radial-gradient(ellipse at 50% 140%,
+            rgba(34, 211, 238, 0.35) 0%,
+            rgba(34, 211, 238, 0.10) 34%,
+            rgba(0, 0, 0, 0) 66%),
+        rgba(255, 255, 255, 0.10);
+    box-shadow: 0 0 18px rgba(34, 211, 238, 0.18);
+}
+
+.zenith-player-progress progress {
+    min-height: 8px;
+    border-radius: 999px;
+    background:
+        linear-gradient(90deg, #67e8f9, #0891b2, #0ea5a4);
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.42);
+}
+"#;
+
 /// Return the canonical style path: `~/.config/zenith/style.css`.
 pub fn style_path() -> Result<PathBuf> {
     if let Some(path) = std::env::var_os("ZENITH_STYLE") {
@@ -200,12 +268,12 @@ fn ensure_compat_style_rules(css: &str) -> String {
         );
     }
     if !has_player_progress {
-        out.push_str(".zenith-player-progress { min-height: 3px; }\n");
+        out.push_str(".zenith-player-progress { min-height: 8px; }\n");
         out.push_str(
-            ".zenith-player-progress trough { min-height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.08); }\n",
+            ".zenith-player-progress trough { min-height: 8px; border-radius: 999px; background: radial-gradient(ellipse at 50% 140%, rgba(34, 211, 238, 0.35) 0%, rgba(34, 211, 238, 0.10) 34%, rgba(0, 0, 0, 0) 66%), rgba(255, 255, 255, 0.10); box-shadow: 0 0 18px rgba(34, 211, 238, 0.18); }\n",
         );
         out.push_str(
-            ".zenith-player-progress progress { min-height: 3px; border-radius: 2px; background: linear-gradient(90deg, #00ccff, #00ff99); }\n",
+            ".zenith-player-progress progress { min-height: 8px; border-radius: 999px; background: linear-gradient(90deg, #67e8f9, #0891b2, #0ea5a4); box-shadow: 0 0 16px rgba(34, 211, 238, 0.42); }\n",
         );
     }
 
@@ -233,7 +301,7 @@ pub fn load(bar: &BarConfig) -> Result<String> {
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read style at {}", path.display()))?;
 
-    let css = ensure_compat_style_rules(&render_template(&raw, bar));
+    let css = ensure_compat_style_rules(&render_template(&raw, bar)) + PLAYER_UI_OVERRIDES;
 
     log::info!("Loaded style from {}", path.display());
 
