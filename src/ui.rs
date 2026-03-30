@@ -8,7 +8,7 @@ use crate::config::ZenithConfig;
 use crate::modules;
 use crate::style;
 
-const RIGHT_CLUSTER_SPACING: i32 = 14;
+const RIGHT_CLUSTER_SPACING: i32 = 8;
 
 /// Build and present the bar window for the given GTK `Application`.
 pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {

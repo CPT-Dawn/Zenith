@@ -30,47 +30,32 @@ const PLAYER_PROGRESS_CLASS: &str = ".zenith-player-progress";
 const PLAYER_UI_OVERRIDES: &str = r#"
 /* Zenith Player Module Aesthetic Overrides */
 .zenith-player-btn.zenith-module-surface {
-    background:
-        linear-gradient(180deg,
-            rgba(122, 162, 247, 0.12) 0%,
-            rgba(42, 195, 222, 0.04) 100%),
-        rgba(255, 255, 255, 0.06);
+    background: transparent;
 }
 
 .zenith-player-btn.zenith-module-surface:hover {
-    background:
-        linear-gradient(180deg,
-            rgba(122, 162, 247, 0.16) 0%,
-            rgba(42, 195, 222, 0.06) 100%),
-        rgba(255, 255, 255, 0.10);
+    background: rgba(115, 218, 202, 0.08);
 }
 
 .zenith-player-btn.zenith-module-surface:active {
-    background:
-        linear-gradient(180deg,
-            rgba(122, 162, 247, 0.20) 0%,
-            rgba(42, 195, 222, 0.08) 100%),
-        rgba(255, 255, 255, 0.13);
+    background: rgba(115, 218, 202, 0.14);
 }
 
 .zenith-player-progress {
-    min-height: 8px;
+    min-height: 3px;
 }
 
 .zenith-player-progress trough {
-    min-height: 8px;
+    min-height: 3px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.07);
-    box-shadow: none;
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .zenith-player-progress progress {
-    min-height: 8px;
+    min-height: 3px;
     border-radius: 999px;
-    background: linear-gradient(90deg,
-        rgba(42, 195, 222, 0.95),
-        rgba(122, 162, 247, 0.95));
-    box-shadow: 0 0 12px rgba(122, 162, 247, 0.22);
+    background: linear-gradient(90deg, #73daca, #7dcfff);
+    box-shadow: 0 0 6px rgba(115, 218, 202, 0.30);
 }
 "#;
 
@@ -218,7 +203,7 @@ fn ensure_compat_style_rules(css: &str) -> String {
         out.push_str(".zenith-module-temp { color: #e0af68; }\n");
     }
     if !has_cool {
-        out.push_str(".zenith-module-temp-cool { color: #2ac3de; }\n");
+        out.push_str(".zenith-module-temp-cool { color: #7dcfff; }\n");
     }
     if !has_warm {
         out.push_str(".zenith-module-temp-warm { color: #e0af68; }\n");
@@ -228,35 +213,35 @@ fn ensure_compat_style_rules(css: &str) -> String {
     }
     if !has_module_surface {
         out.push_str(
-            ".zenith-module-surface { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 999px; padding: 6px 12px; transition: background 160ms ease, border-color 160ms ease, box-shadow 200ms ease; }\n",
+            ".zenith-module-surface { background: transparent; border: none; border-radius: 4px; padding: 2px 8px; transition: background 140ms ease; }\n",
         );
         out.push_str(
-            ".zenith-module-surface:hover { background: rgba(255, 255, 255, 0.10); border-color: rgba(255, 255, 255, 0.14); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28); }\n",
+            ".zenith-module-surface:hover { background: rgba(255, 255, 255, 0.06); }\n",
         );
-        out.push_str(".zenith-module-surface:active { background: rgba(255, 255, 255, 0.13); }\n");
+        out.push_str(".zenith-module-surface:active { background: rgba(255, 255, 255, 0.10); }\n");
     }
     if !has_todo_plus {
         out.push_str(
-            ".zenith-todo-btn-plus { font-size: 18px; font-weight: 800; min-width: 28px; padding: 2px 12px; line-height: 1; }\n",
+            ".zenith-todo-btn-plus { font-size: 15px; font-weight: 800; min-width: 22px; padding: 1px 8px; line-height: 1; }\n",
         );
     }
     if !has_player_btn {
         out.push_str(
-            ".zenith-player-btn { background: transparent; border: none; box-shadow: none; padding: 2px 10px; min-height: 0; min-width: 180px; }\n",
+            ".zenith-player-btn { background: transparent; border: none; box-shadow: none; padding: 1px 8px; min-height: 0; min-width: 160px; }\n",
         );
     }
     if !has_player_title {
         out.push_str(
-            ".zenith-player-title { font-family: \"JetBrainsMono Nerd Font\", \"Inter\", monospace; font-size: 12px; font-weight: 700; color: #cdd6f4; }\n",
+            ".zenith-player-title { font-family: \"JetBrainsMono Nerd Font\", \"Inter\", monospace; font-size: 11px; font-weight: 600; color: #73daca; }\n",
         );
     }
     if !has_player_progress {
-        out.push_str(".zenith-player-progress { min-height: 8px; }\n");
+        out.push_str(".zenith-player-progress { min-height: 3px; }\n");
         out.push_str(
-            ".zenith-player-progress trough { min-height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); box-shadow: none; }\n",
+            ".zenith-player-progress trough { min-height: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); }\n",
         );
         out.push_str(
-            ".zenith-player-progress progress { min-height: 8px; border-radius: 999px; background: linear-gradient(90deg, rgba(42, 195, 222, 0.95), rgba(122, 162, 247, 0.95)); box-shadow: 0 0 12px rgba(122, 162, 247, 0.22); }\n",
+            ".zenith-player-progress progress { min-height: 3px; border-radius: 999px; background: linear-gradient(90deg, #73daca, #7dcfff); box-shadow: 0 0 6px rgba(115, 218, 202, 0.30); }\n",
         );
     }
 

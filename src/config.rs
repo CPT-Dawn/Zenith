@@ -57,13 +57,13 @@ impl Default for BarConfig {
         // Keep in sync with `Default_Config.toml` (and the embedded template).
         Self {
             monitor: None,
-            height: 48,
-            gap_horizontal: 12,
-            gap_top: 8,
-            border_radius: 12,
-            border_width: 2,
+            height: 28,
+            gap_horizontal: 0,
+            gap_top: 0,
+            border_radius: 0,
+            border_width: 0,
             rgb_cycle_seconds: 12.0,
-            background: "rgba(11, 16, 24, 0.76)".into(),
+            background: "rgba(26, 27, 38, 0.95)".into(),
         }
     }
 }
@@ -73,7 +73,7 @@ impl Default for ModulesConfig {
         // Keep in sync with `Default_Config.toml` (and the embedded template).
         Self {
             clock: true,
-            clock_format: "%H:%M".into(),
+            clock_format: "%a %H:%M".into(),
             system_stats: true,
             todo: true,
             playerctl: true,

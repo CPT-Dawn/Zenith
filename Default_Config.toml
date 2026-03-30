@@ -17,10 +17,11 @@
 #
 # Notes:
 # - Pixel values are integers.
-# - Colors are CSS strings (for example: rgba(20, 24, 30, 0.78)).
+# - Colors are CSS strings (for example: rgba(26, 27, 38, 0.95)).
 # - Keep quotes around strings.
-# - Bar height/gaps are tuned for typical 1080p panels (~48px tall bar).
-#   On higher resolutions or scaling, increase height/gaps slightly if it feels tight.
+# - This config produces a slim, flush top bar (28px) anchored to
+#   the screen edges with no gaps.  Increase height to 32-36 if
+#   you prefer a more spacious look.
 #
 
 [bar]
@@ -29,40 +30,40 @@
 # -----------------------------------------------------------------------
 # Monitor connector name. Leave commented out to use the default monitor.
 # Examples: "eDP-1", "DP-1", "HDMI-A-1", "HDMI-1"
-monitor = "eDP-1"
+# monitor = "eDP-1"
 
 # -----------------------------------------------------------------------
 # Geometry
 # -----------------------------------------------------------------------
-# Overall bar height in pixels (GTK + layer-shell; must fit module fonts in Default_Style.css).
-height = 48
+# Overall bar height in pixels.
+# 28px is minimal-but-legible at 1080p.  Bump to 32 on HiDPI if needed.
+height = 28
 
-# Horizontal gap from left/right screen edges.
-gap_horizontal = 12
+# Horizontal gap from left/right screen edges (0 = flush).
+gap_horizontal = 0
 
-# Gap from the top edge of the monitor.
-gap_top = 8
+# Gap from the top edge of the monitor (0 = flush).
+gap_top = 0
 
-# Corner radius used by the outer/inner shell.
-border_radius = 12
+# Corner radius for the outer shell (0 = sharp rectangle).
+border_radius = 0
 
-# Border thickness in pixels.
-border_width = 1
+# Animated border thickness (0 = no visible border).
+border_width = 0
 
 # -----------------------------------------------------------------------
 # Visual Motion
 # -----------------------------------------------------------------------
 # Seconds for one full animated border cycle.
-# Kept for compatibility with older themes; the default styles ship with
-# restrained (nearly-static) visuals rather than an aggressive spectrum border.
-rgb_cycle_seconds = 24.0
+# Only visible when border_width > 0.
+rgb_cycle_seconds = 12.0
 
 # -----------------------------------------------------------------------
 # Surface Color
 # -----------------------------------------------------------------------
 # Main bar body background.
-# Use a semi-transparent value for a glass look on Wayland compositors.
-background = "rgba(26, 27, 38, 0.78)"
+# Tokyo Night Storm base with 95 % opacity for subtle compositor blur.
+background = "rgba(26, 27, 38, 0.95)"
 
 
 [modules]
@@ -76,9 +77,8 @@ playerctl = true
 todo = true
 
 # Clock format (strftime syntax).
-# Current default keeps the bar clean and low-motion for first-time users.
 # Examples:
 #   "%H:%M"
 #   "%H:%M:%S"
 #   "%a %d %b  %H:%M"
-clock_format = "%H:%M"
+clock_format = "%a %H:%M"
