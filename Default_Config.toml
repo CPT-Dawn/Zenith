@@ -1,42 +1,87 @@
-# ╔══════════════════════════════════════════════════════════════════╗
-# ║                    Zenith – Configuration                        ║
-# ╚══════════════════════════════════════════════════════════════════╝
-# Place this file at:  ~/.config/zenith/config.toml
-# Style file location: ~/.config/zenith/style.css
+# ╔══════════════════════════════════════════════════════════════════════╗
+# ║                      Zenith - Default Config                         ║
+# ╚══════════════════════════════════════════════════════════════════════╝
+#
+# This file is written to:
+#   ~/.config/zenith/config.toml
+#
+# Matching stylesheet:
+#   ~/.config/zenith/style.css
+#
+# -----------------------------------------------------------------------
+# Quick Start
+# -----------------------------------------------------------------------
+# 1) Edit values below.
+# 2) Save.
+# 3) Restart Zenith (or your session if needed) to apply changes.
+#
+# Notes:
+# - Pixel values are integers.
+# - Colors are CSS strings (for example: rgba(20, 24, 30, 0.78)).
+# - Keep quotes around strings.
+# - This default profile is tuned for 1920x1080 displays.
+#   On higher resolutions, increase gaps/radius by 10-30% for similar proportions.
+#
 
 [bar]
-# Monitor connector name.  Leave commented out to use the default monitor.
-# Examples: "eDP-1" (laptop), "DP-1", "HDMI-A-1"
+# -----------------------------------------------------------------------
+# Display Target
+# -----------------------------------------------------------------------
+# Monitor connector name. Leave commented out to use the default monitor.
+# Examples: "eDP-1", "DP-1", "HDMI-A-1", "HDMI-1"
 # monitor = "eDP-1"
 
-# Bar height in pixels.
-height = 40
+# -----------------------------------------------------------------------
+# Geometry
+# -----------------------------------------------------------------------
+# 1080p-balanced geometry:
+# These values are chosen to feel spacious without wasting vertical space.
 
-# Horizontal gap (left & right margins) in pixels.
-gap_horizontal = 8
+# Overall bar height in pixels.
+height = 20
 
-# Gap from the top screen edge in pixels.
-gap_top = 6
+# Horizontal gap from left/right screen edges.
+gap_horizontal = 12
 
-# Corner radius of the inner bar surface.
+# Gap from the top edge of the monitor.
+gap_top = 8
+
+# Corner radius used by the outer/inner shell.
 border_radius = 12
 
-# Animated RGB border thickness in pixels.
+# Border thickness in pixels.
 border_width = 2
 
-# Duration of one full RGB gradient animation cycle (seconds).
-rgb_cycle_seconds = 4.0
+# -----------------------------------------------------------------------
+# Visual Motion
+# -----------------------------------------------------------------------
+# Seconds for one full animated border cycle.
+# Lower value = faster animation.
+# Slightly slower default keeps things elegant for daily use.
+rgb_cycle_seconds = 12.0
 
-# Inner bar background – translucent for the acrylic / blur effect.
-background = "rgba(30, 30, 46, 0.6)"
+# -----------------------------------------------------------------------
+# Surface Color
+# -----------------------------------------------------------------------
+# Main bar body background.
+# Use a semi-transparent value for a glass look on Wayland compositors.
+background = "rgba(11, 16, 24, 0.76)"
+
 
 [modules]
-# Toggle modules on or off.
-# Set to `false` explicitly to disable a module.
+# -----------------------------------------------------------------------
+# Module Toggles
+# -----------------------------------------------------------------------
+# Set any item to false to disable that module.
 clock = true
 system_stats = true
 playerctl = true
 todo = true
 
-# strftime-compatible format string for the clock module.
-clock_format = "%H:%M:%S"
+# Clock format (strftime syntax).
+# Current default keeps the bar clean and low-motion for first-time users.
+# Examples:
+#   "%H:%M"
+#   "%H:%M:%S"
+#   "%a %d %b  %H:%M"
+clock_format = "%H:%M"

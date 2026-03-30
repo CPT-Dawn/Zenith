@@ -339,6 +339,9 @@ pub fn create() -> GtkBox {
 
             // Parse optional priority prefix: "3:Deploy server" → priority=3
             let (priority, task_text) = parse_priority(&text);
+            if task_text.is_empty() {
+                return;
+            }
 
             {
                 let mut s = store.borrow_mut();

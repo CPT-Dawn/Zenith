@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use crate::config::BarConfig;
 
 /// Embedded default stylesheet copied to disk on first launch.
-const DEFAULT_STYLE_TEMPLATE: &str = include_str!("../Default_Style.css");
+const EMBEDDED_DEFAULT_STYLE_TEMPLATE: &str = include_str!("../Default_Style.css");
 
 const TOKEN_RADIUS: &str = "__ZENITH_RADIUS__";
 const TOKEN_BORDER_WIDTH: &str = "__ZENITH_BORDER_WIDTH__";
@@ -42,7 +42,7 @@ pub fn style_path() -> Result<PathBuf> {
 ///
 /// If `style.css` is missing, this writes `Default_Style.css` as the initial
 /// user-facing stylesheet.
-fn ensure_style_file(path: &Path) -> Result<()> {
+fn ensure_style_file(path: &Path, default_template: &str) -> Result<()> {
     let parent = path
         .parent()
         .context("Style path has no parent directory")?;
@@ -58,7 +58,7 @@ fn ensure_style_file(path: &Path) -> Result<()> {
         Ok(mut file) => {
             use std::io::Write;
 
-            file.write_all(DEFAULT_STYLE_TEMPLATE.as_bytes())
+            file.write_all(default_template.as_bytes())
                 .with_context(|| format!("Failed to write default style to {}", path.display()))?;
 
             log::info!("Created default style at {}", path.display());
@@ -69,6 +69,56 @@ fn ensure_style_file(path: &Path) -> Result<()> {
             Err(err).with_context(|| format!("Failed to create style file {}", path.display()))
         }
     }
+}
+
+/// Resolve the default-style template text.
+///
+/// Order of precedence:
+/// 1) `ZENITH_DEFAULT_STYLE_TEMPLATE` path, if set and readable.
+/// 2) `./Default_Style.css` from current working directory, if readable.
+/// 3) Embedded compile-time template fallback.
+fn default_style_template() -> String {
+    if let Some(path) = std::env::var_os("ZENITH_DEFAULT_STYLE_TEMPLATE") {
+        let path = PathBuf::from(path);
+        match fs::read_to_string(&path) {
+            Ok(content) => {
+                log::info!(
+                    "Using runtime default style template from {}",
+                    path.display()
+                );
+                return content;
+            }
+            Err(err) => {
+                log::warn!(
+                    "Failed to read ZENITH_DEFAULT_STYLE_TEMPLATE at {}: {err}; falling back",
+                    path.display()
+                );
+            }
+        }
+    }
+
+    if let Ok(cwd) = std::env::current_dir() {
+        let path = cwd.join("Default_Style.css");
+        if path.exists() {
+            match fs::read_to_string(&path) {
+                Ok(content) => {
+                    log::info!(
+                        "Using runtime default style template from {}",
+                        path.display()
+                    );
+                    return content;
+                }
+                Err(err) => {
+                    log::warn!(
+                        "Failed to read runtime default style template at {}: {err}; falling back",
+                        path.display()
+                    );
+                }
+            }
+        }
+    }
+
+    EMBEDDED_DEFAULT_STYLE_TEMPLATE.to_string()
 }
 
 /// Render style-template tokens from the current runtime config values.
@@ -164,8 +214,10 @@ fn ensure_compat_style_rules(css: &str) -> String {
 
 /// Load the user stylesheet from disk and apply config-driven template values.
 pub fn load(bar: &BarConfig) -> Result<String> {
+    let default_template = default_style_template();
+
     let path = style_path()?;
-    ensure_style_file(&path)?;
+    ensure_style_file(&path, &default_template)?;
 
     if let Ok(cwd) = std::env::current_dir() {
         let local_style = cwd.join("style.css");

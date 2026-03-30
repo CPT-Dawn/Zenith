@@ -4,7 +4,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 /// Embedded default template copied to disk on first launch.
-const DEFAULT_CONFIG_TEMPLATE: &str = include_str!("../Default_Config.toml");
+const EMBEDDED_DEFAULT_CONFIG_TEMPLATE: &str = include_str!("../Default_Config.toml");
 
 /// Top-level configuration for Zenith bar.
 #[derive(Debug, Deserialize, Clone)]
@@ -103,7 +103,7 @@ pub fn config_path() -> Result<PathBuf> {
 ///
 /// If `config.toml` is missing, this writes `Default_Config.toml` as the
 /// initial user-facing configuration.
-fn ensure_config_file(path: &Path) -> Result<()> {
+fn ensure_config_file(path: &Path, default_template: &str) -> Result<()> {
     let parent = path
         .parent()
         .context("Config path has no parent directory")?;
@@ -119,7 +119,7 @@ fn ensure_config_file(path: &Path) -> Result<()> {
         Ok(mut file) => {
             use std::io::Write;
 
-            file.write_all(DEFAULT_CONFIG_TEMPLATE.as_bytes())
+            file.write_all(default_template.as_bytes())
                 .with_context(|| format!("Failed to write default config to {}", path.display()))?;
 
             log::info!("Created default config at {}", path.display());
@@ -130,6 +130,56 @@ fn ensure_config_file(path: &Path) -> Result<()> {
             Err(err).with_context(|| format!("Failed to create config file {}", path.display()))
         }
     }
+}
+
+/// Resolve the default-config template text.
+///
+/// Order of precedence:
+/// 1) `ZENITH_DEFAULT_CONFIG_TEMPLATE` path, if set and readable.
+/// 2) `./Default_Config.toml` from current working directory, if readable.
+/// 3) Embedded compile-time template fallback.
+fn default_config_template() -> String {
+    if let Some(path) = std::env::var_os("ZENITH_DEFAULT_CONFIG_TEMPLATE") {
+        let path = PathBuf::from(path);
+        match fs::read_to_string(&path) {
+            Ok(content) => {
+                log::info!(
+                    "Using runtime default config template from {}",
+                    path.display()
+                );
+                return content;
+            }
+            Err(err) => {
+                log::warn!(
+                    "Failed to read ZENITH_DEFAULT_CONFIG_TEMPLATE at {}: {err}; falling back",
+                    path.display()
+                );
+            }
+        }
+    }
+
+    if let Ok(cwd) = std::env::current_dir() {
+        let path = cwd.join("Default_Config.toml");
+        if path.exists() {
+            match fs::read_to_string(&path) {
+                Ok(content) => {
+                    log::info!(
+                        "Using runtime default config template from {}",
+                        path.display()
+                    );
+                    return content;
+                }
+                Err(err) => {
+                    log::warn!(
+                        "Failed to read runtime default config template at {}: {err}; falling back",
+                        path.display()
+                    );
+                }
+            }
+        }
+    }
+
+    EMBEDDED_DEFAULT_CONFIG_TEMPLATE.to_string()
 }
 
 /// Merge `overlay` into `base`, replacing scalar/array values and recursively
@@ -157,8 +207,10 @@ fn merge_toml_value(base: &mut toml::Value, overlay: toml::Value) {
 /// Missing keys in the user config fall back to values from the default
 /// template so template edits are applied consistently.
 pub fn load() -> Result<ZenithConfig> {
+    let default_template = default_config_template();
+
     let path = config_path()?;
-    ensure_config_file(&path)?;
+    ensure_config_file(&path, &default_template)?;
 
     if let Ok(cwd) = std::env::current_dir() {
         let local_cfg = cwd.join("config.toml");
@@ -174,7 +226,7 @@ pub fn load() -> Result<ZenithConfig> {
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read config at {}", path.display()))?;
 
-    let mut merged: toml::Value = toml::from_str(DEFAULT_CONFIG_TEMPLATE)
+    let mut merged: toml::Value = toml::from_str(&default_template)
         .context("Failed to parse embedded default config template")?;
     let user_value: toml::Value =
         toml::from_str(&raw).with_context(|| format!("Failed to parse {}", path.display()))?;

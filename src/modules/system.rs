@@ -43,6 +43,15 @@ pub fn create() -> GtkBox {
         let temp_label = temp_label.downgrade();
 
         glib::timeout_add_local(Duration::from_secs(2), move || {
+            // Stop refreshing once all labels are gone (widget destroyed).
+            let cpu_label = cpu_label.upgrade();
+            let mem_label = mem_label.upgrade();
+            let temp_label = temp_label.upgrade();
+
+            if cpu_label.is_none() && mem_label.is_none() && temp_label.is_none() {
+                return glib::ControlFlow::Break;
+            }
+
             let mut sys = sys.borrow_mut();
 
             // PERFORMANCE FIX: Only refresh exactly what we need
@@ -50,13 +59,13 @@ pub fn create() -> GtkBox {
             sys.refresh_memory();
 
             // CPU usage (sysinfo 0.30+ syntax)
-            if let Some(lbl) = cpu_label.upgrade() {
+            if let Some(lbl) = cpu_label {
                 let cpu_pct = sys.global_cpu_usage().clamp(0.0, 100.0);
                 lbl.set_label(&format!(" {cpu_pct:>3.0}%")); // Pad to 3 chars to stop UI jitter
             }
 
             // Memory usage
-            if let Some(lbl) = mem_label.upgrade() {
+            if let Some(lbl) = mem_label {
                 let total = sys.total_memory();
                 let used = sys.used_memory();
                 let mem_pct = if total > 0 {
@@ -69,7 +78,7 @@ pub fn create() -> GtkBox {
             }
 
             // Temperature
-            if let Some(lbl) = temp_label.upgrade() {
+            if let Some(lbl) = temp_label {
                 if let Some(temp) = read_cpu_temperature() {
                     lbl.remove_css_class("zenith-module-temp-cool");
                     lbl.remove_css_class("zenith-module-temp-warm");
