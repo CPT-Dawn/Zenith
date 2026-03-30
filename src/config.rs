@@ -7,9 +7,8 @@ use std::path::{Path, PathBuf};
 const EMBEDDED_DEFAULT_CONFIG_TEMPLATE: &str = include_str!("../Default_Config.toml");
 
 /// Top-level configuration for Zenith bar.
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Default)]
 #[serde(default, deny_unknown_fields)]
-#[derive(Default)]
 pub struct ZenithConfig {
     pub bar: BarConfig,
     pub modules: ModulesConfig,
@@ -55,24 +54,26 @@ pub struct ModulesConfig {
 
 impl Default for BarConfig {
     fn default() -> Self {
+        // Keep in sync with `Default_Config.toml` (and the embedded template).
         Self {
             monitor: None,
-            height: 40,
-            gap_horizontal: 8,
-            gap_top: 6,
+            height: 48,
+            gap_horizontal: 12,
+            gap_top: 8,
             border_radius: 12,
             border_width: 2,
-            rgb_cycle_seconds: 4.0,
-            background: "rgba(30, 30, 46, 0.6)".into(),
+            rgb_cycle_seconds: 12.0,
+            background: "rgba(11, 16, 24, 0.76)".into(),
         }
     }
 }
 
 impl Default for ModulesConfig {
     fn default() -> Self {
+        // Keep in sync with `Default_Config.toml` (and the embedded template).
         Self {
             clock: true,
-            clock_format: "%H:%M:%S".into(),
+            clock_format: "%H:%M".into(),
             system_stats: true,
             todo: true,
             playerctl: true,

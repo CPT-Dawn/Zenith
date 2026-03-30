@@ -19,8 +19,8 @@
 # - Pixel values are integers.
 # - Colors are CSS strings (for example: rgba(20, 24, 30, 0.78)).
 # - Keep quotes around strings.
-# - This default profile is tuned for 1920x1080 displays.
-#   On higher resolutions, increase gaps/radius by 10-30% for similar proportions.
+# - Bar height/gaps are tuned for typical 1080p panels (~48px tall bar).
+#   On higher resolutions or scaling, increase height/gaps slightly if it feels tight.
 #
 
 [bar]
@@ -34,11 +34,8 @@
 # -----------------------------------------------------------------------
 # Geometry
 # -----------------------------------------------------------------------
-# 1080p-balanced geometry:
-# These values are chosen to feel spacious without wasting vertical space.
-
-# Overall bar height in pixels.
-height = 100
+# Overall bar height in pixels (GTK + layer-shell; must fit module fonts in Default_Style.css).
+height = 48
 
 # Horizontal gap from left/right screen edges.
 gap_horizontal = 12

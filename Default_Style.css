@@ -8,7 +8,7 @@
    - Cool teal + amber accents
    - Strong readability and restrained motion
    - Cohesive spacing and module rhythm
-    - Tuned visual proportions for 1920x1080 first-run setups
+    - Tuned for the default ~48px bar height in Default_Config.toml
 
    Tokens below are replaced at runtime from config.toml:
      __ZENITH_RADIUS__
@@ -59,7 +59,7 @@ window {
 .zenith-inner {
     background-color: __ZENITH_BACKGROUND__;
     border-radius: __ZENITH_INNER_RADIUS__px;
-    padding: 2px 14px;
+    padding: 4px 14px;
 }
 
 /* ----------------------------------------------------------------------
@@ -133,7 +133,7 @@ window {
    ---------------------------------------------------------------------- */
 .zenith-logo {
     font-family: "JetBrainsMono Nerd Font", monospace;
-    font-size: 27px;
+    font-size: 22px;
     color: #22d3ee;
     text-shadow: 0 0 12px rgba(34, 211, 238, 0.50);
     padding: 0 3px;
