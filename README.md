@@ -70,10 +70,10 @@ The recommended installation method for Arch users:
 
 ```bash
 # Using paru
-paru -S zenith
+paru -S zenith-bar
 
 # Using yay
-yay -S zenith
+yay -S zenith-bar
 ```
 
 ### Manual Build
