@@ -70,10 +70,10 @@ The recommended installation method for Arch users:
 
 ```bash
 # Using paru
-paru -S zenith-bar
+paru -S zenith
 
 # Using yay
-yay -S zenith-bar
+yay -S zenith
 ```
 
 ### Manual Build
@@ -174,6 +174,12 @@ Key classes for customization:
 ## Hyprland Integration
 
 Add a few lines to your `~/.config/hypr/hyprland.conf` for the best experience:
+
+### Auto Start
+
+```ini
+exec-once = zenith
+```
 
 ### Background Blur
 
