@@ -178,30 +178,12 @@ Add a few lines to your `~/.config/hypr/hyprland.conf` for the best experience:
 ### Background Blur
 
 ```ini
-# Enable blur behind Zenith's translucent surface
-layerrule = blur, zenith
-layerrule = ignorealpha 0.3, zenith
+# --- Zenith Status Bar ---
+layerrule = blur on, match:namespace zenith
+layerrule = ignore_alpha 0.3, match:namespace zenith
 ```
 
 The `ignorealpha 0.3` threshold ensures only the bar surface is blurred — fully transparent regions (e.g., gaps in floating mode) are left untouched.
-
-### Disable Animations on the Bar
-
-```ini
-# Prevent Hyprland from animating the bar on workspace switches
-layerrule = noanim, zenith
-```
-
-### Complete Snippet
-
-```ini
-# ── Zenith Bar ──────────────────────────────────────────
-layerrule = blur, zenith
-layerrule = ignorealpha 0.3, zenith
-layerrule = noanim, zenith
-```
-
----
 
 ## Runtime Environment
 
