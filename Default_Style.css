@@ -1,151 +1,180 @@
-/* ======================================================================
-   Zenith Default Style — Flush Minimal Top Bar
-   ======================================================================
-   Design direction:
-   - Edge-to-edge, continuous dark strip (28 px default)
-   - Tokyo Night Storm palette
-   - Clean typography (Inter + JetBrainsMono Nerd Font)
-   - No floating pills — transparent module surfaces, subtle hovers
-   - Distinct per-module accent colors for at-a-glance readability
-   - Minimal motion, restrained glow
+/* ════════════════════════════════════════════════════════════════════════
+   Zenith — Default Stylesheet
+   ════════════════════════════════════════════════════════════════════════
 
-   Tokens replaced at runtime from config.toml:
-     __ZENITH_RADIUS__
-     __ZENITH_BORDER_WIDTH__
-     __ZENITH_INNER_RADIUS__
-     __ZENITH_CYCLE_SECONDS__
-     __ZENITH_BACKGROUND__
+   Design Language:
+   ────────────────
+   • Frosted-glass floating pill with compositor blur pass-through
+   • Tokyo Night Storm palette — refined for depth and contrast
+   • Inter + JetBrainsMono Nerd Font typography
+   • Subtle animated border glow (config-driven)
+   • Glassmorphism hover states with soft elevation
+   • Minimal, intentional motion — nothing gratuitous
 
-   Safe customisation tips:
-   - Keep class names unchanged unless you also update Rust code.
-   - Prefer rgba() backgrounds for compositor blur / translucency.
-   - To re-enable the animated border, set border_width > 0 in config.toml.
-   ====================================================================== */
+   Runtime Tokens (replaced by Zenith from config.toml):
+   ─────────────────────────────────────────────────────
+     __ZENITH_RADIUS__          →  border_radius value
+     __ZENITH_BORDER_WIDTH__    →  border_width value
+     __ZENITH_INNER_RADIUS__    →  border_radius − border_width
+     __ZENITH_CYCLE_SECONDS__   →  rgb_cycle_seconds value
+     __ZENITH_BACKGROUND__      →  background color string
+
+   Customisation Tips:
+   ───────────────────
+   • Use rgba() backgrounds for compositor blur / translucency.
+   • Change accent colors freely — they're grouped by zone below.
+   • Keep class names unchanged unless you also modify the Rust source.
+   • Animated border visibility is controlled by border_width in config.toml.
+   • For best results, install Inter and JetBrainsMono Nerd Font.
+
+   ════════════════════════════════════════════════════════════════════ */
 
 
-/* ----------------------------------------------------------------------
-   Window Foundation
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Window — Fully Transparent Shell
+   ───────────────────────────────────────────────────────────────────── */
 window {
     background-color: rgba(0, 0, 0, 0);
 }
 
 
-/* ----------------------------------------------------------------------
-   Outer Animated Frame
-   ---------------------------------------------------------------------- */
-/* The animated border is invisible when border_width = 0 (flush default).
-   Set border_width > 0 in config.toml to reveal it.                    */
+/* ─────────────────────────────────────────────────────────────────────
+   § Outer Frame — Animated Border Glow
+   ─────────────────────────────────────────────────────────────────────
+   Invisible when border_width = 0 in config.toml.
+   Set border_width ≥ 1 to reveal the slow-cycling gradient ring.     */
 .zenith-border {
     border-radius: __ZENITH_RADIUS__px;
     padding: __ZENITH_BORDER_WIDTH__px;
 
-    background: #c0caf525;
-    background-size: 300% 300%;
-    animation: zenith-border-flow __ZENITH_CYCLE_SECONDS__s linear infinite;
+    /* 4-stop spectrum: cyan → blue → purple → pink → cyan */
+    background: linear-gradient(
+        135deg,
+        rgba(125, 207, 255, 0.50),
+        rgba(122, 162, 247, 0.50),
+        rgba(187, 154, 247, 0.50),
+        rgba(247, 118, 142, 0.40),
+        rgba(125, 207, 255, 0.50)
+    );
+    background-size: 400% 400%;
+    animation: zenith-border-flow __ZENITH_CYCLE_SECONDS__s ease infinite;
 
-    box-shadow: none;
+    /* Soft outer glow for depth against the desktop */
+    box-shadow:
+        0 2px 12px rgba(0, 0, 0, 0.35),
+        0 0 20px rgba(122, 162, 247, 0.08);
+
     border: none;
 }
 
 
-/* ----------------------------------------------------------------------
-   Inner Surface
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Inner Surface — Frosted Glass Body
+   ───────────────────────────────────────────────────────────────────── */
 .zenith-inner {
     background-color: __ZENITH_BACKGROUND__;
     border-radius: __ZENITH_INNER_RADIUS__px;
-    padding: 0 10px;
+    padding: 0 14px;
+
+    /* Subtle inner highlight for glass edge catch */
+    box-shadow:
+        inset 0  1px 0 rgba(255, 255, 255, 0.06),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.10);
 }
 
 
-/* ----------------------------------------------------------------------
-   Shared Typography
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Shared Typography
+   ───────────────────────────────────────────────────────────────────── */
 .zenith-module {
     font-family: "Inter", "Manrope", "JetBrainsMono Nerd Font", sans-serif;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: #c0caf5;
 }
 
 
-/* ----------------------------------------------------------------------
-   Module Surface — Transparent by Default
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Module Surface — Glassmorphism Hover
+   ───────────────────────────────────────────────────────────────────── */
 .zenith-module-surface {
     background: transparent;
     border: none;
-    border-radius: 4px;
-    padding: 2px 8px;
-    transition: background 140ms ease;
+    border-radius: 6px;
+    padding: 2px 10px;
+    transition: background 180ms ease, box-shadow 180ms ease;
 }
 
 .zenith-module-surface:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.03);
 }
 
 .zenith-module-surface:active {
-    background: rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.12);
 }
 
 
-/* ----------------------------------------------------------------------
-   Module Zone Accents
-   ---------------------------------------------------------------------- */
-/* Monospace for values that tick (clock, stats). */
+/* ─────────────────────────────────────────────────────────────────────
+   § Zone Accent Colors
+   ─────────────────────────────────────────────────────────────────────
+   Left   = Todo          → cyan    #7dcfff
+   Center = Clock / Date  → blue    #7aa2f7
+   Right  = Stats / Media → amber   #e0af68                           */
+
 .zenith-module-center,
 .zenith-module-right {
     font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
 }
 
-/* Left cluster (Todo) — cyan accent. */
 .zenith-module-left {
     color: #7dcfff;
 }
 
-/* Center cluster (Clock / Date / Logo) — blue accent. */
 .zenith-module-center {
     color: #7aa2f7;
 }
 
-/* Right cluster (System stats, Player) — warm amber. */
 .zenith-module-right {
     color: #e0af68;
 }
 
 
-/* ----------------------------------------------------------------------
-   Temperature States
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Temperature States
+   ───────────────────────────────────────────────────────────────────── */
 .zenith-module-temp {
     color: #e0af68;
 }
 
 .zenith-module-temp-cool {
     color: #7dcfff;
+    text-shadow: 0 0 6px rgba(125, 207, 255, 0.15);
 }
 
 .zenith-module-temp-warm {
     color: #e0af68;
+    text-shadow: 0 0 6px rgba(224, 175, 104, 0.15);
 }
 
 .zenith-module-temp-hot {
     color: #f7768e;
+    text-shadow: 0 0 8px rgba(247, 118, 142, 0.25);
 }
 
 
-/* ----------------------------------------------------------------------
-   Center Logo
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Center Logo — Arch Nerd Font Glyph
+   ───────────────────────────────────────────────────────────────────── */
 .zenith-logo {
     font-family: "JetBrainsMono Nerd Font", monospace;
-    font-size: 15px;
-    color: #7dcfff;
-    text-shadow: 0 0 6px rgba(125, 207, 255, 0.30);
-    padding: 0 2px;
+    font-size: 16px;
+    color: #bb9af7;
+    text-shadow: 0 0 10px rgba(187, 154, 247, 0.35);
+    padding: 0 4px;
+    animation: zenith-logo-breathe 4s ease-in-out infinite;
 }
 
 .zenith-logo-module,
@@ -153,17 +182,18 @@ window {
 .zenith-logo-module:active {
     background: transparent;
     border-color: transparent;
+    box-shadow: none;
 }
 
 
-/* ----------------------------------------------------------------------
-   Calendar Button + Popover
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Calendar — Date Button + Popover
+   ───────────────────────────────────────────────────────────────────── */
 .zenith-calendar-btn {
     box-shadow: none;
-    padding: 2px 8px;
+    padding: 2px 10px;
     color: #7aa2f7;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     min-height: 0;
     min-width: 0;
@@ -177,16 +207,20 @@ window {
     background: rgba(122, 162, 247, 0.16);
 }
 
+/* Calendar popup — deep glass panel */
 .zenith-calendar-popup {
-    background-color: #1a1b26;
-    border: 1px solid #292e42;
-    border-radius: 8px;
+    background-color: rgba(22, 23, 35, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
     padding: 6px;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.50),
+        0 0 16px rgba(122, 162, 247, 0.06);
 }
 
 .zenith-calendar-popup>contents {
-    background-color: #1a1b26;
-    border-radius: 8px;
+    background-color: rgba(22, 23, 35, 0.92);
+    border-radius: 10px;
     padding: 4px;
 }
 
@@ -210,7 +244,7 @@ window {
 
 .zenith-calendar>header>button:hover {
     background: rgba(122, 162, 247, 0.14);
-    border-radius: 4px;
+    border-radius: 6px;
 }
 
 .zenith-calendar :selected {
@@ -225,12 +259,12 @@ window {
 }
 
 
-/* ----------------------------------------------------------------------
-   Player Module
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Player Module — Now Playing
+   ───────────────────────────────────────────────────────────────────── */
 .zenith-player-btn {
     box-shadow: none;
-    padding: 1px 8px;
+    padding: 1px 10px;
     min-height: 0;
     min-width: 160px;
 }
@@ -252,8 +286,10 @@ window {
     font-size: 11px;
     font-weight: 600;
     color: #73daca;
+    text-shadow: 0 0 6px rgba(115, 218, 202, 0.12);
 }
 
+/* Progress bar — glowing gradient track */
 .zenith-player-progress {
     min-height: 3px;
 }
@@ -261,54 +297,54 @@ window {
 .zenith-player-progress trough {
     min-height: 3px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .zenith-player-progress progress {
     min-height: 3px;
     border-radius: 999px;
-    background: linear-gradient(90deg, #73daca, #7dcfff);
-    box-shadow: 0 0 6px rgba(115, 218, 202, 0.30);
+    background: linear-gradient(90deg, #73daca, #7dcfff, #7aa2f7);
+    box-shadow: 0 0 8px rgba(115, 218, 202, 0.25);
 }
 
 
-/* ----------------------------------------------------------------------
-   Todo Module — Button
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Todo Module — Bar Button
+   ───────────────────────────────────────────────────────────────────── */
 .zenith-todo-btn {
     box-shadow: none;
-    padding: 2px 8px;
+    padding: 2px 10px;
     min-height: 0;
     min-width: 0;
     font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
     font-size: 11px;
     font-weight: 600;
-    transition: all 160ms ease;
+    transition: all 180ms ease;
 }
 
 .zenith-todo-btn-empty {
     color: #7dcfff;
     text-shadow: 0 0 8px rgba(125, 207, 255, 0.30);
-    animation: zenith-todo-pulse 2.4s ease-in-out infinite;
+    animation: zenith-todo-pulse 3s ease-in-out infinite;
 }
 
 .zenith-todo-btn-plus {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 800;
-    min-width: 22px;
-    padding: 1px 8px;
+    min-width: 24px;
+    padding: 1px 10px;
     line-height: 1;
 }
 
 .zenith-todo-btn-active {
     color: #73daca;
-    text-shadow: 0 0 4px rgba(115, 218, 202, 0.25);
+    text-shadow: 0 0 6px rgba(115, 218, 202, 0.20);
 }
 
 .zenith-todo-btn-urgent {
     color: #f7768e;
-    text-shadow: 0 0 6px rgba(247, 118, 142, 0.35);
-    animation: zenith-todo-urgent 1.8s ease-in-out infinite;
+    text-shadow: 0 0 8px rgba(247, 118, 142, 0.30);
+    animation: zenith-todo-urgent 2s ease-in-out infinite;
 }
 
 .zenith-todo-btn:hover {
@@ -320,19 +356,22 @@ window {
 }
 
 
-/* ----------------------------------------------------------------------
-   Todo Popover
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Todo Popover — Deep Glass Panel
+   ───────────────────────────────────────────────────────────────────── */
 .zenith-todo-popup {
-    background-color: #1a1b26;
-    border: 1px solid #292e42;
-    border-radius: 10px;
+    background-color: rgba(22, 23, 35, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
     padding: 0;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.50),
+        0 0 16px rgba(125, 207, 255, 0.05);
 }
 
 .zenith-todo-popup>contents {
-    background-color: #1a1b26;
-    border-radius: 10px;
+    background-color: rgba(22, 23, 35, 0.92);
+    border-radius: 12px;
     padding: 0;
 }
 
@@ -340,31 +379,34 @@ window {
     padding: 0;
 }
 
+/* Header */
 .zenith-todo-header {
-    padding: 10px 12px 4px 12px;
+    padding: 12px 14px 6px 14px;
 }
 
 .zenith-todo-title {
     font-family: "Inter", "Manrope", sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: #c0caf5;
 }
 
+/* Progress badge */
 .zenith-todo-progress {
     font-family: "JetBrainsMono Nerd Font", monospace;
     font-size: 10px;
     font-weight: 700;
     color: #565f89;
     background: rgba(255, 255, 255, 0.06);
-    border-radius: 6px;
-    padding: 1px 6px;
+    border-radius: 8px;
+    padding: 2px 8px;
 }
 
+/* Progress bar track + fill */
 .zenith-todo-progress-track {
-    margin: 3px 12px 2px 12px;
+    margin: 4px 14px 3px 14px;
     min-height: 2px;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 2px;
 }
 
@@ -376,34 +418,40 @@ window {
 
 .zenith-todo-fill-low {
     background: linear-gradient(90deg, #f7768e, #ff9e64);
+    box-shadow: 0 0 4px rgba(247, 118, 142, 0.15);
 }
 
 .zenith-todo-fill-mid {
-    background: linear-gradient(90deg, #e0af68, #e0af68);
+    background: linear-gradient(90deg, #e0af68, #ff9e64);
+    box-shadow: 0 0 4px rgba(224, 175, 104, 0.15);
 }
 
 .zenith-todo-fill-high {
     background: linear-gradient(90deg, #73daca, #7dcfff);
+    box-shadow: 0 0 4px rgba(115, 218, 202, 0.15);
 }
 
+/* Separator */
 .zenith-todo-sep {
-    margin: 3px 12px;
-    background: #292e42;
+    margin: 4px 14px;
+    background: rgba(255, 255, 255, 0.06);
     min-height: 1px;
 }
 
+/* Scrollable list area */
 .zenith-todo-scroll {
     background: transparent;
 }
 
 .zenith-todo-list {
-    padding: 3px 6px;
+    padding: 4px 8px;
 }
 
+/* Individual task row */
 .zenith-todo-row {
-    padding: 4px 6px;
-    border-radius: 6px;
-    transition: background 140ms ease;
+    padding: 5px 8px;
+    border-radius: 8px;
+    transition: background 180ms ease;
 }
 
 .zenith-todo-row:hover {
@@ -411,9 +459,10 @@ window {
 }
 
 .zenith-todo-row-done {
-    opacity: 0.45;
+    opacity: 0.40;
 }
 
+/* Priority accent stripe */
 .zenith-todo-accent {
     border-radius: 2px;
     min-width: 2px;
@@ -422,11 +471,12 @@ window {
 
 .zenith-todo-prio-high {
     background: #f7768e;
-    box-shadow: 0 0 3px rgba(247, 118, 142, 0.35);
+    box-shadow: 0 0 4px rgba(247, 118, 142, 0.30);
 }
 
 .zenith-todo-prio-mid {
     background: #e0af68;
+    box-shadow: 0 0 4px rgba(224, 175, 104, 0.15);
 }
 
 .zenith-todo-prio-low {
@@ -434,14 +484,16 @@ window {
 }
 
 .zenith-todo-prio-none {
-    background: #3b4261;
+    background: rgba(255, 255, 255, 0.08);
 }
 
+/* Checkbox */
 .zenith-todo-check {
     min-width: 14px;
     min-height: 14px;
 }
 
+/* Task text */
 .zenith-todo-text {
     font-family: "Inter", "Manrope", sans-serif;
     font-size: 12px;
@@ -454,12 +506,13 @@ window {
     color: #565f89;
 }
 
+/* Priority badges */
 .zenith-todo-badge {
     font-family: "JetBrainsMono Nerd Font", monospace;
     font-size: 9px;
     font-weight: 800;
-    padding: 1px 5px;
-    border-radius: 4px;
+    padding: 1px 6px;
+    border-radius: 6px;
     margin: 0 2px;
 }
 
@@ -478,6 +531,7 @@ window {
     background: rgba(125, 207, 255, 0.12);
 }
 
+/* Move & delete buttons */
 .zenith-todo-move-btn,
 .zenith-todo-del-btn {
     background: transparent;
@@ -485,11 +539,11 @@ window {
     box-shadow: none;
     min-height: 0;
     min-width: 0;
-    padding: 1px 5px;
+    padding: 2px 6px;
     font-size: 10px;
-    border-radius: 3px;
+    border-radius: 4px;
     color: #565f89;
-    transition: all 140ms ease;
+    transition: all 180ms ease;
 }
 
 .zenith-todo-move-btn:hover {
@@ -502,82 +556,108 @@ window {
     color: #f7768e;
 }
 
+/* Input row */
 .zenith-todo-input-row {
-    padding: 6px 8px 8px 8px;
+    padding: 8px 10px 10px 10px;
 }
 
 .zenith-todo-entry {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid #292e42;
-    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
     color: #c0caf5;
-    padding: 5px 8px;
+    padding: 6px 10px;
     font-family: "Inter", "Manrope", sans-serif;
     font-size: 12px;
     caret-color: #7aa2f7;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .zenith-todo-entry:focus {
-    border-color: #7aa2f7;
-    box-shadow: 0 0 0 1px rgba(122, 162, 247, 0.25);
+    border-color: rgba(122, 162, 247, 0.50);
+    box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.12);
 }
 
+/* Add button — gradient accent */
 .zenith-todo-add-btn {
     background: linear-gradient(135deg, #7aa2f7, #7dcfff);
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     color: #1a1b26;
     font-weight: 800;
-    font-size: 14px;
-    min-width: 28px;
-    min-height: 28px;
+    font-size: 15px;
+    min-width: 30px;
+    min-height: 30px;
     padding: 0;
-    box-shadow: 0 0 6px rgba(122, 162, 247, 0.20);
+    box-shadow: 0 0 8px rgba(122, 162, 247, 0.20);
     transition: all 180ms ease;
 }
 
 .zenith-todo-add-btn:hover {
-    box-shadow: 0 0 10px rgba(122, 162, 247, 0.35);
+    box-shadow: 0 0 14px rgba(122, 162, 247, 0.35);
+}
+
+.zenith-todo-add-btn:active {
+    box-shadow: 0 0 6px rgba(122, 162, 247, 0.15);
 }
 
 
-/* ----------------------------------------------------------------------
-   Motion Keyframes
-   ---------------------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────────────
+   § Keyframe Animations
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Border gradient flow — smooth 4-stop cycle */
 @keyframes zenith-border-flow {
     0% {
         background-position: 0% 50%;
+    }
+
+    25% {
+        background-position: 50% 0%;
     }
 
     50% {
         background-position: 100% 50%;
     }
 
+    75% {
+        background-position: 50% 100%;
+    }
+
     100% {
         background-position: 0% 50%;
     }
 }
 
-@keyframes zenith-todo-pulse {
-
-    0%,
-    100% {
-        text-shadow: 0 0 6px rgba(125, 207, 255, 0.25);
+/* Logo breathing glow — subtle purple pulse */
+@keyframes zenith-logo-breathe {
+    0%, 100% {
+        text-shadow: 0 0 8px rgba(187, 154, 247, 0.25);
     }
 
     50% {
-        text-shadow: 0 0 12px rgba(125, 207, 255, 0.50);
+        text-shadow: 0 0 16px rgba(187, 154, 247, 0.50);
     }
 }
 
-@keyframes zenith-todo-urgent {
-
-    0%,
-    100% {
-        text-shadow: 0 0 5px rgba(247, 118, 142, 0.25);
+/* Todo empty-state pulse — gentle cyan beacon */
+@keyframes zenith-todo-pulse {
+    0%, 100% {
+        text-shadow: 0 0 6px rgba(125, 207, 255, 0.20);
     }
 
     50% {
-        text-shadow: 0 0 11px rgba(247, 118, 142, 0.50);
+        text-shadow: 0 0 14px rgba(125, 207, 255, 0.45);
+    }
+}
+
+/* Todo urgent pulse — attention-grabbing red */
+@keyframes zenith-todo-urgent {
+    0%, 100% {
+        text-shadow: 0 0 6px rgba(247, 118, 142, 0.20);
+    }
+
+    50% {
+        text-shadow: 0 0 14px rgba(247, 118, 142, 0.50);
     }
 }

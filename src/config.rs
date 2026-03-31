@@ -57,13 +57,13 @@ impl Default for BarConfig {
         // Keep in sync with `Default_Config.toml` (and the embedded template).
         Self {
             monitor: None,
-            height: 28,
-            gap_horizontal: 0,
-            gap_top: 0,
-            border_radius: 0,
-            border_width: 0,
-            rgb_cycle_seconds: 12.0,
-            background: "rgba(26, 27, 38, 0.95)".into(),
+            height: 32,
+            gap_horizontal: 12,
+            gap_top: 8,
+            border_radius: 12,
+            border_width: 1,
+            rgb_cycle_seconds: 16.0,
+            background: "rgba(26, 27, 38, 0.72)".into(),
         }
     }
 }

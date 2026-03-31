@@ -1,87 +1,125 @@
 # ╔══════════════════════════════════════════════════════════════════════╗
-# ║                      Zenith - Default Config                         ║
+# ║                        Zenith — Config                               ║
 # ╚══════════════════════════════════════════════════════════════════════╝
 #
-# This file is written to:
-#   ~/.config/zenith/config.toml
+# Location:   ~/.config/zenith/config.toml
+# Stylesheet: ~/.config/zenith/style.css
+# Todo data:  ~/.config/zenith/todos.json  (auto-managed)
 #
-# Matching stylesheet:
-#   ~/.config/zenith/style.css
+# ─── Quick Start ────────────────────────────────────────────────────────
 #
-# -----------------------------------------------------------------------
-# Quick Start
-# -----------------------------------------------------------------------
-# 1) Edit values below.
-# 2) Save.
-# 3) Restart Zenith (or your session if needed) to apply changes.
+#   1. Edit the values below.
+#   2. Save the file.
+#   3. Restart Zenith (or re-login) to apply.
 #
-# Notes:
-# - Pixel values are integers.
-# - Colors are CSS strings (for example: rgba(26, 27, 38, 0.95)).
-# - Keep quotes around strings.
-# - This config produces a slim, flush top bar (28px) anchored to
-#   the screen edges with no gaps.  Increase height to 32-36 if
-#   you prefer a more spacious look.
+# ─── Syntax Rules ───────────────────────────────────────────────────────
 #
+#   • Integers   — bare numbers, no quotes:  height = 32
+#   • Floats     — decimal point:            rgb_cycle_seconds = 16.0
+#   • Strings    — always quoted:            background = "rgba(…)"
+#   • Booleans   — bare true / false:        clock = true
+#   • Comments   — lines starting with #
+#
+# ─── Hyprland Integration ──────────────────────────────────────────────
+#
+#   Add these lines to ~/.config/hypr/hyprland.conf for blur support:
+#
+#     layerrule = blur, zenith
+#     layerrule = ignorealpha 0.3, zenith
+#
+#   The ignorealpha threshold ensures only the bar surface is blurred —
+#   fully transparent regions (gaps in floating mode) remain untouched.
+#
+# ─── Presets ────────────────────────────────────────────────────────────
+#
+#   FLOATING GLASS (default — what ships below):
+#     height=32  gap_horizontal=12  gap_top=8  border_radius=12
+#     border_width=1  background="rgba(26, 27, 38, 0.72)"
+#
+#   FLUSH MINIMAL (edge-to-edge strip):
+#     height=28  gap_horizontal=0  gap_top=0  border_radius=0
+#     border_width=0  background="rgba(26, 27, 38, 0.88)"
+#
+#   FULL GLASS (maximum blur, bold border):
+#     height=36  gap_horizontal=16  gap_top=10  border_radius=16
+#     border_width=2  background="rgba(26, 27, 38, 0.55)"
+#
+# ════════════════════════════════════════════════════════════════════════
+
 
 [bar]
-# -----------------------------------------------------------------------
-# Display Target
-# -----------------------------------------------------------------------
-# Monitor connector name. Leave commented out to use the default monitor.
-# Examples: "eDP-1", "DP-1", "HDMI-A-1", "HDMI-1"
+# ─── Display Target ─────────────────────────────────────────────────────
+# Monitor connector name.  Leave commented to use the primary monitor.
+# Find yours with:  hyprctl monitors | grep Monitor
+# Examples: "eDP-1", "DP-1", "DP-2", "HDMI-A-1"
 # monitor = "eDP-1"
 
-# -----------------------------------------------------------------------
-# Geometry
-# -----------------------------------------------------------------------
-# Overall bar height in pixels.
-# 28px is minimal-but-legible at 1080p.  Bump to 32 on HiDPI if needed.
-height = 28
+# ─── Geometry ───────────────────────────────────────────────────────────
 
-# Horizontal gap from left/right screen edges (0 = flush).
-gap_horizontal = 0
+# Bar height in pixels.
+# 28 = minimal · 32 = balanced (default) · 36 = spacious
+height = 32
 
-# Gap from the top edge of the monitor (0 = flush).
-gap_top = 0
+# Horizontal gap from left/right screen edges.
+# 0 = flush to edges · 12 = floating pill (default) · 16+ = inset
+gap_horizontal = 12
 
-# Corner radius for the outer shell (0 = sharp rectangle).
-border_radius = 0
+# Gap from the top edge of the monitor.
+# 0 = flush · 8 = floating (default) · 10+ = dropped
+gap_top = 8
 
-# Animated border thickness (0 = no visible border).
-border_width = 0
+# Corner radius for the bar shell.
+# 0 = sharp rectangle · 12 = soft pill (default) · 16+ = very round
+border_radius = 12
 
-# -----------------------------------------------------------------------
-# Visual Motion
-# -----------------------------------------------------------------------
-# Seconds for one full animated border cycle.
+# Animated border thickness.
+# 0 = no border · 1 = subtle glow (default) · 2 = bold ring
+border_width = 1
+
+# ─── Animated Border ───────────────────────────────────────────────────
+
+# Seconds for one full RGB gradient cycle.
+# Lower = faster pulse · 16 = calm ambient (default) · 24+ = very slow
 # Only visible when border_width > 0.
-rgb_cycle_seconds = 12.0
+rgb_cycle_seconds = 16.0
 
-# -----------------------------------------------------------------------
-# Surface Color
-# -----------------------------------------------------------------------
-# Main bar body background.
-# Tokyo Night Storm base with 0 % opacity for full transparency (testing blur).
-background = "rgb(26, 27, 38)"
+# ─── Surface Color ─────────────────────────────────────────────────────
+
+# Main bar background.  Use rgba() for blur / translucency.
+#
+# Opacity guide (with Hyprland blur rules active):
+#   0.55  — very transparent, heavy blur  (needs strong blur_size)
+#   0.72  — balanced glass (default)
+#   0.88  — mostly opaque, subtle blur
+#   1.00  — fully opaque, no blur effect
+#
+# Color: Tokyo Night Storm base (#1a1b26 = rgb(26, 27, 38))
+background = "rgba(26, 27, 38, 0.72)"
 
 
 [modules]
-# -----------------------------------------------------------------------
-# Module Toggles
-# -----------------------------------------------------------------------
-# Set any item to false to disable that module.
-clock = true
-system_stats = true
-playerctl = true
-todo = true
+# ─── Module Toggles ─────────────────────────────────────────────────────
+# Set any module to false to hide it entirely.
 
-# Clock format (strftime syntax).
+clock        = true
+system_stats = true
+playerctl    = true
+todo         = true
+
+# ─── Clock Format ───────────────────────────────────────────────────────
+# Uses strftime syntax.  Common tokens:
+#
+#   %H  — hour (24h, 00–23)        %I  — hour (12h, 01–12)
+#   %M  — minute (00–59)           %S  — second (00–59)
+#   %a  — day name (Mon, Tue…)     %A  — full day (Monday…)
+#   %b  — month name (Jan, Feb…)   %B  — full month (January…)
+#   %d  — day of month (01–31)     %p  — AM/PM
+#
 # Examples:
-#   "%H:%M"
-#   "%H:%M:%S"
-#   "%a/%b/%d  %H:%M"
-# Where a = Day
-#       b = month     
-#       d = date
-clock_format = "%H:%M"
+#   "%H:%M"            →  14:30
+#   "%H:%M:%S"         →  14:30:05
+#   "%a %H:%M"         →  Mon 14:30        ← default
+#   "%I:%M %p"         →  02:30 PM
+#   "%a %d %b %H:%M"  →  Mon 31 Mar 14:30
+
+clock_format = "%a %H:%M"
