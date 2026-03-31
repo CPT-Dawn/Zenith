@@ -26,7 +26,7 @@ pub fn create() -> GtkBox {
     container.append(&mem_label);
 
     // Temperature label with Nerd Font Icon
-    let temp_label = Label::new(Some(" CPU: --°C"));
+    let temp_label = Label::new(Some(" --°C"));
     temp_label.add_css_class("zenith-module");
     temp_label.add_css_class("zenith-module-right");
     temp_label.add_css_class("zenith-module-temp");
@@ -92,12 +92,12 @@ pub fn create() -> GtkBox {
                         lbl.add_css_class("zenith-module-temp-hot");
                     }
 
-                    lbl.set_label(&format!(" CPU: {temp:>3.0}°C"));
+                    lbl.set_label(&format!(" {temp:>3.0}°C"));
                 } else {
                     lbl.remove_css_class("zenith-module-temp-cool");
                     lbl.remove_css_class("zenith-module-temp-warm");
                     lbl.remove_css_class("zenith-module-temp-hot");
-                    lbl.set_label(" CPU: --°C");
+                    lbl.set_label(" --°C");
                 }
             }
 
