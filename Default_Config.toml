@@ -62,8 +62,8 @@ rgb_cycle_seconds = 12.0
 # Surface Color
 # -----------------------------------------------------------------------
 # Main bar body background.
-# Tokyo Night Storm base with 95 % opacity for subtle compositor blur.
-background = "rgba(26, 27, 38, 0.95)"
+# Tokyo Night Storm base with 0 % opacity for full transparency (testing blur).
+background = "rgb(26, 27, 38)"
 
 
 [modules]
@@ -80,5 +80,8 @@ todo = true
 # Examples:
 #   "%H:%M"
 #   "%H:%M:%S"
-#   "%a %d %b  %H:%M"
-clock_format = "%a %H:%M"
+#   "%a/%b/%d  %H:%M"
+# Where a = Day
+#       b = month     
+#       d = date
+clock_format = "%H:%M"

@@ -40,13 +40,7 @@ window {
     border-radius: __ZENITH_RADIUS__px;
     padding: __ZENITH_BORDER_WIDTH__px;
 
-    background: linear-gradient(120deg,
-            #7aa2f7,
-            #7dcfff,
-            #73daca,
-            #e0af68,
-            #f7768e,
-            #7aa2f7);
+    background: #c0caf525;
     background-size: 300% 300%;
     animation: zenith-border-flow __ZENITH_CYCLE_SECONDS__s linear infinite;
 
@@ -104,7 +98,7 @@ window {
 .zenith-module-right {
     font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
     font-weight: 700;
-    font-size: 11px;
+    font-size: 14px;
 }
 
 /* Left cluster (Todo) — cyan accent. */
