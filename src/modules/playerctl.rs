@@ -5,9 +5,9 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 const METADATA_FORMAT: &str = "{{status}}\t{{artist}}\t{{title}}\t{{position}}\t{{mpris:length}}";
-const POLL_INTERVAL_SECONDS: u64 = 2;
+const POLL_INTERVAL_MS: u64 = 900;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 struct PlayerSnapshot {
     status: String,
     artist: String,
@@ -61,12 +61,14 @@ pub fn create() -> GtkBox {
     // The mutex is held for nanoseconds (just a pointer swap), so there is
     // zero contention in practice.
     let latest: Arc<Mutex<Option<PlayerSnapshot>>> = Arc::new(Mutex::new(None));
+    let last_applied: Arc<Mutex<Option<PlayerSnapshot>>> = Arc::new(Mutex::new(None));
 
     // Synchronous initial poll — one-time cost for an instant first frame.
     {
         let snap = read_player_snapshot();
         apply_snapshot(&title, &button, &progress, snap.as_ref());
-        *latest.lock().unwrap_or_else(|e| e.into_inner()) = snap;
+        *latest.lock().unwrap_or_else(|e| e.into_inner()) = snap.clone();
+        *last_applied.lock().unwrap_or_else(|e| e.into_inner()) = snap;
     }
 
     // ── Background polling thread ───────────────────────────────────────
@@ -77,7 +79,7 @@ pub fn create() -> GtkBox {
         let alive = Arc::clone(&alive);
         std::thread::spawn(move || {
             loop {
-                std::thread::sleep(Duration::from_secs(POLL_INTERVAL_SECONDS));
+                std::thread::sleep(Duration::from_millis(POLL_INTERVAL_MS));
                 if !*alive.lock().unwrap_or_else(|e| e.into_inner()) {
                     break;
                 }
@@ -109,8 +111,9 @@ pub fn create() -> GtkBox {
         let button_weak = button.downgrade();
         let progress_weak = progress.downgrade();
         let latest = Arc::clone(&latest);
+        let last_applied = Arc::clone(&last_applied);
         let alive = Arc::clone(&alive);
-        glib::timeout_add_local(Duration::from_secs(POLL_INTERVAL_SECONDS), move || {
+        glib::timeout_add_local(Duration::from_millis(300), move || {
             let Some(t) = title_weak.upgrade() else {
                 *alive.lock().unwrap_or_else(|e| e.into_inner()) = false;
                 return glib::ControlFlow::Break;
@@ -124,7 +127,14 @@ pub fn create() -> GtkBox {
                 return glib::ControlFlow::Break;
             };
             let snap = latest.lock().unwrap_or_else(|e| e.into_inner()).clone();
-            apply_snapshot(&t, &b, &p, snap.as_ref());
+
+            // Avoid redundant label/progress writes when nothing changed.
+            let mut prev = last_applied.lock().unwrap_or_else(|e| e.into_inner());
+            if *prev != snap {
+                apply_snapshot(&t, &b, &p, snap.as_ref());
+                *prev = snap;
+            }
+
             glib::ControlFlow::Continue
         });
     }
@@ -138,7 +148,7 @@ pub fn create() -> GtkBox {
 /// always called on the main thread.
 fn apply_snapshot(
     title: &Label,
-    button: &Button,
+    _button: &Button,
     progress: &ProgressBar,
     snapshot: Option<&PlayerSnapshot>,
 ) {
@@ -164,22 +174,10 @@ fn apply_snapshot(
         };
         title.set_label(&label_text);
 
-        let elapsed = format_microseconds(snap.position_us);
-        let total = format_microseconds(snap.length_us);
-        let tooltip = if display_artist.is_empty() {
-            format!("{display_title}\n{elapsed} / {total}\nLeft click: play/pause")
-        } else {
-            format!(
-                "{display_artist} - {display_title}\n{elapsed} / {total}\nLeft click: play/pause"
-            )
-        };
-        button.set_tooltip_text(Some(&tooltip));
-
         progress.set_fraction(progress_fraction(snap.position_us, snap.length_us));
     } else {
         title.set_label("󰝛 No media");
         progress.set_fraction(0.0);
-        button.set_tooltip_text(Some("No active player found\nLeft click: play/pause"));
     }
 }
 
@@ -252,15 +250,3 @@ fn progress_fraction(position_us: u64, length_us: u64) -> f64 {
     (f64::from(current_ms) / f64::from(total_ms)).clamp(0.0, 1.0)
 }
 
-fn format_microseconds(microseconds: u64) -> String {
-    let seconds = microseconds / 1_000_000;
-    let hours = seconds / 3600;
-    let minutes = (seconds % 3600) / 60;
-    let rem_seconds = seconds % 60;
-
-    if hours > 0 {
-        format!("{hours:02}:{minutes:02}:{rem_seconds:02}")
-    } else {
-        format!("{minutes:02}:{rem_seconds:02}")
-    }
-}
