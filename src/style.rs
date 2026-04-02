@@ -73,56 +73,6 @@ fn ensure_style_file(path: &Path, default_template: &str) -> Result<()> {
     }
 }
 
-/// Resolve the default-style template text.
-///
-/// Order of precedence:
-/// 1) `ZENITH_DEFAULT_STYLE_TEMPLATE` path, if set and readable.
-/// 2) `./Default_Style.css` from current working directory, if readable.
-/// 3) Embedded compile-time template fallback.
-fn default_style_template() -> String {
-    if let Some(path) = std::env::var_os("ZENITH_DEFAULT_STYLE_TEMPLATE") {
-        let path = PathBuf::from(path);
-        match fs::read_to_string(&path) {
-            Ok(content) => {
-                log::info!(
-                    "Using runtime default style template from {}",
-                    path.display()
-                );
-                return content;
-            }
-            Err(err) => {
-                log::warn!(
-                    "Failed to read ZENITH_DEFAULT_STYLE_TEMPLATE at {}: {err}; falling back",
-                    path.display()
-                );
-            }
-        }
-    }
-
-    if let Ok(cwd) = std::env::current_dir() {
-        let path = cwd.join("Default_Style.css");
-        if path.exists() {
-            match fs::read_to_string(&path) {
-                Ok(content) => {
-                    log::info!(
-                        "Using runtime default style template from {}",
-                        path.display()
-                    );
-                    return content;
-                }
-                Err(err) => {
-                    log::warn!(
-                        "Failed to read runtime default style template at {}: {err}; falling back",
-                        path.display()
-                    );
-                }
-            }
-        }
-    }
-
-    EMBEDDED_DEFAULT_STYLE_TEMPLATE.to_string()
-}
-
 /// Render style-template tokens from the current runtime config values.
 fn render_template(template: &str, bar: &BarConfig) -> String {
     let inner_radius = bar.border_radius.saturating_sub(bar.border_width);
@@ -216,21 +166,8 @@ fn ensure_compat_style_rules(css: &str) -> String {
 
 /// Load the user stylesheet from disk and apply config-driven template values.
 pub fn load(bar: &BarConfig) -> Result<String> {
-    let default_template = default_style_template();
-
     let path = style_path()?;
-    ensure_style_file(&path, &default_template)?;
-
-    if let Ok(cwd) = std::env::current_dir() {
-        let local_style = cwd.join("style.css");
-        if local_style.exists() && local_style != path {
-            log::warn!(
-                "Ignoring local style at {}; using {}",
-                local_style.display(),
-                path.display()
-            );
-        }
-    }
+    ensure_style_file(&path, EMBEDDED_DEFAULT_STYLE_TEMPLATE)?;
 
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read style at {}", path.display()))?;

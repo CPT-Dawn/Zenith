@@ -133,128 +133,21 @@ fn ensure_config_file(path: &Path, default_template: &str) -> Result<()> {
     }
 }
 
-/// Resolve the default-config template text.
-///
-/// Order of precedence:
-/// 1) `ZENITH_DEFAULT_CONFIG_TEMPLATE` path, if set and readable.
-/// 2) `./Default_Config.toml` from current working directory, if readable.
-/// 3) Embedded compile-time template fallback.
-fn default_config_template() -> String {
-    if let Some(path) = std::env::var_os("ZENITH_DEFAULT_CONFIG_TEMPLATE") {
-        let path = PathBuf::from(path);
-        match fs::read_to_string(&path) {
-            Ok(content) => {
-                log::info!(
-                    "Using runtime default config template from {}",
-                    path.display()
-                );
-                return content;
-            }
-            Err(err) => {
-                log::warn!(
-                    "Failed to read ZENITH_DEFAULT_CONFIG_TEMPLATE at {}: {err}; falling back",
-                    path.display()
-                );
-            }
-        }
-    }
-
-    if let Ok(cwd) = std::env::current_dir() {
-        let path = cwd.join("Default_Config.toml");
-        if path.exists() {
-            match fs::read_to_string(&path) {
-                Ok(content) => {
-                    log::info!(
-                        "Using runtime default config template from {}",
-                        path.display()
-                    );
-                    return content;
-                }
-                Err(err) => {
-                    log::warn!(
-                        "Failed to read runtime default config template at {}: {err}; falling back",
-                        path.display()
-                    );
-                }
-            }
-        }
-    }
-
-    EMBEDDED_DEFAULT_CONFIG_TEMPLATE.to_string()
-}
-
-/// Merge `overlay` into `base`, replacing scalar/array values and recursively
-/// merging tables.
-fn merge_toml_value(base: &mut toml::Value, overlay: toml::Value) {
-    match (base, overlay) {
-        (toml::Value::Table(base_table), toml::Value::Table(overlay_table)) => {
-            for (key, value) in overlay_table {
-                if let Some(base_value) = base_table.get_mut(&key) {
-                    merge_toml_value(base_value, value);
-                } else {
-                    base_table.insert(key, value);
-                }
-            }
-        }
-        (base_slot, overlay_value) => {
-            *base_slot = overlay_value;
-        }
-    }
-}
-
 /// Load configuration from `~/.config/zenith/config.toml`.
 ///
-/// If the file does not exist, it is created from `Default_Config.toml`.
-/// Missing keys in the user config fall back to values from the default
-/// template so template edits are applied consistently.
+/// If the file does not exist, it is created from the embedded default template.
+/// Zenith then reads only the user config file.
 pub fn load() -> Result<ZenithConfig> {
-    let default_template = default_config_template();
-
     let path = config_path()?;
-    ensure_config_file(&path, &default_template)?;
-
-    if let Ok(cwd) = std::env::current_dir() {
-        let local_cfg = cwd.join("config.toml");
-        if local_cfg.exists() && local_cfg != path {
-            log::warn!(
-                "Ignoring local config at {}; using {}",
-                local_cfg.display(),
-                path.display()
-            );
-        }
-    }
+    ensure_config_file(&path, EMBEDDED_DEFAULT_CONFIG_TEMPLATE)?;
 
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read config at {}", path.display()))?;
-
-    let mut merged: toml::Value = toml::from_str(&default_template)
-        .context("Failed to parse embedded default config template")?;
-    let user_value: toml::Value =
+    let config: ZenithConfig =
         toml::from_str(&raw).with_context(|| format!("Failed to parse {}", path.display()))?;
 
-    merge_toml_value(&mut merged, user_value);
-
-    let config: ZenithConfig = merged.try_into().with_context(|| {
-        format!(
-            "Failed to deserialize merged config from {}",
-            path.display()
-        )
-    })?;
-
     log::info!("Loaded configuration from {}", path.display());
-    log::info!(
-        "Applied config: height={}, gap_h={}, gap_top={}, radius={}, border_w={}, cycle={}s, clock={}, system_stats={}, todo={}, playerctl={}",
-        config.bar.height,
-        config.bar.gap_horizontal,
-        config.bar.gap_top,
-        config.bar.border_radius,
-        config.bar.border_width,
-        config.bar.rgb_cycle_seconds,
-        config.modules.clock,
-        config.modules.system_stats,
-        config.modules.todo,
-        config.modules.playerctl
-    );
+    log::debug!("Loaded config values: {config:#?}");
 
     if let Some(override_path) = std::env::var_os("ZENITH_CONFIG") {
         log::info!(

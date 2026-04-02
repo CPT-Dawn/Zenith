@@ -197,9 +197,11 @@ The `ignorealpha 0.3` threshold ensures only the bar surface is blurred — full
 |---|---|
 | `ZENITH_CONFIG` | Override config file path |
 | `ZENITH_STYLE` | Override style file path |
-| `ZENITH_DEFAULT_CONFIG_TEMPLATE` | Override the default config template used on first launch |
-| `ZENITH_DEFAULT_STYLE_TEMPLATE` | Override the default style template used on first launch |
+| `GSK_RENDERER` | Override GTK renderer selection (`ngl`, `vulkan`, `gl`, `cairo`, etc.) |
 | `RUST_LOG` | Control log verbosity (`info`, `debug`, `trace`) |
+
+If `GSK_RENDERER` is unset, Zenith defaults it to `gl` at startup for better
+stability on mixed Wayland/Vulkan setups.
 
 ---
 
@@ -207,7 +209,7 @@ The `ignorealpha 0.3` threshold ensures only the bar surface is blurred — full
 
 ```
 main.rs          → env_logger → config::load() → GTK Application → ui::build_bar()
-config.rs        → TOML parsing, deep merge, first-run scaffolding
+config.rs        → TOML parsing and first-run scaffolding
 style.rs         → CSS template rendering, token substitution, backward-compat injection
 ui.rs            → wlr-layer-shell window, CenterBox widget tree, monitor targeting
 modules/

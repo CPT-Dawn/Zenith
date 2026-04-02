@@ -11,7 +11,20 @@ const APP_ID: &str = "dev.zenith.bar";
 
 fn main() -> Result<()> {
     // Initialise logging (respects RUST_LOG env var).
-    env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
+    let mut logger =
+        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"));
+    logger
+        .format_timestamp_secs()
+        .format_module_path(false)
+        .format_target(false)
+        .init();
+
+    // Prefer the GTK GL renderer unless the user explicitly chose one.
+    // This avoids noisy Vulkan swapchain warnings on some Wayland/GPU setups.
+    if std::env::var_os("GSK_RENDERER").is_none() {
+        std::env::set_var("GSK_RENDERER", "gl");
+        log::info!("GSK_RENDERER not set; defaulting to 'gl'");
+    }
 
     // Load configuration early so we can report errors before GTK spins up.
     let cfg = config::load()?;
