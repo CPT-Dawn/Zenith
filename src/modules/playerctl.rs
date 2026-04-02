@@ -1,12 +1,11 @@
 use gtk4::prelude::*;
 use gtk4::{Align, Box as GtkBox, Button, Label, Orientation, ProgressBar};
-use std::cell::Cell;
 use std::process::Command;
-use std::rc::Rc;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 const METADATA_FORMAT: &str = "{{status}}\t{{artist}}\t{{title}}\t{{position}}\t{{mpris:length}}";
+const POLL_INTERVAL_SECONDS: u64 = 2;
 
 #[derive(Debug, Clone)]
 struct PlayerSnapshot {
@@ -58,10 +57,6 @@ pub fn create() -> GtkBox {
     button.set_child(Some(&content));
     container.append(&button);
 
-    // Animate progress smoothly between metadata refreshes.
-    let current_fraction = Rc::new(Cell::new(0.0));
-    let target_fraction = Rc::new(Cell::new(0.0));
-
     // Shared latest snapshot: written by background thread, read by UI timer.
     // The mutex is held for nanoseconds (just a pointer swap), so there is
     // zero contention in practice.
@@ -70,12 +65,9 @@ pub fn create() -> GtkBox {
     // Synchronous initial poll — one-time cost for an instant first frame.
     {
         let snap = read_player_snapshot();
-        apply_snapshot(&title, &button, &target_fraction, snap.as_ref());
+        apply_snapshot(&title, &button, &progress, snap.as_ref());
         *latest.lock().unwrap_or_else(|e| e.into_inner()) = snap;
     }
-    let init = target_fraction.get();
-    current_fraction.set(init);
-    progress.set_fraction(init);
 
     // ── Background polling thread ───────────────────────────────────────
     // The thread uses a simple `Arc<Mutex<bool>>` flag to know when to stop.
@@ -85,7 +77,7 @@ pub fn create() -> GtkBox {
         let alive = Arc::clone(&alive);
         std::thread::spawn(move || {
             loop {
-                std::thread::sleep(Duration::from_secs(1));
+                std::thread::sleep(Duration::from_secs(POLL_INTERVAL_SECONDS));
                 if !*alive.lock().unwrap_or_else(|e| e.into_inner()) {
                     break;
                 }
@@ -115,10 +107,10 @@ pub fn create() -> GtkBox {
     {
         let title_weak = title.downgrade();
         let button_weak = button.downgrade();
-        let target = target_fraction.clone();
+        let progress_weak = progress.downgrade();
         let latest = Arc::clone(&latest);
         let alive = Arc::clone(&alive);
-        glib::timeout_add_local(Duration::from_secs(1), move || {
+        glib::timeout_add_local(Duration::from_secs(POLL_INTERVAL_SECONDS), move || {
             let Some(t) = title_weak.upgrade() else {
                 *alive.lock().unwrap_or_else(|e| e.into_inner()) = false;
                 return glib::ControlFlow::Break;
@@ -127,35 +119,12 @@ pub fn create() -> GtkBox {
                 *alive.lock().unwrap_or_else(|e| e.into_inner()) = false;
                 return glib::ControlFlow::Break;
             };
-            let snap = latest.lock().unwrap_or_else(|e| e.into_inner()).clone();
-            apply_snapshot(&t, &b, &target, snap.as_ref());
-            glib::ControlFlow::Continue
-        });
-    }
-
-    // Frame-rate animation loop for the progress bar (~60 fps lerp).
-    {
-        let current = current_fraction;
-        let target = target_fraction;
-        let progress_weak = progress.downgrade();
-        glib::timeout_add_local(Duration::from_millis(16), move || {
             let Some(p) = progress_weak.upgrade() else {
+                *alive.lock().unwrap_or_else(|e| e.into_inner()) = false;
                 return glib::ControlFlow::Break;
             };
-
-            let cur = current.get();
-            let tgt = target.get();
-            let delta = tgt - cur;
-
-            // Exponential smoothing: fast response without visual jumps.
-            let next = if delta.abs() < 0.0004 {
-                tgt
-            } else {
-                cur + delta * 0.25
-            };
-
-            current.set(next);
-            p.set_fraction(next);
+            let snap = latest.lock().unwrap_or_else(|e| e.into_inner()).clone();
+            apply_snapshot(&t, &b, &p, snap.as_ref());
             glib::ControlFlow::Continue
         });
     }
@@ -170,7 +139,7 @@ pub fn create() -> GtkBox {
 fn apply_snapshot(
     title: &Label,
     button: &Button,
-    target_fraction: &Cell<f64>,
+    progress: &ProgressBar,
     snapshot: Option<&PlayerSnapshot>,
 ) {
     if let Some(snap) = snapshot {
@@ -206,10 +175,10 @@ fn apply_snapshot(
         };
         button.set_tooltip_text(Some(&tooltip));
 
-        target_fraction.set(progress_fraction(snap.position_us, snap.length_us));
+        progress.set_fraction(progress_fraction(snap.position_us, snap.length_us));
     } else {
         title.set_label("󰝛 No media");
-        target_fraction.set(0.0);
+        progress.set_fraction(0.0);
         button.set_tooltip_text(Some("No active player found\nLeft click: play/pause"));
     }
 }

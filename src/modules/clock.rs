@@ -20,10 +20,11 @@ pub fn create(format: &str) -> Label {
 
     // Keep an owned copy of the format string for the closure.
     let fmt = format.to_owned();
+    let tick_seconds = if format_uses_seconds(format) { 1 } else { 60 };
 
-    // Tick every second.
+    // Tick at 1s only when needed; otherwise once per minute.
     let weak_label = label.downgrade();
-    glib::timeout_add_local(Duration::from_secs(1), move || {
+    glib::timeout_add_local(Duration::from_secs(tick_seconds), move || {
         if let Some(lbl) = weak_label.upgrade() {
             let text = Local::now().format(&fmt).to_string();
             lbl.set_label(&text);
@@ -34,4 +35,8 @@ pub fn create(format: &str) -> Label {
     });
 
     label
+}
+
+fn format_uses_seconds(format: &str) -> bool {
+    format.contains("%S") || format.contains("%T") || format.contains("%X")
 }

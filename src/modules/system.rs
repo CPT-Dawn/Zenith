@@ -7,6 +7,9 @@ use std::rc::Rc;
 use std::time::Duration;
 use sysinfo::System;
 
+const REFRESH_INTERVAL_SECONDS: u64 = 2;
+const TEMP_READ_EVERY_TICKS: u8 = 5;
+
 /// Create a system stats widget showing real-time CPU, memory, and temperature.
 pub fn create() -> GtkBox {
     let container = GtkBox::new(Orientation::Horizontal, 12);
@@ -34,15 +37,17 @@ pub fn create() -> GtkBox {
 
     // Shared system state (Using new() instead of new_all() to save memory)
     let sys = Rc::new(RefCell::new(System::new()));
+    let temp_state = Rc::new(RefCell::new((String::new(), 0_u8, None::<f64>)));
 
-    // Update every 2 seconds
+    // Update system usage every 2 seconds; temperature is sampled less often.
     {
         let sys = Rc::clone(&sys);
+        let temp_state = Rc::clone(&temp_state);
         let cpu_label = cpu_label.downgrade();
         let mem_label = mem_label.downgrade();
         let temp_label = temp_label.downgrade();
 
-        glib::timeout_add_local(Duration::from_secs(2), move || {
+        glib::timeout_add_local(Duration::from_secs(REFRESH_INTERVAL_SECONDS), move || {
             // Stop refreshing once all labels are gone (widget destroyed).
             let cpu_label = cpu_label.upgrade();
             let mem_label = mem_label.upgrade();
@@ -79,24 +84,36 @@ pub fn create() -> GtkBox {
 
             // Temperature
             if let Some(lbl) = temp_label {
-                if let Some(temp) = read_cpu_temperature() {
-                    lbl.remove_css_class("zenith-module-temp-cool");
-                    lbl.remove_css_class("zenith-module-temp-warm");
-                    lbl.remove_css_class("zenith-module-temp-hot");
+                let mut state = temp_state.borrow_mut();
+                state.1 = state.1.wrapping_add(1);
+                if state.1 >= TEMP_READ_EVERY_TICKS {
+                    state.1 = 0;
+                    state.2 = read_cpu_temperature();
+                }
 
-                    if temp < 50.0 {
-                        lbl.add_css_class("zenith-module-temp-cool");
+                if let Some(temp) = state.2 {
+                    let class = if temp < 50.0 {
+                        "zenith-module-temp-cool"
                     } else if temp < 75.0 {
-                        lbl.add_css_class("zenith-module-temp-warm");
+                        "zenith-module-temp-warm"
                     } else {
-                        lbl.add_css_class("zenith-module-temp-hot");
+                        "zenith-module-temp-hot"
+                    };
+
+                    if state.0 != class {
+                        if !state.0.is_empty() {
+                            lbl.remove_css_class(&state.0);
+                        }
+                        lbl.add_css_class(class);
+                        state.0 = class.to_string();
                     }
 
                     lbl.set_label(&format!(" {temp:>3.0}°C"));
                 } else {
-                    lbl.remove_css_class("zenith-module-temp-cool");
-                    lbl.remove_css_class("zenith-module-temp-warm");
-                    lbl.remove_css_class("zenith-module-temp-hot");
+                    if !state.0.is_empty() {
+                        lbl.remove_css_class(&state.0);
+                        state.0.clear();
+                    }
                     lbl.set_label(" --°C");
                 }
             }
