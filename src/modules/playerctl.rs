@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 const METADATA_FORMAT: &str = "{{status}}\t{{artist}}\t{{title}}\t{{position}}\t{{mpris:length}}";
-const POLL_INTERVAL_MS: u64 = 900;
+const POLL_INTERVAL_MS: u64 = 700;
 
 #[derive(Debug, Clone, PartialEq)]
 struct PlayerSnapshot {

@@ -14,20 +14,9 @@
   <a href="https://aur.archlinux.org/packages/zenith-bar">
     <img src="https://img.shields.io/aur/version/zenith-bar?style=flat-square&color=73daca&labelColor=1a1b26&label=AUR" alt="AUR Version" />
   </a>
-  <a href="https://github.com/CPT-Dawn/Zenith/actions">
-    <img src="https://img.shields.io/github/actions/workflow/status/CPT-Dawn/Zenith/ci.yml?style=flat-square&color=7dcfff&labelColor=1a1b26&label=build" alt="Build Status" />
-  </a>
   <img src="https://img.shields.io/badge/wayland-native-e0af68?style=flat-square&labelColor=1a1b26" alt="Wayland Native" />
   <img src="https://img.shields.io/badge/rust-2021-f7768e?style=flat-square&labelColor=1a1b26&logo=rust" alt="Rust 2021" />
 </p>
-
-<br />
-
-<p align="center">
-  <img src="preview.png" alt="Zenith bar preview" width="900" />
-</p>
-
-<br />
 
 ---
 

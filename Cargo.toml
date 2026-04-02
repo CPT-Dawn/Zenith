@@ -1,8 +1,8 @@
 [package]
 name = "zenith"
-version = "1.0.1"
+version = "1.1.0"
 edition = "2021"
-authors = ["cptdawn"]
+authors = ["CPT-Dawn"]
 description = "A sleek, animated Wayland status bar for Hyprland"
 license = "MIT"
 readme = "README.md"
@@ -29,3 +29,4 @@ opt-level = 3
 lto = true
 strip = true
 codegen-units = 1
+panic = "abort"
