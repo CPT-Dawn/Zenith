@@ -337,11 +337,16 @@ pub fn create() -> GtkBox {
     // ── Popover toggle ───────────────────────────────────────────────
     bar_btn.connect_clicked({
         let popover = popover.clone();
+        let entry = entry.clone();
         move |_| {
             if popover.is_visible() {
                 popover.popdown();
             } else {
                 popover.popup();
+                let focus_entry = entry.clone();
+                glib::idle_add_local_once(move || {
+                    focus_entry.grab_focus();
+                });
             }
         }
     });

@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use gdk4::Display;
 use gtk4::prelude::*;
 use gtk4::{Application, ApplicationWindow, CenterBox, CssProvider};
-use gtk4_layer_shell::{Edge, Layer, LayerShell};
+use gtk4_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
 
 use crate::config::ZenithConfig;
 use crate::modules;
@@ -29,6 +29,7 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     window.init_layer_shell();
     window.set_layer(Layer::Top);
     window.set_namespace(Some("zenith"));
+    window.set_keyboard_mode(KeyboardMode::OnDemand);
 
     // Anchor to top, left, and right so the bar stretches across the monitor.
     window.set_anchor(Edge::Top, true);
