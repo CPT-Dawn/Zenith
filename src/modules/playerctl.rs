@@ -144,9 +144,9 @@ fn apply_snapshot(
 ) {
     if let Some(snap) = snapshot {
         let icon = match snap.status.as_str() {
-            "Playing" => "",
-            "Paused" => "",
-            "Stopped" => "",
+            "Playing" => "",
+            "Paused" => "",
+            "Stopped" => "",
             _ => "󰎈",
         };
 
