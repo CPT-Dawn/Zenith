@@ -417,15 +417,15 @@ fn build_todo_row(
     store: &Rc<RefCell<TodoStore>>,
     refresh: &RefreshCallback,
 ) -> GtkBox {
-    let row = GtkBox::new(Orientation::Horizontal, 8);
+    let row = GtkBox::new(Orientation::Horizontal, 10);
     row.add_css_class("zenith-todo-row");
     if item.done {
         row.add_css_class("zenith-todo-row-done");
     }
 
-    // Priority accent bar (thin colored stripe on the left)
+    // Priority accent bar
     let accent = GtkBox::new(Orientation::Vertical, 0);
-    accent.set_width_request(3);
+    accent.set_width_request(4);
     accent.set_vexpand(true);
     accent.add_css_class("zenith-todo-accent");
     match item.priority {
@@ -442,16 +442,30 @@ fn build_todo_row(
     check.add_css_class("zenith-todo-check");
     row.append(&check);
 
+    // Stack to switch between view and edit modes
+    let stack = gtk4::Stack::new();
+    stack.set_hexpand(true);
+    row.append(&stack);
+
+    // --- View Mode ---
+    let view_box = GtkBox::new(Orientation::Horizontal, 8);
+
     // Task text
-    let label = Label::new(Some(&item.text));
+    let label = Label::new(None);
+    if item.done {
+        label.set_markup(&format!(
+            "<span strikethrough=\"true\" alpha=\"60%\">{}</span>",
+            glib::markup_escape_text(&item.text)
+        ));
+        label.add_css_class("zenith-todo-text-done");
+    } else {
+        label.set_text(&item.text);
+    }
     label.set_hexpand(true);
     label.set_halign(Align::Start);
     label.set_ellipsize(gtk4::pango::EllipsizeMode::End);
     label.add_css_class("zenith-todo-text");
-    if item.done {
-        label.add_css_class("zenith-todo-text-done");
-    }
-    row.append(&label);
+    view_box.append(&label);
 
     // Priority badge (if set)
     if item.priority > 0 {
@@ -462,8 +476,13 @@ fn build_todo_row(
             4..=6 => badge.add_css_class("zenith-todo-badge-mid"),
             _ => badge.add_css_class("zenith-todo-badge-low"),
         }
-        row.append(&badge);
+        view_box.append(&badge);
     }
+
+    // Edit button
+    let edit_btn = Button::with_label("✎");
+    edit_btn.add_css_class("zenith-todo-move-btn");
+    view_box.append(&edit_btn);
 
     // Move up button
     if idx > 0 {
@@ -479,12 +498,11 @@ fn build_todo_row(
                     s.save();
                 }
             }
-
             if let Some(ref f) = *refresh_c.borrow() {
                 f();
             }
         });
-        row.append(&up_btn);
+        view_box.append(&up_btn);
     }
 
     // Delete button
@@ -500,12 +518,91 @@ fn build_todo_row(
                 s.save();
             }
         }
-
         if let Some(ref f) = *refresh_c.borrow() {
             f();
         }
     });
-    row.append(&del_btn);
+    view_box.append(&del_btn);
+
+    stack.add_named(&view_box, Some("view"));
+
+    // --- Edit Mode ---
+    let edit_box = GtkBox::new(Orientation::Horizontal, 4);
+    let edit_entry = Entry::new();
+    let initial_text = if item.priority > 0 {
+        format!("{}:{}", item.priority, item.text)
+    } else {
+        item.text.clone()
+    };
+    edit_entry.set_text(&initial_text);
+    edit_entry.set_hexpand(true);
+    edit_entry.add_css_class("zenith-todo-entry");
+    edit_box.append(&edit_entry);
+
+    let save_btn = Button::with_label("✓");
+    save_btn.add_css_class("zenith-todo-move-btn");
+    edit_box.append(&save_btn);
+
+    stack.add_named(&edit_box, Some("edit"));
+
+    // Transition to edit mode
+    let stack_clone = stack.clone();
+    let entry_clone = edit_entry.clone();
+    edit_btn.connect_clicked(move |_| {
+        stack_clone.set_visible_child_name("edit");
+        let entry = entry_clone.clone();
+        glib::idle_add_local_once(move || {
+            entry.grab_focus();
+            let text_len = entry.text().len() as i32;
+            entry.set_position(text_len);
+        });
+    });
+
+    // Save action
+    let save_action = {
+        let store_c = Rc::clone(store);
+        let refresh_c = Rc::clone(refresh);
+        let entry_c = edit_entry.clone();
+        move || {
+            let text = entry_c.text().trim().to_string();
+            if !text.is_empty() {
+                let (mut priority, mut task_text) = parse_priority(&text);
+
+                // Keep priority if it wasn't modified but text was
+                if priority == 0 && text.find(':').is_none() {
+                    let mut original_priority = 0;
+                    {
+                        let s = store_c.borrow();
+                        if idx < s.items.len() {
+                            original_priority = s.items[idx].priority;
+                        }
+                    }
+                    priority = original_priority;
+                    task_text = text;
+                }
+
+                let mut s = store_c.borrow_mut();
+                if idx < s.items.len() {
+                    s.items[idx].text = task_text;
+                    s.items[idx].priority = priority;
+                    s.save();
+                }
+            }
+            if let Some(ref f) = *refresh_c.borrow() {
+                f();
+            }
+        }
+    };
+
+    save_btn.connect_clicked({
+        let sa = save_action.clone();
+        move |_| sa()
+    });
+
+    edit_entry.connect_activate({
+        let sa = save_action.clone();
+        move |_| sa()
+    });
 
     // Checkbox toggle
     let store_c = Rc::clone(store);
@@ -518,7 +615,6 @@ fn build_todo_row(
                 s.save();
             }
         }
-
         if let Some(ref f) = *refresh_c.borrow() {
             f();
         }

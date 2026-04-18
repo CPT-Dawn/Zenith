@@ -449,7 +449,7 @@ window {
 
 /* Individual task row */
 .zenith-todo-row {
-    padding: 5px 8px;
+    padding: 8px 10px;
     border-radius: 8px;
     transition: background 180ms ease;
 }

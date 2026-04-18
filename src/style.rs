@@ -23,8 +23,6 @@ const PLAYER_BTN_CLASS: &str = ".zenith-player-btn";
 const PLAYER_TITLE_CLASS: &str = ".zenith-player-title";
 const PLAYER_PROGRESS_CLASS: &str = ".zenith-player-progress";
 
-
-
 /// Return the canonical style path: `~/.config/zenith/style.css`.
 pub fn style_path() -> Result<PathBuf> {
     if let Some(path) = std::env::var_os("ZENITH_STYLE") {
@@ -131,9 +129,7 @@ fn ensure_compat_style_rules(css: &str) -> String {
         out.push_str(
             ".zenith-module-surface { background: transparent; border: none; border-radius: 4px; padding: 2px 8px; transition: background 140ms ease; }\n",
         );
-        out.push_str(
-            ".zenith-module-surface:hover { background: rgba(255, 255, 255, 0.06); }\n",
-        );
+        out.push_str(".zenith-module-surface:hover { background: rgba(255, 255, 255, 0.06); }\n");
         out.push_str(".zenith-module-surface:active { background: rgba(255, 255, 255, 0.10); }\n");
     }
     if !has_todo_plus {
