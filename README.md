@@ -18,6 +18,13 @@
   <img src="https://img.shields.io/badge/rust-2021-f7768e?style=flat-square&labelColor=1a1b26&logo=rust" alt="Rust 2021" />
 </p>
 
+<p align="center">
+  <img src="Assets/Top Stuck.png" alt="Demo 1" />
+</p>
+<p align="center">
+  <img src="Assets/Default.png" alt="Demo 2" />
+</p>
+
 ---
 
 ## Why Zenith?
