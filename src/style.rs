@@ -19,6 +19,10 @@ const TEMP_CLASS_WARM: &str = ".zenith-module-temp-warm";
 const TEMP_CLASS_HOT: &str = ".zenith-module-temp-hot";
 const MODULE_SURFACE_CLASS: &str = ".zenith-module-surface";
 const TODO_PLUS_CLASS: &str = ".zenith-todo-btn-plus";
+const TODO_ACTION_CLASS: &str = ".zenith-todo-action-compact";
+const TODO_ACTION_MUTED_CLASS: &str = ".zenith-todo-action-compact-muted";
+const TODO_ACTION_DANGER_CLASS: &str = ".zenith-todo-action-compact-danger";
+const TODO_ACTION_PRIMARY_CLASS: &str = ".zenith-todo-action-compact-primary";
 const PLAYER_BTN_CLASS: &str = ".zenith-player-btn";
 const PLAYER_TITLE_CLASS: &str = ".zenith-player-title";
 const PLAYER_PROGRESS_CLASS: &str = ".zenith-player-progress";
@@ -92,6 +96,10 @@ fn ensure_compat_style_rules(css: &str) -> String {
     let has_hot = css.contains(TEMP_CLASS_HOT);
     let has_module_surface = css.contains(MODULE_SURFACE_CLASS);
     let has_todo_plus = css.contains(TODO_PLUS_CLASS);
+    let has_todo_action = css.contains(TODO_ACTION_CLASS);
+    let has_todo_action_muted = css.contains(TODO_ACTION_MUTED_CLASS);
+    let has_todo_action_danger = css.contains(TODO_ACTION_DANGER_CLASS);
+    let has_todo_action_primary = css.contains(TODO_ACTION_PRIMARY_CLASS);
     let has_player_btn = css.contains(PLAYER_BTN_CLASS);
     let has_player_title = css.contains(PLAYER_TITLE_CLASS);
     let has_player_progress = css.contains(PLAYER_PROGRESS_CLASS);
@@ -102,6 +110,10 @@ fn ensure_compat_style_rules(css: &str) -> String {
         && has_hot
         && has_module_surface
         && has_todo_plus
+        && has_todo_action
+        && has_todo_action_muted
+        && has_todo_action_danger
+        && has_todo_action_primary
         && has_player_btn
         && has_player_title
         && has_player_progress
@@ -109,7 +121,7 @@ fn ensure_compat_style_rules(css: &str) -> String {
         return css.to_string();
     }
 
-    let mut out = String::with_capacity(css.len() + 980);
+    let mut out = String::with_capacity(css.len() + 1700);
     out.push_str(css);
     out.push_str("\n\n/* Injected defaults for backward-compatible styling */\n");
 
@@ -134,7 +146,37 @@ fn ensure_compat_style_rules(css: &str) -> String {
     }
     if !has_todo_plus {
         out.push_str(
-            ".zenith-todo-btn-plus { font-size: 15px; font-weight: 800; min-width: 22px; padding: 1px 8px; line-height: 1; }\n",
+            ".zenith-todo-btn-plus { font-size: 13px; font-weight: 800; min-width: 20px; min-height: 20px; padding: 0 6px; line-height: 1; }\n",
+        );
+    }
+    if !has_todo_action {
+        out.push_str(
+            ".zenith-todo-action-compact { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.04); box-shadow: none; min-height: 0; min-width: 0; padding: 0 5px; font-size: 9px; line-height: 1; border-radius: 999px; color: #6f7fa3; transition: background 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }\n",
+        );
+        out.push_str(
+            ".zenith-todo-action-compact:hover { background: rgba(122, 162, 247, 0.10); border-color: rgba(122, 162, 247, 0.18); color: #c0caf5; box-shadow: 0 0 6px rgba(122, 162, 247, 0.08); }\n",
+        );
+        out.push_str(".zenith-todo-action-compact:active { transform: translateY(1px); }\n");
+    }
+    if !has_todo_action_muted {
+        out.push_str(
+            ".zenith-todo-action-compact-muted:hover { background: rgba(122, 162, 247, 0.12); border-color: rgba(122, 162, 247, 0.18); color: #7dcfff; }\n",
+        );
+    }
+    if !has_todo_action_danger {
+        out.push_str(
+            ".zenith-todo-action-compact-danger:hover { background: rgba(247, 118, 142, 0.12); border-color: rgba(247, 118, 142, 0.18); color: #f7768e; box-shadow: 0 0 6px rgba(247, 118, 142, 0.08); }\n",
+        );
+    }
+    if !has_todo_action_primary {
+        out.push_str(
+            ".zenith-todo-action-compact-primary, .zenith-todo-add-btn { background: linear-gradient(135deg, #7aa2f7, #7dcfff); border: none; border-radius: 999px; color: #1a1b26; font-weight: 800; font-size: 12px; min-width: 22px; min-height: 22px; padding: 0; box-shadow: 0 0 8px rgba(122, 162, 247, 0.18); transition: box-shadow 180ms ease, transform 180ms ease, filter 180ms ease; }\n",
+        );
+        out.push_str(
+            ".zenith-todo-action-compact-primary:hover, .zenith-todo-add-btn:hover { box-shadow: 0 0 12px rgba(122, 162, 247, 0.30); transform: translateY(-1px); }\n",
+        );
+        out.push_str(
+            ".zenith-todo-action-compact-primary:active, .zenith-todo-add-btn:active { box-shadow: 0 0 6px rgba(122, 162, 247, 0.15); transform: translateY(0); }\n",
         );
     }
     if !has_player_btn {

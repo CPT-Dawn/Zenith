@@ -410,6 +410,12 @@ fn parse_priority(input: &str) -> (u8, String) {
     (0, input.to_string())
 }
 
+/// Make a task action button compact and flat.
+fn configure_compact_button(button: &Button) {
+    button.set_can_shrink(true);
+    button.set_has_frame(false);
+}
+
 /// Build a single todo row widget.
 fn build_todo_row(
     idx: usize,
@@ -417,7 +423,7 @@ fn build_todo_row(
     store: &Rc<RefCell<TodoStore>>,
     refresh: &RefreshCallback,
 ) -> GtkBox {
-    let row = GtkBox::new(Orientation::Horizontal, 10);
+    let row = GtkBox::new(Orientation::Horizontal, 8);
     row.add_css_class("zenith-todo-row");
     if item.done {
         row.add_css_class("zenith-todo-row-done");
@@ -448,7 +454,7 @@ fn build_todo_row(
     row.append(&stack);
 
     // --- View Mode ---
-    let view_box = GtkBox::new(Orientation::Horizontal, 8);
+    let view_box = GtkBox::new(Orientation::Horizontal, 6);
 
     // Task text
     let label = Label::new(None);
@@ -481,13 +487,19 @@ fn build_todo_row(
 
     // Edit button
     let edit_btn = Button::with_label("✎");
+    configure_compact_button(&edit_btn);
     edit_btn.add_css_class("zenith-todo-move-btn");
+    edit_btn.add_css_class("zenith-todo-action-compact");
+    edit_btn.add_css_class("zenith-todo-action-compact-muted");
     view_box.append(&edit_btn);
 
     // Move up button
     if idx > 0 {
         let up_btn = Button::with_label("▲");
+        configure_compact_button(&up_btn);
         up_btn.add_css_class("zenith-todo-move-btn");
+        up_btn.add_css_class("zenith-todo-action-compact");
+        up_btn.add_css_class("zenith-todo-action-compact-muted");
         let store_c = Rc::clone(store);
         let refresh_c = Rc::clone(refresh);
         up_btn.connect_clicked(move |_| {
@@ -507,7 +519,10 @@ fn build_todo_row(
 
     // Delete button
     let del_btn = Button::with_label("✕");
+    configure_compact_button(&del_btn);
     del_btn.add_css_class("zenith-todo-del-btn");
+    del_btn.add_css_class("zenith-todo-action-compact");
+    del_btn.add_css_class("zenith-todo-action-compact-danger");
     let store_c = Rc::clone(store);
     let refresh_c = Rc::clone(refresh);
     del_btn.connect_clicked(move |_| {
@@ -540,7 +555,10 @@ fn build_todo_row(
     edit_box.append(&edit_entry);
 
     let save_btn = Button::with_label("✓");
+    configure_compact_button(&save_btn);
     save_btn.add_css_class("zenith-todo-move-btn");
+    save_btn.add_css_class("zenith-todo-action-compact");
+    save_btn.add_css_class("zenith-todo-action-compact-muted");
     edit_box.append(&save_btn);
 
     stack.add_named(&edit_box, Some("edit"));
