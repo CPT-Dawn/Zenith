@@ -77,15 +77,13 @@ pub fn create() -> GtkBox {
     {
         let latest = Arc::clone(&latest);
         let alive = Arc::clone(&alive);
-        std::thread::spawn(move || {
-            loop {
-                std::thread::sleep(Duration::from_millis(POLL_INTERVAL_MS));
-                if !*alive.lock().unwrap_or_else(|e| e.into_inner()) {
-                    break;
-                }
-                let snapshot = read_player_snapshot();
-                *latest.lock().unwrap_or_else(|e| e.into_inner()) = snapshot;
+        std::thread::spawn(move || loop {
+            std::thread::sleep(Duration::from_millis(POLL_INTERVAL_MS));
+            if !*alive.lock().unwrap_or_else(|e| e.into_inner()) {
+                break;
             }
+            let snapshot = read_player_snapshot();
+            *latest.lock().unwrap_or_else(|e| e.into_inner()) = snapshot;
         });
     }
 
@@ -153,25 +151,7 @@ fn apply_snapshot(
     snapshot: Option<&PlayerSnapshot>,
 ) {
     if let Some(snap) = snapshot {
-        let icon = match snap.status.as_str() {
-            "Playing" => "",
-            "Paused" => "",
-            "Stopped" => "",
-            _ => "󰎈",
-        };
-
-        let display_title = if snap.title.trim().is_empty() {
-            "Unknown title".to_string()
-        } else {
-            snap.title.trim().to_string()
-        };
-        let display_artist = snap.artist.trim();
-
-        let label_text = if display_artist.is_empty() {
-            format!("{icon} {display_title}")
-        } else {
-            format!("{icon} {display_artist} - {display_title}")
-        };
+        let label_text = format_player_label(snap);
         title.set_label(&label_text);
 
         progress.set_fraction(progress_fraction(snap.position_us, snap.length_us));
@@ -250,3 +230,55 @@ fn progress_fraction(position_us: u64, length_us: u64) -> f64 {
     (f64::from(current_ms) / f64::from(total_ms)).clamp(0.0, 1.0)
 }
 
+fn format_player_label(snap: &PlayerSnapshot) -> String {
+    let icon = match snap.status.as_str() {
+        "Playing" => "",
+        "Paused" => "",
+        "Stopped" => "",
+        _ => "󰎈",
+    };
+
+    let display_title = if snap.title.trim().is_empty() {
+        "Unknown title"
+    } else {
+        snap.title.trim()
+    };
+    let display_artist = snap.artist.trim();
+
+    if display_artist.is_empty() {
+        format!("{icon} {display_title}")
+    } else {
+        format!("{icon} {display_title} - {display_artist}")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{format_player_label, PlayerSnapshot};
+
+    #[test]
+    fn formats_title_before_artist() {
+        let snap = PlayerSnapshot {
+            status: "Playing".to_string(),
+            artist: "Artist Name".to_string(),
+            title: "Track Title".to_string(),
+            position_us: 0,
+            length_us: 1,
+        };
+
+        assert_eq!(format_player_label(&snap), " Track Title - Artist Name");
+    }
+
+    #[test]
+    fn omits_artist_separator_when_artist_is_missing() {
+        let snap = PlayerSnapshot {
+            status: "Paused".to_string(),
+            artist: "   ".to_string(),
+            title: "Track Title".to_string(),
+            position_us: 0,
+            length_us: 1,
+        };
+
+        assert_eq!(format_player_label(&snap), " Track Title");
+    }
+}
