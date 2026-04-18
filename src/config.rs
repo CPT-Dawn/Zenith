@@ -2,13 +2,14 @@ use anyhow::{Context, Result};
 use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};
+use toml_edit::{DocumentMut, Item, Table};
 
 /// Embedded default template copied to disk on first launch.
 const EMBEDDED_DEFAULT_CONFIG_TEMPLATE: &str = include_str!("../Default_Config.toml");
 
 /// Top-level configuration for Zenith bar.
 #[derive(Debug, Deserialize, Clone, Default)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default)]
 pub struct ZenithConfig {
     pub bar: BarConfig,
     pub modules: ModulesConfig,
@@ -16,7 +17,7 @@ pub struct ZenithConfig {
 
 /// Configuration for bar geometry, positioning, and appearance.
 #[derive(Debug, Deserialize, Clone)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default)]
 pub struct BarConfig {
     /// Monitor connector name to anchor to (e.g. "DP-1", "eDP-1").
     /// If `None`, anchors to the default/primary monitor.
@@ -39,7 +40,7 @@ pub struct BarConfig {
 
 /// Toggle individual bar modules on or off.
 #[derive(Debug, Deserialize, Clone)]
-#[serde(default, deny_unknown_fields)]
+#[serde(default)]
 pub struct ModulesConfig {
     pub clock: bool,
     pub clock_format: String,
@@ -133,6 +134,83 @@ fn ensure_config_file(path: &Path, default_template: &str) -> Result<()> {
     }
 }
 
+/// Merge missing keys from the embedded default config into the user config.
+///
+/// Existing user values are never overwritten. Only missing keys are injected.
+fn sync_missing_default_keys(path: &Path, default_template: &str) -> Result<()> {
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("Failed to read config at {}", path.display()))?;
+
+    let mut user_doc: DocumentMut = raw
+        .parse()
+        .with_context(|| format!("Failed to parse {}", path.display()))?;
+    let default_doc: DocumentMut = default_template
+        .parse()
+        .context("Failed to parse embedded default config template")?;
+
+    let changed = merge_missing_items(default_doc.as_table(), user_doc.as_table_mut());
+    if !changed {
+        return Ok(());
+    }
+
+    let rendered = user_doc.to_string();
+
+    // Atomic write: write to temp file, then rename.
+    let tmp_path = path.with_extension("toml.tmp");
+    fs::write(&tmp_path, rendered)
+        .with_context(|| format!("Failed to write merged config at {}", tmp_path.display()))?;
+
+    if let Err(err) = fs::rename(&tmp_path, path) {
+        let _ = fs::remove_file(&tmp_path);
+        return Err(err).with_context(|| {
+            format!(
+                "Failed to replace config {} with merged defaults",
+                path.display()
+            )
+        });
+    }
+
+    log::info!(
+        "Config schema changed; injected missing keys into {}",
+        path.display()
+    );
+
+    Ok(())
+}
+
+/// Recursively insert missing keys from `defaults` into `user` tables.
+///
+/// Returns `true` when at least one key was inserted.
+fn merge_missing_items(defaults: &Table, user: &mut Table) -> bool {
+    let mut changed = false;
+
+    for (key, default_item) in defaults.iter() {
+        match user.get_mut(key) {
+            Some(user_item) => {
+                changed |= merge_missing_item(default_item, user_item);
+            }
+            None => {
+                user.insert(key, default_item.clone());
+                changed = true;
+            }
+        }
+    }
+
+    changed
+}
+
+fn merge_missing_item(default_item: &Item, user_item: &mut Item) -> bool {
+    if user_item.is_none() {
+        *user_item = default_item.clone();
+        return true;
+    }
+
+    match (default_item.as_table(), user_item.as_table_mut()) {
+        (Some(default_table), Some(user_table)) => merge_missing_items(default_table, user_table),
+        _ => false,
+    }
+}
+
 /// Load configuration from `~/.config/zenith/config.toml`.
 ///
 /// If the file does not exist, it is created from the embedded default template.
@@ -140,6 +218,7 @@ fn ensure_config_file(path: &Path, default_template: &str) -> Result<()> {
 pub fn load() -> Result<ZenithConfig> {
     let path = config_path()?;
     ensure_config_file(&path, EMBEDDED_DEFAULT_CONFIG_TEMPLATE)?;
+    sync_missing_default_keys(&path, EMBEDDED_DEFAULT_CONFIG_TEMPLATE)?;
 
     let raw = fs::read_to_string(&path)
         .with_context(|| format!("Failed to read config at {}", path.display()))?;

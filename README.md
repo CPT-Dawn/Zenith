@@ -33,13 +33,13 @@ Most status bars try to be everything. Zenith tries to be **invisible** — a 28
 
 ## Features
 
-| Module | Description |
-|---|---|
-| **Clock** | Configurable `strftime` format with per-second updates |
-| **Calendar** | Clickable date badge → full GTK4 calendar popover |
-| **System Stats** | Real-time CPU %, memory %, and CPU temperature with color-coded thermal states |
+| Module           | Description                                                                                                          |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Clock**        | Configurable `strftime` format with per-second updates                                                               |
+| **Calendar**     | Clickable date badge → full GTK4 calendar popover                                                                    |
+| **System Stats** | Real-time CPU %, memory %, and CPU temperature with color-coded thermal states                                       |
 | **Media Player** | `playerctl`-powered now-playing with artist/title, play/pause toggle, and a 60fps smoothly-interpolated progress bar |
-| **Todo List** | Full CRUD task manager with priority levels (P1–P9), persistent JSON storage, and an inline progress bar |
+| **Todo List**    | Full CRUD task manager with priority levels (P1–P9), persistent JSON storage, and an inline progress bar             |
 
 **Additional highlights:**
 
@@ -144,17 +144,17 @@ The stylesheet at `~/.config/zenith/style.css` uses standard GTK4 CSS. Every wid
 
 Key classes for customization:
 
-| Class | What it controls |
-|---|---|
-| `.zenith-inner` | Main bar background surface |
-| `.zenith-module` | Base typography for all modules |
-| `.zenith-module-surface` | Hover/active background for interactive elements |
-| `.zenith-module-left` | Left cluster accent color (Todo) |
-| `.zenith-module-center` | Center cluster accent color (Clock/Calendar) |
-| `.zenith-module-right` | Right cluster accent color (System/Player) |
-| `.zenith-module-temp-cool` | Temperature < 50°C |
-| `.zenith-module-temp-warm` | Temperature 50–75°C |
-| `.zenith-module-temp-hot` | Temperature > 75°C |
+| Class                      | What it controls                                 |
+| -------------------------- | ------------------------------------------------ |
+| `.zenith-inner`            | Main bar background surface                      |
+| `.zenith-module`           | Base typography for all modules                  |
+| `.zenith-module-surface`   | Hover/active background for interactive elements |
+| `.zenith-module-left`      | Left cluster accent color (Todo)                 |
+| `.zenith-module-center`    | Center cluster accent color (Clock/Calendar)     |
+| `.zenith-module-right`     | Right cluster accent color (System/Player)       |
+| `.zenith-module-temp-cool` | Temperature < 50°C                               |
+| `.zenith-module-temp-warm` | Temperature 50–75°C                              |
+| `.zenith-module-temp-hot`  | Temperature > 75°C                               |
 
 **Font requirements:** [Inter](https://fonts.google.com/specimen/Inter) and [JetBrainsMono Nerd Font](https://www.nerdfonts.com/font-downloads) are expected. Zenith degrades gracefully to system sans-serif/monospace if they are not installed.
 
@@ -182,12 +182,12 @@ The `ignorealpha 0.3` threshold ensures only the bar surface is blurred — full
 
 ## Runtime Environment
 
-| Variable | Purpose |
-|---|---|
-| `ZENITH_CONFIG` | Override config file path |
-| `ZENITH_STYLE` | Override style file path |
-| `GSK_RENDERER` | Override GTK renderer selection (`ngl`, `vulkan`, `gl`, `cairo`, etc.) |
-| `RUST_LOG` | Control log verbosity (`info`, `debug`, `trace`) |
+| Variable        | Purpose                                                                |
+| --------------- | ---------------------------------------------------------------------- |
+| `ZENITH_CONFIG` | Override config file path                                              |
+| `ZENITH_STYLE`  | Override style file path                                               |
+| `GSK_RENDERER`  | Override GTK renderer selection (`ngl`, `vulkan`, `gl`, `cairo`, etc.) |
+| `RUST_LOG`      | Control log verbosity (`info`, `debug`, `trace`)                       |
 
 If `GSK_RENDERER` is unset, Zenith defaults it to `gl` at startup for better
 stability on mixed Wayland/Vulkan setups.

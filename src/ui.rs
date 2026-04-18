@@ -108,18 +108,18 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
     center_box.set_hexpand(true);
     center_box.set_halign(gtk4::Align::Fill);
 
-    // Center: Date │  │ Time
+    // Center: Day/Time │  │ Date
     if cfg.modules.clock {
         let time_container = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
         time_container.set_homogeneous(true);
         time_container.set_halign(gtk4::Align::Center);
 
-        // Date (clickable → calendar popover)
-        let calendar = modules::calendar::create();
-        let date_slot = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
-        date_slot.set_halign(gtk4::Align::End);
-        date_slot.set_hexpand(true);
-        date_slot.append(&calendar);
+        // Clock (ticking time)
+        let clock = modules::clock::create(&cfg.modules.clock_format);
+        let clock_slot = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
+        clock_slot.set_halign(gtk4::Align::End);
+        clock_slot.set_hexpand(true);
+        clock_slot.append(&clock);
 
         // Arch logo separator inside a transparent module shell
         let logo_module = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
@@ -134,16 +134,16 @@ pub fn build_bar(app: &Application, cfg: &ZenithConfig) -> Result<()> {
         logo.set_valign(gtk4::Align::Center);
         logo_module.append(&logo);
 
-        // Clock (ticking time)
-        let clock = modules::clock::create(&cfg.modules.clock_format);
-        let clock_slot = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
-        clock_slot.set_halign(gtk4::Align::Start);
-        clock_slot.set_hexpand(true);
-        clock_slot.append(&clock);
+        // Date (clickable → calendar popover)
+        let calendar = modules::calendar::create();
+        let date_slot = gtk4::Box::new(gtk4::Orientation::Horizontal, 0);
+        date_slot.set_halign(gtk4::Align::Start);
+        date_slot.set_hexpand(true);
+        date_slot.append(&calendar);
 
-        time_container.append(&date_slot);
-        time_container.append(&logo_module);
         time_container.append(&clock_slot);
+        time_container.append(&logo_module);
+        time_container.append(&date_slot);
 
         center_box.set_center_widget(Some(&time_container));
     }
