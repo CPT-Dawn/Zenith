@@ -29,14 +29,12 @@
 
    ════════════════════════════════════════════════════════════════════ */
 
-
 /* ─────────────────────────────────────────────────────────────────────
    § Window — Fully Transparent Shell
    ───────────────────────────────────────────────────────────────────── */
 window {
-    background-color: rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0);
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Outer Frame — Animated Border Glow
@@ -44,76 +42,74 @@ window {
    Invisible when border_width = 0 in config.toml.
    Set border_width ≥ 1 to reveal the slow-cycling gradient ring.     */
 .zenith-border {
-    border-radius: __ZENITH_RADIUS__px;
-    padding: __ZENITH_BORDER_WIDTH__px;
+  border-radius: __ZENITH_RADIUS__px;
+  padding: __ZENITH_BORDER_WIDTH__px;
 
-    /* 4-stop spectrum: cyan → blue → purple → pink → cyan */
-    background: linear-gradient(
-        135deg,
-        rgba(125, 207, 255, 0.50),
-        rgba(122, 162, 247, 0.50),
-        rgba(187, 154, 247, 0.50),
-        rgba(247, 118, 142, 0.40),
-        rgba(125, 207, 255, 0.50)
-    );
-    background-size: 400% 400%;
-    animation: zenith-border-flow __ZENITH_CYCLE_SECONDS__s ease infinite;
+  /* 4-stop spectrum: cyan → blue → purple → pink → cyan */
+  background: linear-gradient(
+    135deg,
+    rgba(125, 207, 255, 0.5),
+    rgba(122, 162, 247, 0.5),
+    rgba(187, 154, 247, 0.5),
+    rgba(247, 118, 142, 0.4),
+    rgba(125, 207, 255, 0.5)
+  );
+  background-size: 400% 400%;
+  animation: zenith-border-flow __ZENITH_CYCLE_SECONDS__s ease infinite;
 
-    /* Soft outer glow for depth against the desktop */
-    box-shadow:
-        0 2px 12px rgba(0, 0, 0, 0.35),
-        0 0 20px rgba(122, 162, 247, 0.08);
+  /* Soft outer glow for depth against the desktop */
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.35),
+    0 0 20px rgba(122, 162, 247, 0.08);
 
-    border: none;
+  border: none;
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Inner Surface — Frosted Glass Body
    ───────────────────────────────────────────────────────────────────── */
 .zenith-inner {
-    background-color: __ZENITH_BACKGROUND__;
-    border-radius: __ZENITH_INNER_RADIUS__px;
-    padding: 0 14px;
+  background-color: __ZENITH_BACKGROUND__;
+  border-radius: __ZENITH_INNER_RADIUS__px;
+  padding: 0 14px;
 
-    /* Subtle inner highlight for glass edge catch */
-    box-shadow:
-        inset 0  1px 0 rgba(255, 255, 255, 0.06),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.10);
+  /* Subtle inner highlight for glass edge catch */
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Shared Typography
    ───────────────────────────────────────────────────────────────────── */
 .zenith-module {
-    font-family: "Inter", "Manrope", "JetBrainsMono Nerd Font", sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: #c0caf5;
+  font-family: "Inter", "Manrope", "JetBrainsMono Nerd Font", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c0caf5;
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Module Surface — Glassmorphism Hover
    ───────────────────────────────────────────────────────────────────── */
 .zenith-module-surface {
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    padding: 2px 10px;
-    transition: background 180ms ease, box-shadow 180ms ease;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 2px 10px;
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .zenith-module-surface:hover {
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.03);
 }
 
 .zenith-module-surface:active {
-    background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.12);
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Zone Accent Colors
@@ -124,515 +120,556 @@ window {
 
 .zenith-module-center,
 .zenith-module-right {
-    font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
-    font-weight: 700;
-    font-size: 13px;
+  font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
+  font-weight: 700;
+  font-size: 13px;
 }
 
 .zenith-module-left {
-    color: #7dcfff;
+  color: #7dcfff;
 }
 
 .zenith-module-center {
-    color: #7aa2f7;
+  color: #7aa2f7;
 }
 
 .zenith-module-right {
-    color: #e0af68;
+  color: #e0af68;
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Temperature States
    ───────────────────────────────────────────────────────────────────── */
 .zenith-module-temp {
-    color: #e0af68;
+  color: #e0af68;
 }
 
 .zenith-module-temp-cool {
-    color: #7dcfff;
-    text-shadow: 0 0 6px rgba(125, 207, 255, 0.15);
+  color: #7dcfff;
+  text-shadow: 0 0 6px rgba(125, 207, 255, 0.15);
 }
 
 .zenith-module-temp-warm {
-    color: #e0af68;
-    text-shadow: 0 0 6px rgba(224, 175, 104, 0.15);
+  color: #e0af68;
+  text-shadow: 0 0 6px rgba(224, 175, 104, 0.15);
 }
 
 .zenith-module-temp-hot {
-    color: #f7768e;
-    text-shadow: 0 0 8px rgba(247, 118, 142, 0.25);
+  color: #f7768e;
+  text-shadow: 0 0 8px rgba(247, 118, 142, 0.25);
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Center Logo — Arch Nerd Font Glyph
    ───────────────────────────────────────────────────────────────────── */
 .zenith-logo {
-    font-family: "JetBrainsMono Nerd Font", monospace;
-    font-size: 16px;
-    color: #bb9af7;
-    text-shadow: 0 0 10px rgba(187, 154, 247, 0.35);
-    padding: 0 4px;
-    animation: zenith-logo-breathe 4s ease-in-out infinite;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-size: 16px;
+  color: #bb9af7;
+  text-shadow: 0 0 10px rgba(187, 154, 247, 0.35);
+  padding: 0 4px;
+  animation: zenith-logo-breathe 4s ease-in-out infinite;
 }
 
 .zenith-logo-module,
 .zenith-logo-module:hover,
 .zenith-logo-module:active {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Calendar — Date Button + Popover
    ───────────────────────────────────────────────────────────────────── */
 .zenith-calendar-btn {
-    box-shadow: none;
-    padding: 2px 10px;
-    color: #7aa2f7;
-    font-size: 13px;
-    font-weight: 700;
-    min-height: 0;
-    min-width: 0;
+  box-shadow: none;
+  padding: 2px 10px;
+  color: #7aa2f7;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 0;
+  min-width: 0;
 }
 
 .zenith-calendar-btn:hover {
-    background: rgba(122, 162, 247, 0.10);
+  background: rgba(122, 162, 247, 0.1);
 }
 
 .zenith-calendar-btn:active {
-    background: rgba(122, 162, 247, 0.16);
+  background: rgba(122, 162, 247, 0.16);
 }
 
 /* Calendar popup — deep glass panel */
 .zenith-calendar-popup {
-    background-color: rgba(22, 23, 35, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    padding: 6px;
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.50),
-        0 0 16px rgba(122, 162, 247, 0.06);
+  background-color: rgba(22, 23, 35, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 16px rgba(122, 162, 247, 0.06);
 }
 
-.zenith-calendar-popup>contents {
-    background-color: rgba(22, 23, 35, 0.92);
-    border-radius: 10px;
-    padding: 4px;
+.zenith-calendar-popup > contents {
+  background-color: rgba(22, 23, 35, 0.92);
+  border-radius: 10px;
+  padding: 4px;
 }
 
 .zenith-calendar {
-    background-color: transparent;
-    color: #c0caf5;
-    font-family: "Inter", "Manrope", sans-serif;
-    font-size: 12px;
+  background-color: transparent;
+  color: #c0caf5;
+  font-family: "Inter", "Manrope", sans-serif;
+  font-size: 12px;
 }
 
-.zenith-calendar>header {
-    color: #c0caf5;
-    font-weight: 700;
+.zenith-calendar > header {
+  color: #c0caf5;
+  font-weight: 700;
 }
 
-.zenith-calendar>header>button {
-    color: #7aa2f7;
-    background: transparent;
-    border: none;
+.zenith-calendar > header > button {
+  color: #7aa2f7;
+  background: transparent;
+  border: none;
 }
 
-.zenith-calendar>header>button:hover {
-    background: rgba(122, 162, 247, 0.14);
-    border-radius: 6px;
+.zenith-calendar > header > button:hover {
+  background: rgba(122, 162, 247, 0.14);
+  border-radius: 6px;
 }
 
 .zenith-calendar :selected {
-    background-color: #7aa2f7;
-    color: #1a1b26;
-    border-radius: 50%;
+  background-color: #7aa2f7;
+  color: #1a1b26;
+  border-radius: 50%;
 }
 
 .zenith-calendar .day-number:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 50%;
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Player Module — Now Playing
    ───────────────────────────────────────────────────────────────────── */
 .zenith-player-btn {
-    box-shadow: none;
-    padding: 1px 10px;
-    min-height: 0;
-    min-width: 160px;
+  box-shadow: none;
+  padding: 1px 10px;
+  min-height: 0;
+  min-width: 160px;
 }
 
 .zenith-player-btn.zenith-module-surface {
-    background: transparent;
+  background: transparent;
 }
 
 .zenith-player-btn.zenith-module-surface:hover {
-    background: rgba(115, 218, 202, 0.08);
+  background: rgba(115, 218, 202, 0.08);
 }
 
 .zenith-player-btn.zenith-module-surface:active {
-    background: rgba(115, 218, 202, 0.14);
+  background: rgba(115, 218, 202, 0.14);
 }
 
 .zenith-player-title {
-    font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
-    font-size: 11px;
-    font-weight: 600;
-    color: #73daca;
-    text-shadow: 0 0 6px rgba(115, 218, 202, 0.12);
+  font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: #73daca;
+  text-shadow: 0 0 6px rgba(115, 218, 202, 0.12);
 }
 
 /* Progress bar — glowing gradient track */
 .zenith-player-progress {
-    min-height: 3px;
+  min-height: 3px;
 }
 
 .zenith-player-progress trough {
-    min-height: 3px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
+  min-height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .zenith-player-progress progress {
-    min-height: 3px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #73daca, #7dcfff, #7aa2f7);
-    box-shadow: 0 0 8px rgba(115, 218, 202, 0.25);
+  min-height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #73daca, #7dcfff, #7aa2f7);
+  box-shadow: 0 0 8px rgba(115, 218, 202, 0.25);
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Todo Module — Bar Button
    ───────────────────────────────────────────────────────────────────── */
 .zenith-todo-btn {
-    box-shadow: none;
-    padding: 1px 8px;
-    min-height: 0;
-    min-width: 0;
-    font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 1;
-    transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  box-shadow: none;
+  padding: 2px 10px;
+  min-height: 0;
+  min-width: 0;
+  font-family: "JetBrainsMono Nerd Font", "Inter", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.1;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
 .zenith-todo-btn-empty {
-    color: #7dcfff;
-    text-shadow: 0 0 8px rgba(125, 207, 255, 0.30);
-    animation: zenith-todo-pulse 3s ease-in-out infinite;
+  color: #7dcfff;
+  text-shadow: 0 0 8px rgba(125, 207, 255, 0.3);
+  animation: zenith-todo-pulse 3s ease-in-out infinite;
 }
 
 .zenith-todo-btn-plus {
-    font-size: 13px;
-    font-weight: 800;
-    min-width: 20px;
-    min-height: 20px;
-    padding: 0 6px;
-    line-height: 1;
+  font-size: 15px;
+  font-weight: 800;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0 7px;
+  line-height: 1.05;
 }
 
 .zenith-todo-btn-active {
-    color: #73daca;
-    text-shadow: 0 0 6px rgba(115, 218, 202, 0.20);
+  color: #73daca;
+  text-shadow: 0 0 6px rgba(115, 218, 202, 0.2);
 }
 
 .zenith-todo-btn-urgent {
-    color: #f7768e;
-    text-shadow: 0 0 8px rgba(247, 118, 142, 0.30);
-    animation: zenith-todo-urgent 2s ease-in-out infinite;
+  color: #f7768e;
+  text-shadow: 0 0 8px rgba(247, 118, 142, 0.3);
+  animation: zenith-todo-urgent 2s ease-in-out infinite;
 }
 
 .zenith-todo-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .zenith-todo-btn:active {
-    background: rgba(255, 255, 255, 0.10);
-    transform: translateY(1px);
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(1px);
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Todo Popover — Deep Glass Panel
    ───────────────────────────────────────────────────────────────────── */
 .zenith-todo-popup {
-    background-color: rgba(20, 21, 31, 0.94);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 10px;
-    padding: 0;
-    box-shadow:
-        0 10px 28px rgba(0, 0, 0, 0.44),
-        0 0 14px rgba(125, 207, 255, 0.04);
+  background-color: rgba(20, 21, 31, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 0;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.44),
+    0 0 14px rgba(125, 207, 255, 0.04);
 }
 
-.zenith-todo-popup>contents {
-    background-color: rgba(20, 21, 31, 0.94);
-    border-radius: 10px;
-    padding: 0;
+.zenith-todo-popup > contents {
+  background-color: rgba(20, 21, 31, 0.94);
+  border-radius: 10px;
+  padding: 0;
 }
 
 .zenith-todo-container {
-    padding: 0;
+  padding: 0;
 }
 
 /* Header */
 .zenith-todo-header {
-    padding: 10px 12px 4px 12px;
+  padding: 12px 14px 6px 14px;
 }
 
 .zenith-todo-title {
-    font-family: "Inter", "Manrope", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    color: #c0caf5;
+  font-family: "Inter", "Manrope", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #c0caf5;
 }
 
 /* Progress badge */
 .zenith-todo-progress {
-    font-family: "JetBrainsMono Nerd Font", monospace;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    color: #7481a3;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 999px;
-    padding: 1px 7px;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #7481a3;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  padding: 2px 8px;
 }
 
 /* Progress bar track + fill */
 .zenith-todo-progress-track {
-    margin: 3px 12px 2px 12px;
-    min-height: 2px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 999px;
+  margin: 4px 14px 3px 14px;
+  min-height: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
 }
 
 .zenith-todo-progress-fill {
-    min-height: 2px;
-    border-radius: 999px;
-    transition: all 300ms ease;
+  min-height: 3px;
+  border-radius: 999px;
+  transition: all 300ms ease;
 }
 
 .zenith-todo-fill-low {
-    background: linear-gradient(90deg, #f7768e, #ff9e64);
-    box-shadow: 0 0 4px rgba(247, 118, 142, 0.15);
+  background: linear-gradient(90deg, #f7768e, #ff9e64);
+  box-shadow: 0 0 4px rgba(247, 118, 142, 0.15);
 }
 
 .zenith-todo-fill-mid {
-    background: linear-gradient(90deg, #e0af68, #ff9e64);
-    box-shadow: 0 0 4px rgba(224, 175, 104, 0.15);
+  background: linear-gradient(90deg, #e0af68, #ff9e64);
+  box-shadow: 0 0 4px rgba(224, 175, 104, 0.15);
 }
 
 .zenith-todo-fill-high {
-    background: linear-gradient(90deg, #73daca, #7dcfff);
-    box-shadow: 0 0 4px rgba(115, 218, 202, 0.15);
+  background: linear-gradient(90deg, #73daca, #7dcfff);
+  box-shadow: 0 0 4px rgba(115, 218, 202, 0.15);
 }
 
 /* Separator */
 .zenith-todo-sep {
-    margin: 3px 12px;
-    background: rgba(255, 255, 255, 0.05);
-    min-height: 1px;
+  margin: 4px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  min-height: 1px;
 }
 
 /* Scrollable list area */
 .zenith-todo-scroll {
-    background: transparent;
+  background: transparent;
 }
 
 .zenith-todo-list {
-    padding: 2px 6px 4px 6px;
+  padding: 4px 8px 6px 8px;
 }
 
 /* Individual task row */
 .zenith-todo-row {
-    padding: 6px 8px;
-    border-radius: 8px;
-    transition: background 160ms ease, box-shadow 160ms ease;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition:
+    background 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .zenith-todo-row:hover {
-    background: rgba(255, 255, 255, 0.035);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
 }
 
 .zenith-todo-row-done {
-    opacity: 0.38;
+  opacity: 0.5;
 }
 
 /* Priority accent stripe */
 .zenith-todo-accent {
-    border-radius: 999px;
-    min-width: 2px;
-    margin: 3px 0;
+  border-radius: 999px;
+  min-width: 3px;
+  margin: 2px 0;
 }
 
 .zenith-todo-prio-high {
-    background: #f7768e;
-    box-shadow: 0 0 4px rgba(247, 118, 142, 0.30);
+  background: #f7768e;
+  box-shadow: 0 0 4px rgba(247, 118, 142, 0.3);
 }
 
 .zenith-todo-prio-mid {
-    background: #e0af68;
-    box-shadow: 0 0 4px rgba(224, 175, 104, 0.15);
+  background: #e0af68;
+  box-shadow: 0 0 4px rgba(224, 175, 104, 0.15);
 }
 
 .zenith-todo-prio-low {
-    background: #7dcfff;
+  background: #7dcfff;
 }
 
 .zenith-todo-prio-none {
-    background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Checkbox */
 .zenith-todo-check {
-    min-width: 12px;
-    min-height: 12px;
+  min-width: 16px;
+  min-height: 16px;
+  margin-right: 2px;
+}
+
+.zenith-todo-check check {
+  min-width: 16px;
+  min-height: 16px;
+  border-radius: 5px;
 }
 
 /* Task text */
 .zenith-todo-text {
-    font-family: "Inter", "Manrope", sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    color: #c0caf5;
+  font-family: "Inter", "Manrope", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c0caf5;
 }
 
 .zenith-todo-text-done {
-    text-decoration: line-through;
-    color: #5a6385;
+  text-decoration: line-through;
+  color: #6f7fa3;
 }
 
 /* Priority badges */
 .zenith-todo-badge {
-    font-family: "JetBrainsMono Nerd Font", monospace;
-    font-size: 8px;
-    font-weight: 800;
-    letter-spacing: 0.03em;
-    padding: 1px 5px;
-    border-radius: 999px;
-    margin: 0 1px;
+  font-family: "JetBrainsMono Nerd Font", monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  margin: 0 2px;
 }
 
 .zenith-todo-badge-high {
-    color: #f7768e;
-    background: rgba(247, 118, 142, 0.12);
+  color: #f7768e;
+  background: rgba(247, 118, 142, 0.12);
 }
 
 .zenith-todo-badge-mid {
-    color: #e0af68;
-    background: rgba(224, 175, 104, 0.12);
+  color: #e0af68;
+  background: rgba(224, 175, 104, 0.12);
 }
 
 .zenith-todo-badge-low {
-    color: #7dcfff;
-    background: rgba(125, 207, 255, 0.12);
+  color: #7dcfff;
+  background: rgba(125, 207, 255, 0.12);
 }
 
 /* Move & delete buttons */
 .zenith-todo-move-btn,
 .zenith-todo-del-btn,
 .zenith-todo-action-compact {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    box-shadow: none;
-    min-height: 0;
-    min-width: 0;
-    padding: 0 5px;
-    font-size: 9px;
-    line-height: 1;
-    border-radius: 999px;
-    color: #6f7fa3;
-    transition: background 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  min-height: 26px;
+  min-width: 26px;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 8px;
+  color: #8a98bc;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.zenith-todo-row-action {
+  min-width: 26px;
+  min-height: 26px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0;
 }
 
 .zenith-todo-move-btn:hover,
 .zenith-todo-action-compact:hover {
-    background: rgba(122, 162, 247, 0.10);
-    border-color: rgba(122, 162, 247, 0.18);
-    color: #c0caf5;
-    box-shadow: 0 0 6px rgba(122, 162, 247, 0.08);
+  background: rgba(122, 162, 247, 0.14);
+  border-color: rgba(122, 162, 247, 0.26);
+  color: #c0caf5;
+  box-shadow: 0 0 8px rgba(122, 162, 247, 0.12);
 }
 
 .zenith-todo-move-btn:active,
 .zenith-todo-del-btn:active,
 .zenith-todo-action-compact:active {
-    transform: translateY(1px);
+  transform: translateY(1px);
 }
 
 .zenith-todo-del-btn:hover,
 .zenith-todo-action-compact-danger:hover {
-    background: rgba(247, 118, 142, 0.12);
-    border-color: rgba(247, 118, 142, 0.18);
-    color: #f7768e;
-    box-shadow: 0 0 6px rgba(247, 118, 142, 0.08);
+  background: rgba(247, 118, 142, 0.16);
+  border-color: rgba(247, 118, 142, 0.26);
+  color: #f7768e;
+  box-shadow: 0 0 8px rgba(247, 118, 142, 0.12);
 }
 
 .zenith-todo-action-compact-muted:hover {
-    background: rgba(122, 162, 247, 0.12);
-    border-color: rgba(122, 162, 247, 0.18);
-    color: #7dcfff;
+  background: rgba(122, 162, 247, 0.14);
+  border-color: rgba(122, 162, 247, 0.24);
+  color: #7dcfff;
 }
 
 /* Input row */
 .zenith-todo-input-row {
-    padding: 7px 10px 9px 10px;
+  padding: 8px 12px 10px 12px;
 }
 
 .zenith-todo-entry {
-    background: rgba(255, 255, 255, 0.045);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 7px;
-    color: #c0caf5;
-    padding: 5px 9px;
-    font-family: "Inter", "Manrope", sans-serif;
-    font-size: 11px;
-    caret-color: #7aa2f7;
-    transition: border-color 180ms ease, box-shadow 180ms ease;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 9px;
+  color: #c0caf5;
+  padding: 5px 10px;
+  font-family: "Inter", "Manrope", sans-serif;
+  font-size: 12px;
+  line-height: 1.2;
+  caret-color: #7aa2f7;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.zenith-todo-entry-main {
+  min-height: 32px;
+}
+
+.zenith-todo-entry-inline {
+  min-height: 26px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.zenith-todo-entry placeholder {
+  color: #7481a3;
 }
 
 .zenith-todo-entry:focus {
-    border-color: rgba(122, 162, 247, 0.45);
-    box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.10);
+  border-color: rgba(122, 162, 247, 0.45);
+  box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.1);
 }
 
 /* Add button — gradient accent */
 .zenith-todo-action-compact-primary,
 .zenith-todo-add-btn {
-    background: linear-gradient(135deg, #7aa2f7, #7dcfff);
-    border: none;
-    border-radius: 999px;
-    color: #1a1b26;
-    font-weight: 800;
-    font-size: 12px;
-    min-width: 22px;
-    min-height: 22px;
-    padding: 0;
-    box-shadow: 0 0 8px rgba(122, 162, 247, 0.18);
-    transition: box-shadow 180ms ease, transform 180ms ease, filter 180ms ease;
+  background: linear-gradient(135deg, #7aa2f7, #7dcfff);
+  border: none;
+  border-radius: 10px;
+  color: #1a1b26;
+  font-weight: 800;
+  font-size: 14px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  box-shadow: 0 0 8px rgba(122, 162, 247, 0.18);
+  transition:
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    filter 180ms ease;
 }
 
 .zenith-todo-action-compact-primary:hover,
 .zenith-todo-add-btn:hover {
-    box-shadow: 0 0 12px rgba(122, 162, 247, 0.30);
-    transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(122, 162, 247, 0.3);
+  transform: translateY(-1px);
 }
 
 .zenith-todo-action-compact-primary:active,
 .zenith-todo-add-btn:active {
-    box-shadow: 0 0 6px rgba(122, 162, 247, 0.15);
-    transform: translateY(0);
+  box-shadow: 0 0 6px rgba(122, 162, 247, 0.15);
+  transform: translateY(0);
 }
-
 
 /* ─────────────────────────────────────────────────────────────────────
    § Keyframe Animations
@@ -640,56 +677,59 @@ window {
 
 /* Border gradient flow — smooth 4-stop cycle */
 @keyframes zenith-border-flow {
-    0% {
-        background-position: 0% 50%;
-    }
+  0% {
+    background-position: 0% 50%;
+  }
 
-    25% {
-        background-position: 50% 0%;
-    }
+  25% {
+    background-position: 50% 0%;
+  }
 
-    50% {
-        background-position: 100% 50%;
-    }
+  50% {
+    background-position: 100% 50%;
+  }
 
-    75% {
-        background-position: 50% 100%;
-    }
+  75% {
+    background-position: 50% 100%;
+  }
 
-    100% {
-        background-position: 0% 50%;
-    }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Logo breathing glow — subtle purple pulse */
 @keyframes zenith-logo-breathe {
-    0%, 100% {
-        text-shadow: 0 0 8px rgba(187, 154, 247, 0.25);
-    }
+  0%,
+  100% {
+    text-shadow: 0 0 8px rgba(187, 154, 247, 0.25);
+  }
 
-    50% {
-        text-shadow: 0 0 16px rgba(187, 154, 247, 0.50);
-    }
+  50% {
+    text-shadow: 0 0 16px rgba(187, 154, 247, 0.5);
+  }
 }
 
 /* Todo empty-state pulse — gentle cyan beacon */
 @keyframes zenith-todo-pulse {
-    0%, 100% {
-        text-shadow: 0 0 6px rgba(125, 207, 255, 0.20);
-    }
+  0%,
+  100% {
+    text-shadow: 0 0 6px rgba(125, 207, 255, 0.2);
+  }
 
-    50% {
-        text-shadow: 0 0 14px rgba(125, 207, 255, 0.45);
-    }
+  50% {
+    text-shadow: 0 0 14px rgba(125, 207, 255, 0.45);
+  }
 }
 
 /* Todo urgent pulse — attention-grabbing red */
 @keyframes zenith-todo-urgent {
-    0%, 100% {
-        text-shadow: 0 0 6px rgba(247, 118, 142, 0.20);
-    }
+  0%,
+  100% {
+    text-shadow: 0 0 6px rgba(247, 118, 142, 0.2);
+  }
 
-    50% {
-        text-shadow: 0 0 14px rgba(247, 118, 142, 0.50);
-    }
+  50% {
+    text-shadow: 0 0 14px rgba(247, 118, 142, 0.5);
+  }
 }

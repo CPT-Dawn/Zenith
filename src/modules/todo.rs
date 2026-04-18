@@ -197,6 +197,7 @@ pub fn create() -> GtkBox {
     entry.set_placeholder_text(Some("Add a task…"));
     entry.set_hexpand(true);
     entry.add_css_class("zenith-todo-entry");
+    entry.add_css_class("zenith-todo-entry-main");
     input_row.append(&entry);
 
     let add_btn = Button::with_label("+");
@@ -412,7 +413,8 @@ fn parse_priority(input: &str) -> (u8, String) {
 
 /// Make a task action button compact and flat.
 fn configure_compact_button(button: &Button) {
-    button.set_can_shrink(true);
+    // Keep icon action buttons legible and consistently sized.
+    button.set_can_shrink(false);
     button.set_has_frame(false);
 }
 
@@ -489,6 +491,7 @@ fn build_todo_row(
     let edit_btn = Button::with_label("✎");
     configure_compact_button(&edit_btn);
     edit_btn.add_css_class("zenith-todo-move-btn");
+    edit_btn.add_css_class("zenith-todo-row-action");
     edit_btn.add_css_class("zenith-todo-action-compact");
     edit_btn.add_css_class("zenith-todo-action-compact-muted");
     view_box.append(&edit_btn);
@@ -498,6 +501,7 @@ fn build_todo_row(
         let up_btn = Button::with_label("▲");
         configure_compact_button(&up_btn);
         up_btn.add_css_class("zenith-todo-move-btn");
+        up_btn.add_css_class("zenith-todo-row-action");
         up_btn.add_css_class("zenith-todo-action-compact");
         up_btn.add_css_class("zenith-todo-action-compact-muted");
         let store_c = Rc::clone(store);
@@ -521,6 +525,7 @@ fn build_todo_row(
     let del_btn = Button::with_label("✕");
     configure_compact_button(&del_btn);
     del_btn.add_css_class("zenith-todo-del-btn");
+    del_btn.add_css_class("zenith-todo-row-action");
     del_btn.add_css_class("zenith-todo-action-compact");
     del_btn.add_css_class("zenith-todo-action-compact-danger");
     let store_c = Rc::clone(store);
@@ -552,11 +557,13 @@ fn build_todo_row(
     edit_entry.set_text(&initial_text);
     edit_entry.set_hexpand(true);
     edit_entry.add_css_class("zenith-todo-entry");
+    edit_entry.add_css_class("zenith-todo-entry-inline");
     edit_box.append(&edit_entry);
 
     let save_btn = Button::with_label("✓");
     configure_compact_button(&save_btn);
     save_btn.add_css_class("zenith-todo-move-btn");
+    save_btn.add_css_class("zenith-todo-row-action");
     save_btn.add_css_class("zenith-todo-action-compact");
     save_btn.add_css_class("zenith-todo-action-compact-muted");
     edit_box.append(&save_btn);

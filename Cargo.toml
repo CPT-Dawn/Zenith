@@ -3,10 +3,10 @@ name = "zenith"
 version = "1.1.0"
 edition = "2021"
 authors = ["CPT-Dawn"]
-description = "A sleek, animated Wayland status bar for Hyprland"
+description = "A sleek, animated Wayland status bar"
 license = "MIT"
 readme = "README.md"
-keywords = ["wayland", "statusbar", "hyprland", "gtk4"]
+keywords = ["wayland", "statusbar", "hyprland", "gtk4", "niri"]
 categories = ["gui"]
 
 [dependencies]
