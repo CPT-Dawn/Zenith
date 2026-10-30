@@ -18,6 +18,14 @@ pub use preset::Preset;
 pub use raw::RawConfig;
 pub use resolved::{Bar, Layout, ResolvedConfig};
 
+/// The config file `init` writes: the preset's text, or the commented default starter.
+pub fn starter(preset: Option<Preset>) -> &'static str {
+    if let Some(preset) = preset {
+        match preset {}
+    }
+    include_str!("starter.toml")
+}
+
 /// Resolve config text, optionally on top of a preset. Empty text means all defaults.
 /// Diagnostic positions refer to `text`.
 pub fn resolve(text: &str, preset: Option<Preset>) -> Result<ResolvedConfig, Vec<Diagnostic>> {

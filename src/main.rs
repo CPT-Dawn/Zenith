@@ -11,6 +11,12 @@ fn main() -> ExitCode {
             let code = zenith_bar::ui::app::run(options);
             ExitCode::from(code.get() as u8)
         }
+        Ok(Command::Check(options)) => ExitCode::from(zenith_bar::commands::check(&options)),
+        Ok(Command::Init {
+            options,
+            preset,
+            force,
+        }) => ExitCode::from(zenith_bar::commands::init(&options, preset, force)),
         Ok(Command::Version) => {
             println!("zenith-bar {}", env!("CARGO_PKG_VERSION"));
             ExitCode::SUCCESS
