@@ -139,6 +139,13 @@ Each module also carries `zb-<module>`:
 | `zb-todo` | Todo list |
 | `zb-logo` | Logo |
 
+#### Media parts
+
+| Class | On |
+|---|---|
+| `zb-media-icon` | The play, pause or idle note icon. |
+| `zb-media-progress` | The hairline progress bar under the title (a `progressbar` with `trough` and `progress` nodes). Hidden when the track length is unknown or nothing plays. |
+
 ### State
 
 Modules add state classes while a state holds:

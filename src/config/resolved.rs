@@ -4,6 +4,7 @@ use super::actions::ClickActions;
 use super::bar::{Monitors, Motion, Position};
 use super::theme::ThemeConfig;
 use crate::modules::calendar::CalendarConfig;
+use crate::modules::media::MediaConfig;
 use crate::modules::todo::TodoConfig;
 use crate::modules::{ModuleId, clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
 
@@ -13,6 +14,7 @@ pub struct ResolvedConfig {
     pub layout: Layout,
     pub clock: ClockConfig,
     pub logo: LogoConfig,
+    pub media: MediaConfig,
     pub theme: ThemeConfig,
     pub calendar: CalendarConfig,
     pub system: SystemConfig,
@@ -37,10 +39,10 @@ impl ResolvedConfig {
         match id {
             ModuleId::Clock => &self.clock.actions,
             ModuleId::Logo => &self.logo.actions,
+            ModuleId::Media => &self.media.actions,
             ModuleId::Calendar => &self.calendar.actions,
             ModuleId::System => &self.system.actions,
             ModuleId::Todo => &self.todo.actions,
-            _ => &ClickActions::NONE,
         }
     }
 }

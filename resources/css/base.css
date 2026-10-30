@@ -41,6 +41,47 @@ window.zb-window {
   color: var(--zb-accent);
 }
 
+/* Media: icon + label over a hairline progress track */
+.zb-media {
+  color: var(--zb-text-muted);
+}
+
+.zb-media .zb-media-icon {
+  color: var(--zb-text-dim);
+}
+
+.zb-media.zb-playing {
+  color: var(--zb-text);
+}
+
+.zb-media.zb-playing .zb-media-icon {
+  color: var(--zb-accent);
+}
+
+.zb-media.zb-paused .zb-media-icon {
+  color: var(--zb-accent-lavender);
+}
+
+.zb-media-progress,
+.zb-media-progress trough,
+.zb-media-progress progress {
+  min-height: 2px;
+  border: none;
+  border-radius: 1px;
+}
+
+.zb-media-progress trough {
+  background-color: var(--zb-surface-border);
+}
+
+.zb-media-progress progress {
+  background-color: var(--zb-accent);
+}
+
+.zb-media.zb-paused .zb-media-progress progress {
+  background-color: var(--zb-text-dim);
+}
+
 .zb-focal {
   color: var(--zb-accent);
   text-shadow: var(--zb-glow);
