@@ -11,7 +11,7 @@ arch=('x86_64')
 url="https://github.com/CPT-Dawn/Zenith"
 license=('MIT')
 depends=(
-  'gcc-libs'
+  'libgcc'
   'glib2'
   'glibc'
   'gtk4>=1:4.22'

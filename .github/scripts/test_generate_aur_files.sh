@@ -84,17 +84,22 @@ if $run_build; then
   mkdir -p "$build"
   cp "$pkgbuild" "$build/"
   cp "$tarball" "$build/" # pre-seeded, so makepkg doesn't download it
+  # Pin PKGDEST/SRCDEST so a user's makepkg.conf can't move the results.
+  export PKGDEST="$build" SRCDEST="$build"
   (cd "$build" && makepkg --force --nodeps --noconfirm >"$work/makepkg.log" 2>&1) \
     || { tail -40 "$work/makepkg.log" >&2; fail "makepkg builds the package"; }
-  pkgfile="$(find "$build" -maxdepth 1 -name 'zenith-bar-2.0.0-1-*.pkg.tar.*' | head -1)"
-  if [[ -n "$pkgfile" ]]; then
+  pkgfile="$(cd "$build" && makepkg --packagelist | grep -v -- '-debug-' | head -1)"
+  if [[ ! -f "$pkgfile" ]]; then
+    fail "makepkg produced $pkgfile"
+  else
     pass "makepkg builds the package"
     listing="$work/listing"
     bsdtar -tf "$pkgfile" >"$listing"
     assert_contains "$listing" "usr/bin/zenith-bar" "installs the zenith-bar binary"
     assert_contains "$listing" "usr/share/licenses/zenith-bar/LICENSE" "installs the licence"
     assert_absent "$listing" "usr/bin/zenith$" "no v1 zenith binary"
-    if namcap "$pkgfile" | grep -E ' E: ' >&2; then fail "namcap reports no errors"; else pass "namcap reports no errors"; fi
+    namcap "$pkgfile" | tee "$work/namcap.log"
+    if grep -E ' E: ' "$work/namcap.log" >&2; then fail "namcap reports no errors"; else pass "namcap reports no errors"; fi
   fi
 fi
 
