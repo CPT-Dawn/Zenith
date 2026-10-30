@@ -2,5 +2,6 @@
 
 pub mod config;
 pub mod model;
+pub mod sensor;
 
 pub use config::{Metric, SystemConfig};

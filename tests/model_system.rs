@@ -1,6 +1,81 @@
+use std::path::{Path, PathBuf};
+
 use pretty_assertions::assert_eq;
 use zenith_bar::modules::system::model::{Readings, SystemModel};
+use zenith_bar::modules::system::sensor;
 use zenith_bar::modules::system::{Metric, SystemConfig};
+
+fn sys(machine: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/sys")
+        .join(machine)
+}
+
+/// The sensor found on a fixture machine, relative to its sysfs root.
+fn found(machine: &str, pinned: Option<&str>) -> Option<String> {
+    let root = sys(machine);
+    let path = sensor::discover(&root, pinned)?;
+    Some(match path.strip_prefix(&root) {
+        Ok(relative) => relative.display().to_string(),
+        Err(_) => path.display().to_string(),
+    })
+}
+
+#[test]
+fn amd_uses_the_k10temp_control_temperature() {
+    assert_eq!(
+        found("amd", None).as_deref(),
+        Some("class/hwmon/hwmon2/temp1_input")
+    );
+}
+
+#[test]
+fn intel_uses_the_coretemp_package_not_a_single_core() {
+    assert_eq!(
+        found("intel", None).as_deref(),
+        Some("class/hwmon/hwmon1/temp1_input")
+    );
+}
+
+#[test]
+fn without_a_cpu_hwmon_driver_a_cpu_thermal_zone_is_used() {
+    assert_eq!(
+        found("thermal-only", None).as_deref(),
+        Some("class/thermal/thermal_zone1/temp")
+    );
+}
+
+#[test]
+fn a_machine_without_a_cpu_sensor_has_none() {
+    assert_eq!(found("none", None), None);
+    assert_eq!(found("does-not-exist", None), None);
+}
+
+#[test]
+fn a_pinned_hwmon_or_thermal_zone_name_wins_over_discovery() {
+    assert_eq!(
+        found("amd", Some("nvme")).as_deref(),
+        Some("class/hwmon/hwmon1/temp1_input")
+    );
+    assert_eq!(
+        found("intel", Some("x86_pkg_temp")).as_deref(),
+        Some("class/thermal/thermal_zone0/temp")
+    );
+}
+
+#[test]
+fn a_pinned_path_is_used_as_is() {
+    let file = sys("none").join("class/thermal/thermal_zone0/temp");
+    let pinned = file.to_str().unwrap();
+
+    assert_eq!(found("amd", Some(pinned)).as_deref(), Some(pinned));
+}
+
+#[test]
+fn a_pinned_sensor_that_does_not_exist_is_not_silently_replaced() {
+    assert_eq!(found("amd", Some("zenpower")), None);
+    assert_eq!(found("amd", Some("/nonexistent/temp1_input")), None);
+}
 
 /// U+2007 FIGURE SPACE: as wide as a digit, so padded numbers never change width.
 const FS: char = '\u{2007}';
