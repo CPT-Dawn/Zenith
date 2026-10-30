@@ -17,7 +17,7 @@ pub use layout::{LayoutConfig, SECTIONS};
 pub use preset::Preset;
 pub use raw::RawConfig;
 pub use resolved::{Bar, Layout, ResolvedConfig};
-pub use theme::{Css, StyleLayer, ThemeConfig, ThemeName, stylesheets};
+pub use theme::{Css, REQUIRED_VARS, StyleLayer, ThemeConfig, ThemeName, stylesheets};
 
 /// Resolve config text, optionally on top of a preset. Empty text means all defaults.
 /// Diagnostic positions refer to `text`.

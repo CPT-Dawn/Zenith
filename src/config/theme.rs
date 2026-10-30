@@ -74,7 +74,55 @@ pub enum ThemeName {
     MidnightBloom,
 }
 
+/// Every variable a theme must define, and the only ones component CSS may read.
+/// The theming docs describe each one; tests keep all three in step.
+pub const REQUIRED_VARS: &[&str] = &[
+    // Typography
+    "--zb-font-family",
+    "--zb-font-size",
+    "--zb-font-weight",
+    "--zb-font-weight-strong",
+    // Accent and supporting colours
+    "--zb-accent",
+    "--zb-accent-blue",
+    "--zb-accent-lavender",
+    // Surfaces
+    "--zb-surface-color",
+    "--zb-surface-opacity",
+    "--zb-surface",
+    "--zb-surface-border",
+    "--zb-module-bg",
+    "--zb-module-bg-hover",
+    // Text
+    "--zb-text",
+    "--zb-text-muted",
+    "--zb-text-dim",
+    // Semantic
+    "--zb-ok",
+    "--zb-warm",
+    "--zb-hot",
+    // Glow
+    "--zb-glow",
+    "--zb-glow-strong",
+    // Geometry
+    "--zb-bar-height",
+    "--zb-bar-radius",
+    "--zb-module-radius",
+    "--zb-space-xs",
+    "--zb-space-s",
+    "--zb-space-m",
+    "--zb-space-l",
+    // Motion
+    "--zb-transition-duration",
+    "--zb-transition-easing",
+    "--zb-ambient-flow-duration",
+    "--zb-ambient-pulse-duration",
+];
+
 impl ThemeName {
+    /// Every built-in theme.
+    pub const ALL: [ThemeName; 1] = [ThemeName::MidnightBloom];
+
     /// The theme's stylesheet, relative to the resource prefix.
     pub fn resource(self) -> &'static str {
         match self {
