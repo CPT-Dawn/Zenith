@@ -2,14 +2,22 @@
 
 use std::path::PathBuf;
 
+use crate::config::Preset;
+
 pub const HELP: &str = "\
 zenith-bar: the lightest beautiful status bar for Wayland
 
-Usage: zenith-bar [OPTIONS]
+Usage: zenith-bar [COMMAND] [OPTIONS]
+
+Commands:
+  (none)               Run the bar
+  check                Validate the config and print every problem with its position
+  init                 Write a commented starter config
 
 Options:
   -c, --config <FILE>  Config file (default: $ZENITH_BAR_CONFIG or ~/.config/zenith-bar/config.toml)
   -s, --style <FILE>   Extra stylesheet (default: $ZENITH_BAR_STYLE or ~/.config/zenith-bar/style.css)
+      --force          init: overwrite an existing config
   -h, --help           Print this help
   -V, --version        Print the version
 
@@ -20,6 +28,13 @@ Environment:
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Command {
     Run(Options),
+    Check(Options),
+    Init {
+        options: Options,
+        /// Preset to write; `None` writes the default starter config.
+        preset: Option<Preset>,
+        force: bool,
+    },
     Version,
     Help,
 }
@@ -31,10 +46,27 @@ pub struct Options {
     pub style: Option<PathBuf>,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Sub {
+    Run,
+    Check,
+    Init,
+}
+
 /// Parse arguments (without the program name).
 pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Result<Command, String> {
     let mut options = Options::default();
-    let mut args = args.into_iter();
+    let mut force = false;
+    let mut args = args.into_iter().peekable();
+
+    let sub = match args.peek().map(String::as_str) {
+        Some("check") => Sub::Check,
+        Some("init") => Sub::Init,
+        _ => Sub::Run,
+    };
+    if sub != Sub::Run {
+        args.next();
+    }
 
     while let Some(arg) = args.next() {
         let (flag, inline) = match arg.split_once('=') {
@@ -53,9 +85,19 @@ pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Result<Command, String>
             "-V" | "--version" => return Ok(Command::Version),
             "-c" | "--config" => options.config = Some(value("--config")?),
             "-s" | "--style" => options.style = Some(value("--style")?),
+            "--force" if sub == Sub::Init => force = true,
+            "--force" => return Err("--force only applies to `init`".into()),
             other => return Err(format!("unknown argument `{other}` (try --help)")),
         }
     }
 
-    Ok(Command::Run(options))
+    Ok(match sub {
+        Sub::Run => Command::Run(options),
+        Sub::Check => Command::Check(options),
+        Sub::Init => Command::Init {
+            options,
+            preset: None,
+            force,
+        },
+    })
 }
