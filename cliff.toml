@@ -1,0 +1,57 @@
+# git-cliff configuration: CHANGELOG.md and GitHub Release notes are both
+# generated from conventional commits. https://git-cliff.org/docs/configuration
+#
+#   git cliff --tag vX.Y.Z -o CHANGELOG.md   # before tagging a release
+#   git cliff --latest --strip header        # notes for the newest tag
+
+[changelog]
+header = """
+# Changelog
+
+All notable changes to Zenith are documented here. The format follows
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project
+uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+v2 is a clean break from v1. Releases before 2.0.0 predate conventional
+commits; their notes live on the GitHub Releases page.
+"""
+body = """
+{% if version -%}
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else -%}
+## [Unreleased]
+{% endif -%}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group | striptags | trim | upper_first }}
+{% for commit in commits %}
+- {% if commit.scope %}**{{ commit.scope }}:** {% endif %}\
+{% if commit.breaking %}[**breaking**] {% endif %}\
+{{ commit.message | upper_first }}\
+{% endfor %}
+{% endfor %}\
+"""
+footer = ""
+trim = false
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+protect_breaking_commits = true
+filter_commits = false
+tag_pattern = "v[0-9]+\\.[0-9]+\\.[0-9]+.*"
+skip_tags = "^v1\\."
+sort_commits = "oldest"
+commit_parsers = [
+  { message = "^feat", group = "<!-- 0 -->Features" },
+  { message = "^fix", group = "<!-- 1 -->Bug Fixes" },
+  { message = "^perf", group = "<!-- 2 -->Performance" },
+  { message = "^refactor", group = "<!-- 3 -->Refactoring" },
+  { message = "^docs", group = "<!-- 4 -->Documentation" },
+  { message = "^style", group = "<!-- 5 -->Styling" },
+  { message = "^test", group = "<!-- 6 -->Testing" },
+  { message = "^build", group = "<!-- 7 -->Build" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^(chore|ci|merge)", skip = true },
+  { message = ".*", skip = true },
+]
