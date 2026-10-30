@@ -1,0 +1,46 @@
+/* Midnight Bloom: near-black teal smoked glass, a mint neon accent, Tokyo Night blue and lavender
+ * in support, warm colours only for state. A theme is only :root { --zb-* } tokens. */
+:root {
+  /* Typography */
+  --zb-font-family: "Inter", sans-serif;
+  --zb-font-size: 13px;
+  --zb-font-weight: 500;
+  --zb-font-weight-strong: 600;
+
+  /* Surfaces */
+  --zb-surface: rgba(9, 17, 19, 0.78);
+  --zb-surface-border: rgba(141, 227, 220, 0.16);
+  --zb-module-bg: rgba(141, 227, 220, 0.05);
+  --zb-module-bg-hover: rgba(141, 227, 220, 0.12);
+
+  /* Text */
+  --zb-text: #e4f2f0;
+  --zb-text-muted: #9db4b5;
+  --zb-text-dim: #5d7377;
+
+  /* Accent and supporting colours */
+  --zb-accent: #8de3dc;
+  --zb-accent-blue: #7aa2f7;
+  --zb-accent-lavender: #bb9af7;
+
+  /* Semantic (state only) */
+  --zb-ok: #9ece6a;
+  --zb-warm: #e0af68;
+  --zb-hot: #f7768e;
+
+  /* Glow, used only on the focal element */
+  --zb-glow: 0 0 4px rgba(141, 227, 220, 0.65), 0 0 12px rgba(141, 227, 220, 0.35);
+
+  /* Geometry */
+  --zb-bar-height: 34px;
+  --zb-bar-radius: 14px;
+  --zb-module-radius: 10px;
+  --zb-space-xs: 2px;
+  --zb-space-s: 4px;
+  --zb-space-m: 8px;
+  --zb-space-l: 12px;
+
+  /* Motion */
+  --zb-transition-duration: 180ms;
+  --zb-transition-easing: ease-out;
+}

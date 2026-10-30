@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Everything bundled into the binary. One <file> per line; append, don't reorder. -->
+<gresources>
+  <gresource prefix="/dev/cptdawn/ZenithBar">
+    <file>css/base.css</file>
+    <file>themes/midnight-bloom.css</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/zb-logo-symbolic.svg</file>
+  </gresource>
+</gresources>
