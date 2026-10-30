@@ -27,6 +27,8 @@ jiff = "0.2.38"
 strsim = "0.11.1"
 log = "0.4.34"
 env_logger = { version = "0.11.11", default-features = false, features = ["auto-color"] }
+# Only to enable async File::move_future (todo saves); use it through the gtk4::gio re-export.
+gio = { version = "0.22.2", features = ["v2_72"] }
 
 [build-dependencies]
 glib-build-tools = "0.22.8"

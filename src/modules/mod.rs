@@ -17,6 +17,7 @@ use std::time::Duration;
 
 pub mod clock;
 pub mod logo;
+pub mod todo;
 
 /// Every module Zenith knows about. Names are the strings used in `[layout]`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
