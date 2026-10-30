@@ -448,10 +448,29 @@
     },
     "ThemeName": {
       "description": "A built-in theme. Only the selected one is ever parsed.",
-      "enum": [
-        "midnight-bloom"
-      ],
-      "type": "string"
+      "oneOf": [
+        {
+          "enum": [
+            "midnight-bloom"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "tokyo-night",
+          "description": "Zenith 1.x's palette: deep indigo glass, Tokyo Night blue.",
+          "type": "string"
+        },
+        {
+          "const": "catppuccin-mocha",
+          "description": "Catppuccin's darkest flavour, with a mauve accent.",
+          "type": "string"
+        },
+        {
+          "const": "gruvbox-dark",
+          "description": "Gruvbox's warm retro dark, with an aqua accent.",
+          "type": "string"
+        }
+      ]
     },
     "TodoConfig": {
       "additionalProperties": false,

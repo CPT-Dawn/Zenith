@@ -17,6 +17,7 @@ Commands:
 Options:
   -c, --config <FILE>  Config file (default: $ZENITH_BAR_CONFIG or ~/.config/zenith-bar/config.toml)
   -s, --style <FILE>   Extra stylesheet (default: $ZENITH_BAR_STYLE or ~/.config/zenith-bar/style.css)
+      --preset <NAME>  init: start from a built-in look: bloom, minimal or classic
       --force          init: overwrite an existing config
   -h, --help           Print this help
   -V, --version        Print the version
@@ -57,6 +58,7 @@ enum Sub {
 pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Result<Command, String> {
     let mut options = Options::default();
     let mut force = false;
+    let mut preset = None;
     let mut args = args.into_iter().peekable();
 
     let sub = match args.peek().map(String::as_str) {
@@ -86,6 +88,15 @@ pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Result<Command, String>
             "-c" | "--config" => options.config = Some(value("--config")?),
             "-s" | "--style" => options.style = Some(value("--style")?),
             "--force" if sub == Sub::Init => force = true,
+            "--preset" if sub == Sub::Init => {
+                let name = inline
+                    .or_else(|| args.next())
+                    .ok_or("--preset needs a name (bloom, minimal or classic)")?;
+                preset = Some(name.parse::<Preset>().map_err(|()| {
+                    format!("unknown preset `{name}` (choose bloom, minimal or classic)")
+                })?);
+            }
+            "--preset" => return Err("--preset only applies to `init`".into()),
             "--force" => return Err("--force only applies to `init`".into()),
             other => return Err(format!("unknown argument `{other}` (try --help)")),
         }
@@ -96,7 +107,7 @@ pub fn parse<I: IntoIterator<Item = String>>(args: I) -> Result<Command, String>
         Sub::Check => Command::Check(options),
         Sub::Init => Command::Init {
             options,
-            preset: None,
+            preset,
             force,
         },
     })

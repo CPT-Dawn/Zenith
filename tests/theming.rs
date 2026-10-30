@@ -58,6 +58,16 @@ fn every_theme_defines_exactly_the_required_variables() {
 }
 
 #[test]
+fn every_theme_is_bundled_into_the_binary() {
+    let manifest = read("resources/zenith-bar.gresource.xml");
+
+    for theme in ThemeName::ALL {
+        let entry = format!("<file>{}</file>", theme.resource());
+        assert!(manifest.contains(&entry), "{theme:?} missing {entry}");
+    }
+}
+
+#[test]
 fn component_css_reads_only_required_variables_and_declares_none() {
     let css = component_css();
     let unknown: Vec<_> = names(&css, "--zb-")

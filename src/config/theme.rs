@@ -72,6 +72,12 @@ fn is_colour(value: &str) -> bool {
 pub enum ThemeName {
     #[default]
     MidnightBloom,
+    /// Zenith 1.x's palette: deep indigo glass, Tokyo Night blue.
+    TokyoNight,
+    /// Catppuccin's darkest flavour, with a mauve accent.
+    CatppuccinMocha,
+    /// Gruvbox's warm retro dark, with an aqua accent.
+    GruvboxDark,
 }
 
 /// Every variable a theme must define, and the only ones component CSS may read.
@@ -121,12 +127,20 @@ pub const REQUIRED_VARS: &[&str] = &[
 
 impl ThemeName {
     /// Every built-in theme.
-    pub const ALL: [ThemeName; 1] = [ThemeName::MidnightBloom];
+    pub const ALL: [ThemeName; 4] = [
+        ThemeName::MidnightBloom,
+        ThemeName::TokyoNight,
+        ThemeName::CatppuccinMocha,
+        ThemeName::GruvboxDark,
+    ];
 
     /// The theme's stylesheet, relative to the resource prefix.
     pub fn resource(self) -> &'static str {
         match self {
             ThemeName::MidnightBloom => "themes/midnight-bloom.css",
+            ThemeName::TokyoNight => "themes/tokyo-night.css",
+            ThemeName::CatppuccinMocha => "themes/catppuccin-mocha.css",
+            ThemeName::GruvboxDark => "themes/gruvbox-dark.css",
         }
     }
 }

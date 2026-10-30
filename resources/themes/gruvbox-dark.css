@@ -1,0 +1,54 @@
+/* Gruvbox Dark: warm retro groove on hard-contrast dark. Aqua is the signature, blue and purple
+ * in support, yellow and red only for state. A theme is only :root { --zb-* } tokens.
+ * Tokens tinted by the accent derive from --zb-accent, so one override recolours them all. */
+:root {
+  /* Typography */
+  --zb-font-family: "Inter", sans-serif;
+  --zb-font-size: 13px;
+  --zb-font-weight: 500;
+  --zb-font-weight-strong: 700;
+
+  /* Accent and supporting colours (aqua, blue, purple) */
+  --zb-accent: #8ec07c;
+  --zb-accent-blue: #83a598;
+  --zb-accent-lavender: #d3869b;
+
+  /* Surfaces (bg0_h) */
+  --zb-surface-color: rgb(29 32 33);
+  --zb-surface-opacity: 0.9;
+  --zb-surface: rgb(from var(--zb-surface-color) r g b / var(--zb-surface-opacity));
+  --zb-surface-border: color-mix(in srgb, var(--zb-accent) 20%, transparent);
+  --zb-module-bg: color-mix(in srgb, var(--zb-accent) 7%, transparent);
+  --zb-module-bg-hover: color-mix(in srgb, var(--zb-accent) 15%, transparent);
+
+  /* Text (fg1, fg4, bg4) */
+  --zb-text: #ebdbb2;
+  --zb-text-muted: #a89984;
+  --zb-text-dim: #7c6f64;
+
+  /* Semantic (state only: green, yellow, red) */
+  --zb-ok: #b8bb26;
+  --zb-warm: #fabd2f;
+  --zb-hot: #fb4934;
+
+  /* Glow, used only on the focal element; the strong glow is the peak of the ambient pulse */
+  --zb-glow: 0 0 3px color-mix(in srgb, var(--zb-accent) 55%, transparent),
+    0 0 10px color-mix(in srgb, var(--zb-accent) 25%, transparent);
+  --zb-glow-strong: 0 0 5px color-mix(in srgb, var(--zb-accent) 75%, transparent),
+    0 0 16px color-mix(in srgb, var(--zb-accent) 40%, transparent);
+
+  /* Geometry: squarer corners suit the retro palette */
+  --zb-bar-height: 34px;
+  --zb-bar-radius: 8px;
+  --zb-module-radius: 6px;
+  --zb-space-xs: 2px;
+  --zb-space-s: 4px;
+  --zb-space-m: 8px;
+  --zb-space-l: 12px;
+
+  /* Motion */
+  --zb-transition-duration: 160ms;
+  --zb-transition-easing: ease-out;
+  --zb-ambient-flow-duration: 16s;
+  --zb-ambient-pulse-duration: 3s;
+}

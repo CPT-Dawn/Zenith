@@ -24,19 +24,15 @@ pub use theme::{Css, REQUIRED_VARS, StyleLayer, ThemeConfig, ThemeName, styleshe
 
 /// The config file `init` writes: the preset's text, or the commented default starter.
 pub fn starter(preset: Option<Preset>) -> &'static str {
-    if let Some(preset) = preset {
-        match preset {}
+    match preset {
+        Some(preset) => preset.text(),
+        None => include_str!("starter.toml"),
     }
-    include_str!("starter.toml")
 }
 
-/// Resolve config text, optionally on top of a preset. Empty text means all defaults.
-/// Diagnostic positions refer to `text`.
+/// Resolve config text, optionally on top of a preset. Empty text means all defaults
+/// (or the preset). Diagnostic positions refer to `text`.
 pub fn resolve(text: &str, preset: Option<Preset>) -> Result<ResolvedConfig, Vec<Diagnostic>> {
-    if let Some(preset) = preset {
-        match preset {}
-    }
-
     let document = toml_edit::Document::parse(text)
         .map_err(|e| vec![Diagnostic::at(text, e.span(), validate::tidy(e.message()))])?;
 
@@ -47,6 +43,10 @@ pub fn resolve(text: &str, preset: Option<Preset>) -> Result<ResolvedConfig, Vec
 
     let raw: RawConfig = toml::from_str(text)
         .map_err(|e| vec![Diagnostic::at(text, e.span(), validate::tidy(e.message()))])?;
+    let raw = match preset {
+        Some(preset) => over_preset(preset, text),
+        None => raw,
+    };
 
     let diagnostics = validate::values(text, &document, &raw);
     if !diagnostics.is_empty() {
@@ -54,6 +54,19 @@ pub fn resolve(text: &str, preset: Option<Preset>) -> Result<ResolvedConfig, Vec
     }
 
     Ok(build(&document, raw))
+}
+
+/// `text` laid over `preset`. Both already deserialize on their own, and the overlay
+/// only moves whole values, so the merge deserializes too.
+fn over_preset(preset: Preset, text: &str) -> RawConfig {
+    let mut merged = preset.table();
+    preset::overlay(
+        &mut merged,
+        toml::from_str(text).expect("already parsed as RawConfig"),
+    );
+    toml::Value::Table(merged)
+        .try_into()
+        .expect("a preset with valid overrides deserializes")
 }
 
 fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig {

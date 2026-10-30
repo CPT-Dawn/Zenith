@@ -1,0 +1,54 @@
+/* Catppuccin Mocha: soft pastels on Catppuccin's darkest base. Mauve is the signature, blue and
+ * lavender in support, peach and red only for state. A theme is only :root { --zb-* } tokens.
+ * Tokens tinted by the accent derive from --zb-accent, so one override recolours them all. */
+:root {
+  /* Typography */
+  --zb-font-family: "Inter", sans-serif;
+  --zb-font-size: 13px;
+  --zb-font-weight: 500;
+  --zb-font-weight-strong: 600;
+
+  /* Accent and supporting colours (mauve, blue, lavender) */
+  --zb-accent: #cba6f7;
+  --zb-accent-blue: #89b4fa;
+  --zb-accent-lavender: #b4befe;
+
+  /* Surfaces (base) */
+  --zb-surface-color: rgb(30 30 46);
+  --zb-surface-opacity: 0.85;
+  --zb-surface: rgb(from var(--zb-surface-color) r g b / var(--zb-surface-opacity));
+  --zb-surface-border: color-mix(in srgb, var(--zb-accent) 18%, transparent);
+  --zb-module-bg: color-mix(in srgb, var(--zb-accent) 6%, transparent);
+  --zb-module-bg-hover: color-mix(in srgb, var(--zb-accent) 14%, transparent);
+
+  /* Text (text, subtext0, overlay0) */
+  --zb-text: #cdd6f4;
+  --zb-text-muted: #a6adc8;
+  --zb-text-dim: #6c7086;
+
+  /* Semantic (state only: green, peach, red) */
+  --zb-ok: #a6e3a1;
+  --zb-warm: #fab387;
+  --zb-hot: #f38ba8;
+
+  /* Glow, used only on the focal element; the strong glow is the peak of the ambient pulse */
+  --zb-glow: 0 0 4px color-mix(in srgb, var(--zb-accent) 60%, transparent),
+    0 0 12px color-mix(in srgb, var(--zb-accent) 30%, transparent);
+  --zb-glow-strong: 0 0 6px color-mix(in srgb, var(--zb-accent) 80%, transparent),
+    0 0 18px color-mix(in srgb, var(--zb-accent) 45%, transparent);
+
+  /* Geometry */
+  --zb-bar-height: 34px;
+  --zb-bar-radius: 14px;
+  --zb-module-radius: 10px;
+  --zb-space-xs: 2px;
+  --zb-space-s: 4px;
+  --zb-space-m: 8px;
+  --zb-space-l: 12px;
+
+  /* Motion */
+  --zb-transition-duration: 200ms;
+  --zb-transition-easing: ease-out;
+  --zb-ambient-flow-duration: 14s;
+  --zb-ambient-pulse-duration: 3s;
+}

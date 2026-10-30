@@ -6,6 +6,9 @@
     <file>css/ambient.css</file>
     <file>css/motion-off.css</file>
     <file>themes/midnight-bloom.css</file>
+    <file>themes/tokyo-night.css</file>
+    <file>themes/catppuccin-mocha.css</file>
+    <file>themes/gruvbox-dark.css</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/zb-logo-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/zb-todo-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/zb-todo-urgent-symbolic.svg</file>

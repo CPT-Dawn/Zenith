@@ -1,0 +1,36 @@
+#:schema https://raw.githubusercontent.com/CPT-Dawn/Zenith/main/schema/config.schema.json
+# Zenith bar config, from the Bloom preset: floating Midnight Bloom glass, the
+# clock as the glowing focal element, transitions on events only.
+#
+# Every key is optional; anything not written here takes its default. Run
+# `zenith-bar init --force` to see every key with comments, and
+# `zenith-bar check` after editing. The bar reloads this file on save.
+
+[bar]
+position = "top"
+height = 36
+# The gap is what makes it float.
+margin = 10
+radius = 16
+# "off", "subtle" (transitions on events only) or "ambient".
+motion = "subtle"
+# Module that gets the neon glow, or "none".
+focal = "clock"
+
+[layout]
+left = ["logo", "todo"]
+center = ["clock", "calendar"]
+right = ["media", "system"]
+
+[clock]
+format = "%H:%M"
+
+[calendar]
+format = "%a %d %b"
+
+[theme]
+# "midnight-bloom", "tokyo-night", "catppuccin-mocha" or "gruvbox-dark".
+name = "midnight-bloom"
+# Smoked glass: let the compositor's blur show through.
+surface_opacity = 0.72
+radius = 11
