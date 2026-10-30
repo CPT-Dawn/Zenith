@@ -85,6 +85,7 @@ fn section(
             widget.add_css_class("zb-focal");
         }
         widget.set_valign(gtk4::Align::Center);
+        super::actions::attach(&widget, config.actions(id));
         section.append(&widget);
     }
     section

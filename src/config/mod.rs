@@ -2,6 +2,7 @@
 //!
 //! `run`, `check`, `init` and hot reload all go through [`resolve`].
 
+mod actions;
 mod bar;
 mod diagnostic;
 mod layout;
@@ -12,6 +13,7 @@ pub mod schema;
 mod theme;
 mod validate;
 
+pub use actions::{Action, ClickActions, Gesture};
 pub use bar::{BarConfig, Monitors, Motion, Position};
 pub use diagnostic::Diagnostic;
 pub use layout::{LayoutConfig, SECTIONS};
