@@ -4,5 +4,6 @@ pub mod app;
 pub mod bar;
 pub mod bar_manager;
 pub mod binding;
+pub mod placement;
 pub mod sources;
 pub mod style;
