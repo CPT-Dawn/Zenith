@@ -1,6 +1,8 @@
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::config::ClickActions;
+
 /// The `[system]` table.
 #[derive(Clone, Debug, PartialEq, Deserialize, JsonSchema)]
 #[serde(default)]
@@ -11,6 +13,8 @@ pub struct SystemConfig {
     pub interval: u32,
     /// CPU temperature thresholds and sensor.
     pub temperature: TemperatureConfig,
+    #[serde(flatten)]
+    pub actions: ClickActions,
 }
 
 impl Default for SystemConfig {
@@ -19,6 +23,7 @@ impl Default for SystemConfig {
             metrics: vec![Metric::Cpu, Metric::Memory, Metric::Temperature],
             interval: 2,
             temperature: TemperatureConfig::default(),
+            actions: ClickActions::default(),
         }
     }
 }

@@ -4,6 +4,7 @@
 //! same public API as the binary. See `docs/adr/` for the ground rules.
 
 pub mod cli;
+pub mod commands;
 pub mod config;
 pub mod modules;
 pub mod paths;
