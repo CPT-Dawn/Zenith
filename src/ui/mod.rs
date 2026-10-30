@@ -6,5 +6,6 @@ pub mod bar;
 pub mod bar_manager;
 pub mod binding;
 pub mod placement;
+pub mod reload;
 pub mod sources;
 pub mod style;
