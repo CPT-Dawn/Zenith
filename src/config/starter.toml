@@ -76,7 +76,8 @@ hot = 85
 # not here, so your dotfiles stay clean. Click the count to manage them.
 
 [theme]
-# Built-in theme: "midnight-bloom".
+# Built-in theme: "midnight-bloom", "tokyo-night", "catppuccin-mocha" or
+# "gruvbox-dark".
 name = "midnight-bloom"
 # Optional overrides, layered above the theme (your style.css still wins):
 # accent = "#8de3dc"       # signature colour; tinted borders and glow follow it

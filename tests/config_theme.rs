@@ -207,3 +207,37 @@ fn unknown_theme_keys_get_suggestions() {
         vec!["2:1: unknown key `accnet` in [theme] (did you mean `accent`?)"]
     );
 }
+
+#[test]
+fn every_built_in_theme_is_picked_by_name_and_loads_its_own_sheet() {
+    for (name, theme, sheet) in [
+        (
+            "midnight-bloom",
+            ThemeName::MidnightBloom,
+            "themes/midnight-bloom.css",
+        ),
+        (
+            "tokyo-night",
+            ThemeName::TokyoNight,
+            "themes/tokyo-night.css",
+        ),
+        (
+            "catppuccin-mocha",
+            ThemeName::CatppuccinMocha,
+            "themes/catppuccin-mocha.css",
+        ),
+        (
+            "gruvbox-dark",
+            ThemeName::GruvboxDark,
+            "themes/gruvbox-dark.css",
+        ),
+    ] {
+        let config = ok(&format!("[theme]\nname = \"{name}\"\n"));
+
+        assert_eq!(config.theme.name, theme);
+        assert_eq!(
+            stylesheets(&config, false)[0],
+            (StyleLayer::Theme, Css::Resource(sheet))
+        );
+    }
+}

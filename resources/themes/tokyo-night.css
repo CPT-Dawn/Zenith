@@ -1,0 +1,54 @@
+/* Tokyo Night: the Zenith 1.x look. Deep indigo glass, Tokyo Night blue as the signature, cyan and
+ * lavender in support, warm colours only for state. A theme is only :root { --zb-* } tokens.
+ * Tokens tinted by the accent derive from --zb-accent, so one override recolours them all. */
+:root {
+  /* Typography */
+  --zb-font-family: "Inter", sans-serif;
+  --zb-font-size: 13px;
+  --zb-font-weight: 500;
+  --zb-font-weight-strong: 600;
+
+  /* Accent and supporting colours */
+  --zb-accent: #7aa2f7;
+  --zb-accent-blue: #7dcfff;
+  --zb-accent-lavender: #bb9af7;
+
+  /* Surfaces */
+  --zb-surface-color: rgb(26 27 38);
+  --zb-surface-opacity: 0.72;
+  --zb-surface: rgb(from var(--zb-surface-color) r g b / var(--zb-surface-opacity));
+  --zb-surface-border: color-mix(in srgb, var(--zb-accent) 22%, transparent);
+  --zb-module-bg: color-mix(in srgb, var(--zb-accent) 7%, transparent);
+  --zb-module-bg-hover: color-mix(in srgb, var(--zb-accent) 15%, transparent);
+
+  /* Text */
+  --zb-text: #c0caf5;
+  --zb-text-muted: #8a98bc;
+  --zb-text-dim: #565f89;
+
+  /* Semantic (state only) */
+  --zb-ok: #73daca;
+  --zb-warm: #e0af68;
+  --zb-hot: #f7768e;
+
+  /* Glow, used only on the focal element; the strong glow is the peak of the ambient pulse */
+  --zb-glow: 0 0 4px color-mix(in srgb, var(--zb-accent) 60%, transparent),
+    0 0 12px color-mix(in srgb, var(--zb-accent) 30%, transparent);
+  --zb-glow-strong: 0 0 6px color-mix(in srgb, var(--zb-accent) 80%, transparent),
+    0 0 18px color-mix(in srgb, var(--zb-accent) 45%, transparent);
+
+  /* Geometry */
+  --zb-bar-height: 32px;
+  --zb-bar-radius: 12px;
+  --zb-module-radius: 8px;
+  --zb-space-xs: 2px;
+  --zb-space-s: 4px;
+  --zb-space-m: 8px;
+  --zb-space-l: 12px;
+
+  /* Motion */
+  --zb-transition-duration: 180ms;
+  --zb-transition-easing: ease-out;
+  --zb-ambient-flow-duration: 16s;
+  --zb-ambient-pulse-duration: 4s;
+}
