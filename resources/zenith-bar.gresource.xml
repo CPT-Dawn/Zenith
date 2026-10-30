@@ -5,5 +5,7 @@
     <file>css/base.css</file>
     <file>themes/midnight-bloom.css</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/zb-logo-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/zb-todo-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/zb-todo-urgent-symbolic.svg</file>
   </gresource>
 </gresources>

@@ -30,6 +30,8 @@ pub struct TodoList {
     next_id: u64,
 }
 
+/// Everything the popover can ask of the list.
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Command {
     Add { text: String, priority: Priority },
     Toggle(u64),

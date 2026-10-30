@@ -55,3 +55,98 @@ window.zb-window {
 .zb-hot {
   color: var(--zb-hot);
 }
+
+/* Todo: the bar button is just the module, not a GTK button */
+menubutton.zb-todo > button {
+  min-height: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: none;
+  color: inherit;
+}
+
+.zb-urgent {
+  color: var(--zb-hot);
+}
+
+popover.zb-todo-popover > contents {
+  padding: var(--zb-space-l);
+  border: 1px solid var(--zb-surface-border);
+  border-radius: var(--zb-bar-radius);
+  background-color: var(--zb-surface);
+  color: var(--zb-text);
+  font-family: var(--zb-font-family);
+  font-size: var(--zb-font-size);
+}
+
+.zb-todo-popover list,
+.zb-todo-popover row {
+  background: none;
+}
+
+.zb-todo-popover button,
+.zb-todo-popover entry {
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: var(--zb-module-bg);
+  color: inherit;
+}
+
+.zb-todo-popover button:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-todo-popover checkbutton > check:checked {
+  background-image: none;
+  background-color: var(--zb-accent);
+  color: var(--zb-surface);
+}
+
+.zb-todo-row {
+  padding: var(--zb-space-xs) var(--zb-space-s);
+  border-radius: var(--zb-module-radius);
+}
+
+.zb-todo-row:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-todo-row.zb-done .zb-todo-text {
+  color: var(--zb-text-dim);
+  text-decoration-line: line-through;
+}
+
+.zb-todo-row.zb-high .zb-todo-text {
+  color: var(--zb-hot);
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-todo-priority {
+  min-width: 4em;
+  font-size: 0.85em;
+}
+
+.zb-todo-popover .zb-priority-high {
+  color: var(--zb-hot);
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-todo-popover .zb-priority-low {
+  color: var(--zb-text-muted);
+}
+
+.zb-todo-empty {
+  padding: var(--zb-space-l);
+  color: var(--zb-text-muted);
+}
+
+/* A visible focus state for every popover control, keyboard users first */
+.zb-todo-popover button:focus-visible,
+.zb-todo-popover checkbutton:focus-visible > check,
+.zb-todo-popover dropdown > button:focus-visible,
+.zb-todo-popover entry:focus-within {
+  outline: 2px solid var(--zb-accent);
+  outline-offset: 1px;
+}
