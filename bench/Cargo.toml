@@ -1,0 +1,13 @@
+[package]
+name = "zenith-bench"
+version = "0.1.0"
+edition = "2024"
+description = "Benchmark harness for Zenith: RSS, idle CPU, wakeups and time to first frame under headless Sway"
+license = "MIT"
+publish = false
+
+# Standalone on purpose: no dependencies and its own workspace root, so it can
+# benchmark any Zenith build (v1 `zenith` or v2 `zenith-bar`) without linking it.
+[workspace]
+
+[dependencies]
