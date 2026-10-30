@@ -1,29 +1,37 @@
 [package]
-name = "zenith"
-version = "1.2.0"
-edition = "2021"
+name = "zenith-bar"
+version = "2.0.0-dev"
+edition = "2024"
+rust-version = "1.92"
 authors = ["CPT-Dawn"]
-description = "A sleek, animated Wayland status bar"
+description = "The lightest beautiful status bar for Wayland"
 license = "MIT"
 readme = "README.md"
-keywords = ["wayland", "statusbar", "hyprland", "gtk4", "niri"]
+repository = "https://github.com/CPT-Dawn/Zenith"
+keywords = ["wayland", "statusbar", "hyprland", "gtk4", "layer-shell"]
 categories = ["gui"]
 
+# The benchmark harness (`bench/`) joins as a member; the bar itself is the root package.
+[workspace]
+
 [dependencies]
-gtk4 = { version = "0.11.1", features = ["v4_12"] }
-gtk4-layer-shell = "0.8.0"
-glib = "0.22.3"
-gdk4 = "0.11.1"
-serde = { version = "1.0.228", features = ["derive"] }
-toml = "1.1.0"
-toml_edit = { version = "0.25.11", features = ["parse", "display"] }
-chrono = "0.4.44"
-dirs = "6.0.0"
-log = "0.4.29"
-env_logger = "0.11.10"
-anyhow = "1.0.102"
-sysinfo = "0.38.4"
-serde_json = "1.0.149"
+gtk4 = { version = "0.11.5", features = ["v4_22"] }
+gtk4-layer-shell = { version = "0.8.1", features = ["v1_3"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+schemars = "1.2.3"
+toml = "1.1.8"
+toml_edit = "0.25.17"
+jiff = "0.2.38"
+strsim = "0.11.1"
+log = "0.4.34"
+env_logger = { version = "0.11.11", default-features = false, features = ["auto-color"] }
+
+[build-dependencies]
+glib-build-tools = "0.22.8"
+
+[dev-dependencies]
+pretty_assertions = "1.4.1"
 
 [profile.release]
 opt-level = 3
