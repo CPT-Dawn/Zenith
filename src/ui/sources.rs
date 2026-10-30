@@ -5,6 +5,7 @@ use std::rc::Rc;
 
 use crate::config::ResolvedConfig;
 use crate::modules::ModuleId;
+use crate::modules::calendar::source::CalendarSource;
 use crate::modules::clock::source::ClockSource;
 use crate::modules::logo::source::LogoSource;
 
@@ -12,6 +13,7 @@ use crate::modules::logo::source::LogoSource;
 pub struct Sources {
     pub clock: Option<Rc<ClockSource>>,
     pub logo: Option<Rc<LogoSource>>,
+    pub calendar: Option<Rc<CalendarSource>>,
 }
 
 impl Sources {
@@ -20,6 +22,8 @@ impl Sources {
         Self {
             clock: on(ModuleId::Clock).then(|| ClockSource::start(config.clock.clone())),
             logo: on(ModuleId::Logo).then(|| LogoSource::start(&config.logo)),
+            calendar: on(ModuleId::Calendar)
+                .then(|| CalendarSource::start(config.calendar.clone())),
         }
     }
 }
