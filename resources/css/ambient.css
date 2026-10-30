@@ -1,0 +1,39 @@
+/* Ambient animation (motion = "ambient" only). Loading this sheet is the only way an infinite
+ * animation reaches the bar, so subtle and off never keep the frame clock ticking (ADR-0003).
+ * Cost: the bar redraws every frame while this sheet is loaded. */
+
+/* Flowing border: the bar's edge drifts through the accent and its supporting colours. */
+@keyframes zb-flow {
+  0% {
+    border-color: color-mix(in srgb, var(--zb-accent) 45%, transparent);
+  }
+  33% {
+    border-color: color-mix(in srgb, var(--zb-accent-blue) 45%, transparent);
+  }
+  66% {
+    border-color: color-mix(in srgb, var(--zb-accent-lavender) 45%, transparent);
+  }
+  100% {
+    border-color: color-mix(in srgb, var(--zb-accent) 45%, transparent);
+  }
+}
+
+/* Focal pulse: the glow breathes between its resting and strong forms. */
+@keyframes zb-pulse {
+  from {
+    text-shadow: var(--zb-glow);
+    -gtk-icon-shadow: var(--zb-glow);
+  }
+  to {
+    text-shadow: var(--zb-glow-strong);
+    -gtk-icon-shadow: var(--zb-glow-strong);
+  }
+}
+
+.zb-bar {
+  animation: zb-flow var(--zb-ambient-flow-duration) linear infinite;
+}
+
+.zb-focal {
+  animation: zb-pulse var(--zb-ambient-pulse-duration) ease-in-out infinite alternate;
+}
