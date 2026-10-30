@@ -6,6 +6,7 @@ use serde::Deserialize;
 
 use super::bar::BarConfig;
 use super::layout::LayoutConfig;
+use super::theme::ThemeConfig;
 use crate::modules::calendar::CalendarConfig;
 use crate::modules::todo::TodoConfig;
 use crate::modules::{clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
@@ -17,6 +18,7 @@ pub struct RawConfig {
     pub layout: LayoutConfig,
     pub clock: ClockConfig,
     pub logo: LogoConfig,
+    pub theme: ThemeConfig,
     pub calendar: CalendarConfig,
     pub system: SystemConfig,
     pub todo: TodoConfig,

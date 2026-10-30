@@ -20,6 +20,7 @@ pub use layout::{LayoutConfig, SECTIONS};
 pub use preset::Preset;
 pub use raw::RawConfig;
 pub use resolved::{Bar, Layout, ResolvedConfig};
+pub use theme::{Css, REQUIRED_VARS, StyleLayer, ThemeConfig, ThemeName, stylesheets};
 
 /// The config file `init` writes: the preset's text, or the commented default starter.
 pub fn starter(preset: Option<Preset>) -> &'static str {
@@ -78,13 +79,14 @@ fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig
         motion: raw.bar.motion,
         focal,
     };
-    let css_overrides = theme::override_block(&bar);
+    let css_overrides = theme::override_block(&bar, &raw.theme);
 
     ResolvedConfig {
         bar,
         layout,
         clock: raw.clock,
         logo: raw.logo,
+        theme: raw.theme,
         calendar: raw.calendar,
         system: raw.system,
         todo: raw.todo,

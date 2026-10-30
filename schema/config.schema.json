@@ -349,6 +349,54 @@
       },
       "type": "object"
     },
+    "ThemeConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "accent": {
+          "default": null,
+          "description": "Signature colour, overriding the theme's `--zb-accent` (e.g. `\"#ff79c6\"`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ThemeName"
+            }
+          ],
+          "description": "Built-in theme to start from."
+        },
+        "radius": {
+          "default": null,
+          "description": "Corner radius of module pills in pixels, overriding `--zb-module-radius`.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "surface_opacity": {
+          "default": null,
+          "description": "Opacity of the bar surface from 0 (clear) to 1 (opaque), overriding `--zb-surface-opacity`.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "ThemeName": {
+      "description": "A built-in theme. Only the selected one is ever parsed.",
+      "enum": [
+        "midnight-bloom"
+      ],
+      "type": "string"
+    },
     "TodoConfig": {
       "additionalProperties": false,
       "description": "The `[todo]` table. Todos themselves live in `$XDG_DATA_HOME/zenith-bar/todos.json`.",
@@ -407,6 +455,9 @@
     },
     "system": {
       "$ref": "#/definitions/SystemConfig"
+    },
+    "theme": {
+      "$ref": "#/definitions/ThemeConfig"
     },
     "todo": {
       "$ref": "#/definitions/TodoConfig"
