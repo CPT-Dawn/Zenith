@@ -2,21 +2,32 @@
 //!
 //! `run`, `check`, `init` and hot reload all go through [`resolve`].
 
+mod actions;
 mod bar;
 mod diagnostic;
 mod layout;
 mod preset;
 mod raw;
 mod resolved;
+pub mod schema;
 mod theme;
 mod validate;
 
+pub use actions::{Action, ClickActions, Gesture};
 pub use bar::{BarConfig, Monitors, Motion, Position};
 pub use diagnostic::Diagnostic;
 pub use layout::{LayoutConfig, SECTIONS};
 pub use preset::Preset;
 pub use raw::RawConfig;
 pub use resolved::{Bar, Layout, ResolvedConfig};
+
+/// The config file `init` writes: the preset's text, or the commented default starter.
+pub fn starter(preset: Option<Preset>) -> &'static str {
+    if let Some(preset) = preset {
+        match preset {}
+    }
+    include_str!("starter.toml")
+}
 
 /// Resolve config text, optionally on top of a preset. Empty text means all defaults.
 /// Diagnostic positions refer to `text`.
