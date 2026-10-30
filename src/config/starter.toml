@@ -40,3 +40,10 @@ format = "%H:%M"
 # A bundled zb-*-symbolic icon or any icon name from your icon theme.
 # An empty string hides the logo.
 icon = "zb-logo-symbolic"
+
+# Click actions: every module table also takes on_click, on_right_click,
+# on_scroll_up and on_scroll_down. Each is a shell command, run detached, that
+# replaces the module's built-in action for that gesture (an empty string just
+# disables it). Unset keys keep the built-in action. For example:
+# on_click = "rofi -show drun"
+# on_right_click = "wlogout"
