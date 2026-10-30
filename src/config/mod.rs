@@ -8,6 +8,7 @@ mod layout;
 mod preset;
 mod raw;
 mod resolved;
+pub mod schema;
 mod theme;
 mod validate;
 
