@@ -11,6 +11,7 @@ fn at(time: &str) -> Zoned {
 fn clock(format: &str) -> ClockConfig {
     ClockConfig {
         format: format.into(),
+        ..ClockConfig::default()
     }
 }
 
