@@ -8,3 +8,4 @@ pub mod cli;
 pub mod frame;
 pub mod measure;
 pub mod procfs;
+pub mod smoke;

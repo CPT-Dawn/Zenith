@@ -13,6 +13,9 @@ frame.
 Options:
   --bin <PATH>          Zenith binary to benchmark (v1 `zenith` or v2 `zenith-bar`)
   --config <FILE>       Config file (exported as ZENITH_CONFIG and ZENITH_BAR_CONFIG)
+  --preset <NAME>       Run a v2 preset: the config comes from
+                        `<bin> init --preset <NAME>`, and --budget reads the
+                        file's [NAME] table on top of its shared ceilings
   --style <FILE>        Style file (exported as ZENITH_STYLE and ZENITH_BAR_STYLE)
   --settle <SECS>       Wait this long after launch before measuring [default: 10]
   --window <SECS>       Idle measurement window [default: 30]
@@ -20,10 +23,13 @@ Options:
   --env <KEY=VALUE>     Extra environment for the bar; repeatable
   --renderer <NAME>     Sway's renderer (WLR_RENDERER): pixman (software, no GPU
                         needed, what CI uses), gles2 or vulkan [default: pixman]
+  --smoke               Also smoke-test hot reload (v2): a style.css edit must
+                        redraw, moving the bar to the bottom must re-anchor it,
+                        and an invalid config must not kill it
   --require-compositor  Fail instead of skipping when `sway` is not installed
   -h, --help            Show this help
 
-Exit status: 0 ok, 1 budget exceeded, 2 error, 77 skipped (no sway).
+Exit status: 0 ok, 1 budget exceeded or smoke test failed, 2 error, 77 skipped (no sway).
 ";
 
 /// Parsed command line.
@@ -32,6 +38,10 @@ pub struct Options {
     pub bin: PathBuf,
     pub config: Option<PathBuf>,
     pub style: Option<PathBuf>,
+    /// v2 preset to generate the config from (and budget table to apply).
+    pub preset: Option<String>,
+    /// Run the hot-reload smoke test after measuring.
+    pub smoke: bool,
     pub settle: Duration,
     pub window: Duration,
     pub budget: Option<PathBuf>,
@@ -49,6 +59,8 @@ impl Options {
             bin: PathBuf::new(),
             config: None,
             style: None,
+            preset: None,
+            smoke: false,
             settle: Duration::from_secs(10),
             window: Duration::from_secs(30),
             budget: None,
@@ -63,6 +75,8 @@ impl Options {
                 "--bin" => bin = Some(PathBuf::from(value()?)),
                 "--config" => o.config = Some(PathBuf::from(value()?)),
                 "--style" => o.style = Some(PathBuf::from(value()?)),
+                "--preset" => o.preset = Some(value()?),
+                "--smoke" => o.smoke = true,
                 "--budget" => o.budget = Some(PathBuf::from(value()?)),
                 "--settle" => o.settle = seconds(&flag, &value()?)?,
                 "--window" => o.window = seconds(&flag, &value()?)?,
@@ -77,6 +91,9 @@ impl Options {
             }
         }
         o.bin = bin.ok_or("missing required --bin <PATH>")?;
+        if o.preset.is_some() && o.config.is_some() {
+            return Err("--preset and --config are mutually exclusive (a preset is a config)".into());
+        }
         Ok(o)
     }
 }
@@ -137,6 +154,23 @@ mod tests {
         );
         assert!(o.require_compositor);
         assert_eq!(o.renderer, "gles2");
+    }
+
+    #[test]
+    fn preset_runs_and_smoke_tests_are_opt_in() {
+        let o = parse(&["--bin", "zenith-bar"]).unwrap();
+        assert_eq!(o.preset, None);
+        assert!(!o.smoke);
+
+        let o = parse(&["--bin", "zenith-bar", "--preset", "minimal", "--smoke"]).unwrap();
+        assert_eq!(o.preset.as_deref(), Some("minimal"));
+        assert!(o.smoke);
+    }
+
+    #[test]
+    fn preset_and_config_are_mutually_exclusive() {
+        let err = parse(&["--bin", "z", "--preset", "bloom", "--config", "c.toml"]).unwrap_err();
+        assert!(err.contains("--preset") && err.contains("--config"), "{err}");
     }
 
     #[test]
