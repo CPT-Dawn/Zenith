@@ -1,0 +1,54 @@
+name: Benchmark
+
+on:
+  push:
+    paths:
+      - "bench/**"
+      - "src/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/bench.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    # Arch, because v2 needs GTK >= 4.22 and Arch is the primary distro.
+    container: archlinux:latest
+    steps:
+      - name: Install toolchain, Sway and GTK
+        run: |
+          pacman -Syu --noconfirm --needed \
+            base-devel git rust sway dbus mesa gtk4 gtk4-layer-shell \
+            ttf-dejavu playerctl
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Harness unit tests
+        run: cargo test --manifest-path bench/Cargo.toml
+
+      - name: Build Zenith (release)
+        run: cargo build --release --locked
+
+      - name: Run benchmark under headless Sway
+        shell: bash
+        run: |
+          set -euo pipefail
+          # v1 ships `zenith`; v2 renames the binary to `zenith-bar`.
+          bin=target/release/zenith-bar
+          [[ -x $bin ]] || bin=target/release/zenith
+          args=(--bin "$bin" --renderer pixman --require-compositor)
+          # Budgets land once v2 has a measured baseline (see docs/performance.md).
+          [[ -f bench/budget.toml ]] && args+=(--budget bench/budget.toml)
+          cargo bench-bar "${args[@]}" | tee bench-result.txt
+          {
+            echo '### Benchmark (GitHub runner, software rendering)'
+            echo '```'
+            cat bench-result.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
