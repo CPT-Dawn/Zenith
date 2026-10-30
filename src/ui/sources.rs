@@ -9,7 +9,7 @@ use crate::modules::calendar::source::CalendarSource;
 use crate::modules::clock::source::ClockSource;
 use crate::modules::logo::source::LogoSource;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Sources {
     pub clock: Option<Rc<ClockSource>>,
     pub logo: Option<Rc<LogoSource>>,
