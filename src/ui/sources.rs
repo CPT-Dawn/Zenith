@@ -7,11 +7,13 @@ use crate::config::ResolvedConfig;
 use crate::modules::ModuleId;
 use crate::modules::clock::source::ClockSource;
 use crate::modules::logo::source::LogoSource;
+use crate::modules::media::source::MediaSource;
 
 #[derive(Clone, Default)]
 pub struct Sources {
     pub clock: Option<Rc<ClockSource>>,
     pub logo: Option<Rc<LogoSource>>,
+    pub media: Option<Rc<MediaSource>>,
 }
 
 impl Sources {
@@ -20,6 +22,7 @@ impl Sources {
         Self {
             clock: on(ModuleId::Clock).then(|| ClockSource::start(config.clock.clone())),
             logo: on(ModuleId::Logo).then(|| LogoSource::start(&config.logo)),
+            media: on(ModuleId::Media).then(|| MediaSource::start(config.media.clone())),
         }
     }
 }

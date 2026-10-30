@@ -1,6 +1,8 @@
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::config::ClickActions;
+
 /// The `[media]` table.
 #[derive(Clone, Debug, PartialEq, Deserialize, JsonSchema)]
 #[serde(default)]
@@ -12,6 +14,8 @@ pub struct MediaConfig {
     pub max_length: u32,
     /// Hide the module when nothing is playing, instead of showing "No media".
     pub hide_when_idle: bool,
+    #[serde(flatten)]
+    pub actions: ClickActions,
 }
 
 impl MediaConfig {
@@ -30,6 +34,7 @@ impl Default for MediaConfig {
             format: "{title} - {artist}".into(),
             max_length: 40,
             hide_when_idle: false,
+            actions: ClickActions::default(),
         }
     }
 }

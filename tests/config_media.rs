@@ -12,6 +12,7 @@ fn media_defaults_to_title_and_artist_cut_at_forty_characters() {
             format: "{title} - {artist}".into(),
             max_length: 40,
             hide_when_idle: false,
+            ..MediaConfig::default()
         }
     );
 }
@@ -28,6 +29,7 @@ fn every_media_key_can_be_set() {
             format: "{artist}: {title}".into(),
             max_length: 25,
             hide_when_idle: true,
+            ..MediaConfig::default()
         }
     );
 }
@@ -64,6 +66,19 @@ fn literal_braces_are_written_doubled() {
     let config = resolve("[media]\nformat = \"{{{title}}}\"\n", None).expect("valid config");
 
     assert_eq!(config.media.format, "{{{title}}}");
+}
+
+#[test]
+fn a_click_command_replaces_play_pause() {
+    let config = resolve("[media]\non_click = \"playerctl next\"\n", None).expect("valid config");
+
+    assert_eq!(
+        config
+            .actions(zenith_bar::modules::ModuleId::Media)
+            .on_click
+            .as_deref(),
+        Some("playerctl next")
+    );
 }
 
 #[test]

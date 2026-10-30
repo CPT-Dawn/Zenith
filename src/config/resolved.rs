@@ -22,6 +22,7 @@ impl ResolvedConfig {
         match id {
             ModuleId::Clock => &self.clock.actions,
             ModuleId::Logo => &self.logo.actions,
+            ModuleId::Media => &self.media.actions,
             _ => &ClickActions::NONE,
         }
     }

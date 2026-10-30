@@ -179,6 +179,62 @@
       },
       "type": "object"
     },
+    "MediaConfig": {
+      "additionalProperties": false,
+      "description": "The `[media]` table.",
+      "properties": {
+        "format": {
+          "default": "{title} - {artist}",
+          "description": "Label format. Placeholders: `{title}`, `{artist}`, `{album}`. Separators next to an\nempty placeholder are dropped, so `{title} - {artist}` shows just the title when there is no artist.",
+          "type": "string"
+        },
+        "hide_when_idle": {
+          "default": false,
+          "description": "Hide the module when nothing is playing, instead of showing \"No media\".",
+          "type": "boolean"
+        },
+        "max_length": {
+          "default": 40,
+          "description": "Longest label in characters before it is cut with `…`. 0 means no limit.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "on_click": {
+          "default": null,
+          "description": "Shell command run on left click, instead of the module's built-in action.\nAn empty string disables the built-in action without running anything.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_right_click": {
+          "default": null,
+          "description": "Shell command run on right click, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_down": {
+          "default": null,
+          "description": "Shell command run on scroll down, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_up": {
+          "default": null,
+          "description": "Shell command run on scroll up, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "Monitors": {
       "anyOf": [
         {
@@ -220,6 +276,9 @@
     },
     "logo": {
       "$ref": "#/definitions/LogoConfig"
+    },
+    "media": {
+      "$ref": "#/definitions/MediaConfig"
     }
   },
   "title": "Zenith bar config",
