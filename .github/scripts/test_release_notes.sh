@@ -33,8 +33,9 @@ c "chore(release): prepare for v2.1.0"
 c "ci: poke the runner"
 g tag v2.1.0
 
+# The release workflow checks out the tag and renders `--current`.
 notes="$work/notes.md"
-(cd "$work/repo" && git-cliff --config "$repo_root/cliff.toml" --latest --strip header) >"$notes"
+(cd "$work/repo" && git-cliff --config "$repo_root/cliff.toml" --current --strip header) >"$notes"
 cat "$notes"
 echo "---"
 
@@ -49,6 +50,15 @@ lacks "$notes" "the old feature" "only the latest release is included"
 lacks "$notes" "demo image" "unconventional commits are dropped"
 lacks "$notes" "prepare for v2.1.0" "release chores are dropped"
 lacks "$notes" "poke the runner" "ci noise is dropped"
+
+# Re-running the workflow for an older tag renders that tag, not the newest.
+old="$work/old.md"
+g checkout -q v2.0.0
+(cd "$work/repo" && git-cliff --config "$repo_root/cliff.toml" --current --strip header) >"$old"
+has "$old" "## [2.0.0]" "an older tag gets its own heading"
+has "$old" "The old feature" "an older tag gets its own commits"
+lacks "$old" "Raze v1" "an older tag excludes later commits"
+g checkout -q v2.1.0
 
 full="$work/CHANGELOG.md"
 (cd "$work/repo" && git-cliff --config "$repo_root/cliff.toml") >"$full"
