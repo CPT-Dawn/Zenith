@@ -1,5 +1,6 @@
 //! One data source per module per process, shared by every bar.
-//! A source is started only if its module is in the layout. Add a field and a line per module.
+//! A source is started only if its module is in the layout. Add a field, a line in
+//! [`Sources::start`] and a [`follow`] in [`Sources::reconfigure`] per module.
 
 use std::rc::Rc;
 
@@ -54,6 +55,21 @@ impl Sources {
             old.logo != new.logo,
             || LogoSource::start(&new.logo),
             |s| s.reconfigure(&new.logo),
+        );
+        // [todo] only holds click actions, which a bar rebuild applies.
+        follow(
+            &mut self.todo,
+            on(ModuleId::Todo),
+            false,
+            || TodoSource::start(todo::data_file()),
+            |_| {},
+        );
+        follow(
+            &mut self.media,
+            on(ModuleId::Media),
+            old.media != new.media,
+            || MediaSource::start(new.media.clone()),
+            |s| s.reconfigure(new.media.clone()),
         );
         follow(
             &mut self.calendar,

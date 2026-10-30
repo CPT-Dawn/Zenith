@@ -151,6 +151,7 @@ fn changes_carried_by_css_or_sources_keep_the_bars() {
         "[theme]\nsurface_opacity = 0.5\n",
         "[clock]\nformat = \"%H:%M:%S\"\n",
         "[system]\ninterval = 5\n",
+        "[media]\nmax_length = 20\n",
     ] {
         assert_eq!(plan(&old, &ok(text)).rebuild_bars, false, "{text}");
     }
