@@ -1,0 +1,3 @@
+[alias]
+# Benchmark harness (bench/): `cargo bench-bar --bin target/release/zenith-bar`
+bench-bar = "run --release --quiet --manifest-path bench/Cargo.toml --"
