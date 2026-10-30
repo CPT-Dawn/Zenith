@@ -22,17 +22,17 @@ pub fn sample(pid: u32) -> io::Result<Sample> {
     Ok(Sample { cpu_ticks, rss_kib, context_switches })
 }
 
-/// User + system CPU time, in clock ticks, from a `/proc/<pid>/stat` line.
-///
-/// For a thread-group leader these totals cover every thread in the process.
+/// CPU time in clock ticks from a `/proc/<pid>/stat` line: user + system time
+/// of every thread, plus that of child processes it has already reaped.
 pub fn parse_cpu_ticks(stat: &str) -> Option<u64> {
     // comm (field 2) may contain spaces and parens, so split after the last ')'.
     let rest = &stat[stat.rfind(')')? + 1..];
-    let mut fields = rest.split_whitespace();
-    // `rest` starts at field 3 (state); utime and stime are fields 14 and 15.
-    let utime: u64 = fields.nth(14 - 3)?.parse().ok()?;
-    let stime: u64 = fields.next()?.parse().ok()?;
-    Some(utime + stime)
+    // `rest` starts at field 3 (state); utime, stime, cutime, cstime are 14..=17.
+    rest.split_whitespace()
+        .skip(14 - 3)
+        .take(4)
+        .map(|f| f.parse::<u64>().ok())
+        .try_fold(0, |sum, v| Some(sum + v?))
 }
 
 /// Resident set size in KiB, from the `VmRSS:` line of `/proc/<pid>/status`.
@@ -66,12 +66,14 @@ mod tests {
     use super::*;
 
     // Real-shaped /proc/<pid>/stat line; the comm contains a space and a
-    // closing paren to prove we split on the *last* ')'. utime=137, stime=42.
-    const STAT: &str = "4242 (zenith) bar) S 1 4242 4242 0 -1 4194560 9001 0 12 0 137 42 0 0 20 0 3 0 123456 812345678 15000 18446744073709551615 1 1 0 0 0 0 0 4096 17663 0 0 0 17 3 0 0 0 0 0\n";
+    // closing paren to prove we split on the *last* ')'.
+    // utime=137, stime=42, cutime=7, cstime=3.
+    const STAT: &str = "4242 (zenith) bar) S 1 4242 4242 0 -1 4194560 9001 0 12 0 137 42 7 3 20 0 3 0 123456 812345678 15000 18446744073709551615 1 1 0 0 0 0 0 4096 17663 0 0 0 17 3 0 0 0 0 0\n";
 
     #[test]
-    fn cpu_ticks_is_user_plus_system_time() {
-        assert_eq!(parse_cpu_ticks(STAT), Some(179));
+    fn cpu_ticks_include_the_helper_processes_zenith_spawned_and_reaped() {
+        // v1 forks `playerctl` every 700 ms; that cost is Zenith's cost.
+        assert_eq!(parse_cpu_ticks(STAT), Some(137 + 42 + 7 + 3));
     }
 
     const STATUS: &str = "\
