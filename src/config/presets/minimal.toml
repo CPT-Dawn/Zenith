@@ -1,0 +1,46 @@
+#:schema https://raw.githubusercontent.com/CPT-Dawn/Zenith/main/schema/config.schema.json
+# Zenith bar config, from the Minimal preset: flush to the edge, no glow, no
+# motion. The lowest-resource way to run Zenith.
+#
+# Every key is optional; anything not written here takes its default. Run
+# `zenith-bar init --force` to see every key with comments, and
+# `zenith-bar check` after editing. The bar reloads this file on save.
+
+[bar]
+position = "top"
+height = 30
+# Flush: no gap, square corners.
+margin = 0
+radius = 0
+# No transitions at all.
+motion = "off"
+# No module glows.
+focal = "none"
+
+[layout]
+left = ["logo", "todo"]
+center = ["clock"]
+right = ["media", "calendar", "system"]
+
+[clock]
+# Minutes only: one wakeup a minute.
+format = "%H:%M"
+
+[calendar]
+format = "%a %d %b"
+
+[media]
+# Out of the way until something plays.
+hide_when_idle = true
+
+[system]
+metrics = ["cpu", "memory"]
+# Fewer refreshes, fewer wakeups.
+interval = 5
+
+[theme]
+# "midnight-bloom", "tokyo-night", "catppuccin-mocha" or "gruvbox-dark".
+name = "midnight-bloom"
+# An opaque bar needs no compositor blur.
+surface_opacity = 1
+radius = 6

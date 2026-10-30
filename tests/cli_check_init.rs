@@ -115,6 +115,41 @@ fn init_writes_a_commented_config_that_check_accepts() {
 }
 
 #[test]
+fn init_with_a_preset_writes_that_preset_and_check_accepts_it() {
+    for (name, theme) in [
+        ("minimal", "midnight-bloom"),
+        ("bloom", "midnight-bloom"),
+        ("classic", "tokyo-night"),
+    ] {
+        let scratch = Scratch::new(&format!("init-preset-{name}"));
+        let config = scratch.file("config.toml");
+
+        let output = zenith_bar(&["init", "--preset", name], &config);
+        assert_eq!(stdout(&output), format!("wrote {}\n", config.display()));
+        assert_eq!(output.status.code(), Some(0));
+
+        let text = std::fs::read_to_string(&config).unwrap();
+        assert!(
+            text.contains(&format!("the {} preset", capitalised(name))),
+            "{text}"
+        );
+        assert!(text.contains(&format!("name = \"{theme}\"")), "{text}");
+
+        let output = zenith_bar(&["check"], &config);
+        assert_eq!(stderr(&output), "");
+        assert_eq!(output.status.code(), Some(0));
+    }
+}
+
+fn capitalised(word: &str) -> String {
+    let mut chars = word.chars();
+    chars
+        .next()
+        .map(|first| first.to_uppercase().chain(chars).collect())
+        .unwrap_or_default()
+}
+
+#[test]
 fn init_never_overwrites_without_force() {
     let scratch = Scratch::new("init-no-clobber");
     let config = scratch.file("config.toml");
