@@ -1,0 +1,57 @@
+/* Component CSS. Reads only var(--zb-*) and styles only zb-* classes: no literal colours here. */
+
+window.zb-window {
+  background: none;
+}
+
+.zb-bar {
+  min-height: var(--zb-bar-height);
+  padding: 0 var(--zb-space-s);
+  border: 1px solid var(--zb-surface-border);
+  border-radius: var(--zb-bar-radius);
+  background-color: var(--zb-surface);
+  color: var(--zb-text);
+  font-family: var(--zb-font-family);
+  font-size: var(--zb-font-size);
+  font-weight: var(--zb-font-weight);
+  font-feature-settings: "tnum";
+}
+
+.zb-section {
+  margin: var(--zb-space-s) 0;
+}
+
+.zb-module {
+  padding: 0 var(--zb-space-m);
+  border-radius: var(--zb-module-radius);
+  background-color: var(--zb-module-bg);
+  transition: background-color var(--zb-transition-duration) var(--zb-transition-easing),
+    color var(--zb-transition-duration) var(--zb-transition-easing);
+}
+
+.zb-module:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-clock {
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-logo {
+  color: var(--zb-accent);
+}
+
+.zb-focal {
+  color: var(--zb-accent);
+  text-shadow: var(--zb-glow);
+  -gtk-icon-shadow: var(--zb-glow);
+}
+
+/* State classes */
+.zb-warm {
+  color: var(--zb-warm);
+}
+
+.zb-hot {
+  color: var(--zb-hot);
+}

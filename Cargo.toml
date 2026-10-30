@@ -11,8 +11,9 @@ repository = "https://github.com/CPT-Dawn/Zenith"
 keywords = ["wayland", "statusbar", "hyprland", "gtk4", "layer-shell"]
 categories = ["gui"]
 
-# The benchmark harness (`bench/`) joins as a member; the bar itself is the root package.
+# The benchmark harness (`bench/`) is a standalone crate with its own workspace.
 [workspace]
+exclude = ["bench"]
 
 [dependencies]
 gtk4 = { version = "0.11.5", features = ["v4_22"] }
