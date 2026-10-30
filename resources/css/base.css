@@ -54,4 +54,5 @@ window.zb-window {
 
 .zb-hot {
   color: var(--zb-hot);
+  font-weight: var(--zb-font-weight-strong);
 }
