@@ -1,0 +1,48 @@
+name: Packaging
+
+# Tests the release tooling (git-cliff config and AUR generator) whenever it
+# changes, so a broken PKGBUILD is caught before a tag is pushed.
+
+on:
+  push:
+    paths:
+      - "cliff.toml"
+      - "packaging/**"
+      - ".github/scripts/**"
+      - ".github/workflows/packaging.yml"
+      - ".github/workflows/release.yml"
+  pull_request:
+    paths:
+      - "cliff.toml"
+      - "packaging/**"
+      - ".github/scripts/**"
+      - ".github/workflows/packaging.yml"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  packaging:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install tools
+        run: |
+          pacman -Syu --noconfirm --needed \
+            base-devel git git-cliff namcap rust gtk4 gtk4-layer-shell
+          # makepkg refuses to run as root.
+          useradd --create-home builder
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test release notes
+        run: |
+          chown -R builder: "$GITHUB_WORKSPACE"
+          runuser -u builder -- git config --global --add safe.directory '*'
+          runuser -u builder -- .github/scripts/test_release_notes.sh
+
+      - name: Test AUR package (build, install layout, namcap)
+        run: runuser -u builder -- .github/scripts/test_generate_aur_files.sh --build
