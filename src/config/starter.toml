@@ -1,0 +1,63 @@
+#:schema https://raw.githubusercontent.com/CPT-Dawn/Zenith/main/schema/config.schema.json
+# Zenith bar config.
+#
+# Every key is optional: delete any line and its default applies. The values
+# below are the defaults. After editing, run `zenith-bar check` to validate the
+# file; the bar reloads it on save.
+#
+# The #:schema line above gives editors with TOML schema support (Taplo,
+# Even Better TOML) autocomplete and inline docs for every key.
+
+[bar]
+# Edge of the output the bar sits on: "top" or "bottom".
+position = "top"
+# Outputs that get a bar: "all" or a list of connector names, e.g. ["DP-1", "HDMI-A-1"].
+monitors = "all"
+# Bar height in pixels.
+height = 34
+# Gap between the bar and the output edges, in pixels.
+margin = 8
+# Corner radius of the bar, in pixels.
+radius = 14
+# Animation level: "off", "subtle" (transitions on events only) or "ambient".
+motion = "subtle"
+# Module that gets the neon glow, or "none".
+focal = "clock"
+
+[layout]
+# Modules per section, in order. A module may appear only once.
+# Available: logo, todo, clock, calendar, media, system.
+left = ["logo", "todo"]
+center = ["clock", "calendar"]
+right = ["media", "system"]
+
+[clock]
+# strftime-style format, e.g. "%a %d %b  %H:%M". Showing seconds (%S)
+# makes the clock wake every second instead of every minute.
+format = "%H:%M"
+
+[calendar]
+# strftime-style date format, e.g. "%A %d %B" or "%Y-%m-%d". The date is
+# redrawn once a day, at local midnight. Click it to open a month calendar.
+format = "%a %d %b"
+
+[logo]
+# A bundled zb-*-symbolic icon or any icon name from your icon theme.
+# An empty string hides the logo.
+icon = "zb-logo-symbolic"
+
+[theme]
+# Built-in theme: "midnight-bloom".
+name = "midnight-bloom"
+# Optional overrides, layered above the theme (your style.css still wins):
+# accent = "#8de3dc"       # signature colour; tinted borders and glow follow it
+# surface_opacity = 0.78   # bar background opacity, 0 to 1
+# radius = 10              # module pill corner radius, in pixels
+# See docs/theming.md for every --zb-* variable and zb-* class.
+
+# Click actions: every module table also takes on_click, on_right_click,
+# on_scroll_up and on_scroll_down. Each is a shell command, run detached, that
+# replaces the module's built-in action for that gesture (an empty string just
+# disables it). Unset keys keep the built-in action. For example:
+# on_click = "rofi -show drun"
+# on_right_click = "wlogout"

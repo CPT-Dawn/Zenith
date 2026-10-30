@@ -15,8 +15,10 @@ use std::rc::Rc;
 use std::str::FromStr;
 use std::time::Duration;
 
+pub mod calendar;
 pub mod clock;
 pub mod logo;
+pub mod zoned_source;
 
 /// Every module Zenith knows about. Names are the strings used in `[layout]`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]

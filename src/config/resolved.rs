@@ -1,7 +1,9 @@
 //! The validated, typed config the UI consumes.
 
+use super::actions::ClickActions;
 use super::bar::{Monitors, Motion, Position};
 use super::theme::ThemeConfig;
+use crate::modules::calendar::CalendarConfig;
 use crate::modules::{ModuleId, clock::ClockConfig, logo::LogoConfig};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -11,6 +13,7 @@ pub struct ResolvedConfig {
     pub clock: ClockConfig,
     pub logo: LogoConfig,
     pub theme: ThemeConfig,
+    pub calendar: CalendarConfig,
     /// Generated `:root { --zb-…: … }` block layered above the theme.
     pub css_overrides: String,
 }
@@ -24,6 +27,16 @@ impl ResolvedConfig {
             classes.push("zb-focal".into());
         }
         classes
+    }
+
+    /// The click actions configured in a module's table. One arm per module.
+    pub fn actions(&self, id: ModuleId) -> &ClickActions {
+        match id {
+            ModuleId::Clock => &self.clock.actions,
+            ModuleId::Logo => &self.logo.actions,
+            ModuleId::Calendar => &self.calendar.actions,
+            _ => &ClickActions::NONE,
+        }
     }
 }
 

@@ -4,6 +4,7 @@ use serde_json::{Map, Value};
 use toml_edit::{Document, Item, TableLike};
 
 use super::Diagnostic;
+use super::actions::ClickActions;
 use super::layout::SECTIONS;
 use super::raw::RawConfig;
 use crate::modules::ModuleId;
@@ -22,7 +23,27 @@ pub fn document(text: &str, document: &Document<&str>) -> Vec<Diagnostic> {
         &mut out,
     );
     layout(text, document, &mut out);
+    actions(text, document, &mut out);
     out
+}
+
+/// Click actions are strings. Checked here because serde loses positions inside
+/// the flattened `ClickActions`.
+fn actions(text: &str, document: &Document<&str>, out: &mut Vec<Diagnostic>) {
+    for id in ModuleId::ALL {
+        for key in ClickActions::KEYS {
+            let Some(item) = lookup(document, &[id.as_str(), key]) else {
+                continue;
+            };
+            if item.as_str().is_none() {
+                out.push(Diagnostic::at(
+                    text,
+                    item.span(),
+                    format!("`{key}` must be a string holding a shell command"),
+                ));
+            }
+        }
+    }
 }
 
 /// Module names must exist and appear at most once across all sections.
@@ -162,6 +183,7 @@ pub fn values(text: &str, document: &Document<&str>, raw: &RawConfig) -> Vec<Dia
     let module_problems = [
         ("clock", raw.clock.problems()),
         ("theme", raw.theme.problems()),
+        ("calendar", raw.calendar.problems()),
     ];
     for (table, problems) in module_problems {
         for (key, message) in problems {

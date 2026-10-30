@@ -3,7 +3,10 @@ use zenith_bar::modules::ViewState;
 use zenith_bar::modules::logo::{LogoConfig, model};
 
 fn logo(icon: &str) -> LogoConfig {
-    LogoConfig { icon: icon.into() }
+    LogoConfig {
+        icon: icon.into(),
+        ..LogoConfig::default()
+    }
 }
 
 #[test]

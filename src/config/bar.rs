@@ -5,6 +5,7 @@ use std::borrow::Cow;
 use schemars::{JsonSchema, Schema, SchemaGenerator, json_schema};
 use serde::{Deserialize, Deserializer, de};
 
+/// The `[bar]` table: placement, geometry and motion of every bar.
 #[derive(Clone, Debug, PartialEq, Deserialize, JsonSchema)]
 #[serde(default)]
 pub struct BarConfig {
