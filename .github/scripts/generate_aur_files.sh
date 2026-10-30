@@ -16,7 +16,7 @@ pkgname="zenith-bar"
 _reponame="Zenith"
 pkgver="${release_tag#v}"
 pkgrel="${PKGREL:-1}"
-maintainer="${AUR_MAINTAINER:-CPT-Dawn <dawnsp0456@gmail.com>}"
+maintainer="${AUR_MAINTAINER:-CPT-Dawn <ping@cptdawn.dev>}"
 repo="${GITHUB_REPOSITORY:-CPT-Dawn/Zenith}"
 server_url="${GITHUB_SERVER_URL:-https://github.com}"
 
