@@ -61,6 +61,10 @@ hot = 85
 # sensor = "k10temp"
 # sensor = "/sys/class/hwmon/hwmon3/temp1_input"
 
+[todo]
+# No settings of its own. Todos live in $XDG_DATA_HOME/zenith-bar/todos.json,
+# not here, so your dotfiles stay clean. Click the count to manage them.
+
 [theme]
 # Built-in theme: "midnight-bloom".
 name = "midnight-bloom"

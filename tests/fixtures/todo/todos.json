@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "items": [
+    { "text": "read a book", "done": false, "priority": "low" },
+    { "text": "buy milk", "done": true, "priority": "normal" },
+    { "text": "ship v2", "done": false, "priority": "high" },
+    { "text": "no priority means normal" }
+  ]
+}

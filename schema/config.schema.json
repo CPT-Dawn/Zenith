@@ -396,6 +396,45 @@
         "midnight-bloom"
       ],
       "type": "string"
+    },
+    "TodoConfig": {
+      "additionalProperties": false,
+      "description": "The `[todo]` table. Todos themselves live in `$XDG_DATA_HOME/zenith-bar/todos.json`.",
+      "properties": {
+        "on_click": {
+          "default": null,
+          "description": "Shell command run on left click, instead of the module's built-in action.\nAn empty string disables the built-in action without running anything.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_right_click": {
+          "default": null,
+          "description": "Shell command run on right click, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_down": {
+          "default": null,
+          "description": "Shell command run on scroll down, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_up": {
+          "default": null,
+          "description": "Shell command run on scroll up, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
     }
   },
   "properties": {
@@ -419,6 +458,9 @@
     },
     "theme": {
       "$ref": "#/definitions/ThemeConfig"
+    },
+    "todo": {
+      "$ref": "#/definitions/TodoConfig"
     }
   },
   "title": "Zenith bar config",

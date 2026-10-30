@@ -1133,6 +1133,7 @@ name = "zenith-bar"
 version = "2.0.0-dev"
 dependencies = [
  "env_logger",
+ "gio",
  "glib-build-tools",
  "gtk4",
  "gtk4-layer-shell",
