@@ -36,6 +36,11 @@ right = ["media", "system"]
 # makes the clock wake every second instead of every minute.
 format = "%H:%M"
 
+[calendar]
+# strftime-style date format, e.g. "%A %d %B" or "%Y-%m-%d". The date is
+# redrawn once a day, at local midnight. Click it to open a month calendar.
+format = "%a %d %b"
+
 [logo]
 # A bundled zb-*-symbolic icon or any icon name from your icon theme.
 # An empty string hides the logo.
@@ -51,6 +56,29 @@ max_length = 40
 # Hide the module when nothing is playing, instead of showing "No media".
 # Clicking plays/pauses the player being shown.
 hide_when_idle = false
+[system]
+# Metrics to show, in order: any of "cpu", "memory", "temperature".
+metrics = ["cpu", "memory", "temperature"]
+# Seconds between refreshes (at least 1). One timer serves every metric.
+interval = 2
+
+[system.temperature]
+# From these °C the module turns warm, then hot (colour, icon and tooltip).
+warm = 70
+hot = 85
+# The CPU sensor is found automatically (k10temp, coretemp, zenpower, then
+# thermal zones). To pin one, give a hwmon name, a thermal zone type or a path:
+# sensor = "k10temp"
+# sensor = "/sys/class/hwmon/hwmon3/temp1_input"
+
+[theme]
+# Built-in theme: "midnight-bloom".
+name = "midnight-bloom"
+# Optional overrides, layered above the theme (your style.css still wins):
+# accent = "#8de3dc"       # signature colour; tinted borders and glow follow it
+# surface_opacity = 0.78   # bar background opacity, 0 to 1
+# radius = 10              # module pill corner radius, in pixels
+# See docs/theming.md for every --zb-* variable and zb-* class.
 
 # Click actions: every module table also takes on_click, on_right_click,
 # on_scroll_up and on_scroll_down. Each is a shell command, run detached, that

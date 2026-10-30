@@ -1,0 +1,6 @@
+/* motion = "off", or the system prefers reduced motion: nothing moves, changes are instant. */
+* {
+  transition-duration: 0s;
+  transition-delay: 0s;
+  animation-name: none;
+}

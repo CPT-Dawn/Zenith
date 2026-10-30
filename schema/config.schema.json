@@ -60,6 +60,50 @@
       },
       "type": "object"
     },
+    "CalendarConfig": {
+      "additionalProperties": false,
+      "description": "The `[calendar]` table.",
+      "properties": {
+        "format": {
+          "default": "%a %d %b",
+          "description": "strftime-style date format. The label is redrawn once a day, at local midnight.",
+          "type": "string"
+        },
+        "on_click": {
+          "default": null,
+          "description": "Shell command run on left click, instead of the module's built-in action.\nAn empty string disables the built-in action without running anything.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_right_click": {
+          "default": null,
+          "description": "Shell command run on right click, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_down": {
+          "default": null,
+          "description": "Shell command run on scroll down, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_up": {
+          "default": null,
+          "description": "Shell command run on scroll up, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "ClockConfig": {
       "additionalProperties": false,
       "description": "The `[clock]` table.",
@@ -235,6 +279,14 @@
       },
       "type": "object"
     },
+    "Metric": {
+      "enum": [
+        "cpu",
+        "memory",
+        "temperature"
+      ],
+      "type": "string"
+    },
     "Monitors": {
       "anyOf": [
         {
@@ -262,11 +314,152 @@
         "bottom"
       ],
       "type": "string"
+    },
+    "SystemConfig": {
+      "additionalProperties": false,
+      "description": "The `[system]` table.",
+      "properties": {
+        "interval": {
+          "default": 2,
+          "description": "Seconds between refreshes (at least 1). One timer serves every metric and every bar.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "metrics": {
+          "description": "Metrics to show, in order: any of `cpu`, `memory`, `temperature`.",
+          "items": {
+            "$ref": "#/definitions/Metric"
+          },
+          "type": "array"
+        },
+        "on_click": {
+          "default": null,
+          "description": "Shell command run on left click, instead of the module's built-in action.\nAn empty string disables the built-in action without running anything.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_right_click": {
+          "default": null,
+          "description": "Shell command run on right click, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_down": {
+          "default": null,
+          "description": "Shell command run on scroll down, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_up": {
+          "default": null,
+          "description": "Shell command run on scroll up, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "temperature": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/TemperatureConfig"
+            }
+          ],
+          "description": "CPU temperature thresholds and sensor."
+        }
+      },
+      "type": "object"
+    },
+    "TemperatureConfig": {
+      "additionalProperties": false,
+      "description": "The `[system.temperature]` table.",
+      "properties": {
+        "hot": {
+          "default": 85,
+          "description": "From this many °C the module gets the `zb-hot` state.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sensor": {
+          "default": null,
+          "description": "Pin the sensor instead of finding it: a hwmon chip name (`k10temp`), a thermal\nzone type (`x86_pkg_temp`) or an absolute path to a temperature file.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "warm": {
+          "default": 70,
+          "description": "From this many °C the module gets the `zb-warm` state.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "ThemeConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "accent": {
+          "default": null,
+          "description": "Signature colour, overriding the theme's `--zb-accent` (e.g. `\"#ff79c6\"`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "allOf": [
+            {
+              "$ref": "#/definitions/ThemeName"
+            }
+          ],
+          "description": "Built-in theme to start from."
+        },
+        "radius": {
+          "default": null,
+          "description": "Corner radius of module pills in pixels, overriding `--zb-module-radius`.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "surface_opacity": {
+          "default": null,
+          "description": "Opacity of the bar surface from 0 (clear) to 1 (opaque), overriding `--zb-surface-opacity`.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "ThemeName": {
+      "description": "A built-in theme. Only the selected one is ever parsed.",
+      "enum": [
+        "midnight-bloom"
+      ],
+      "type": "string"
     }
   },
   "properties": {
     "bar": {
       "$ref": "#/definitions/BarConfig"
+    },
+    "calendar": {
+      "$ref": "#/definitions/CalendarConfig"
     },
     "clock": {
       "$ref": "#/definitions/ClockConfig"
@@ -279,6 +472,12 @@
     },
     "media": {
       "$ref": "#/definitions/MediaConfig"
+    },
+    "system": {
+      "$ref": "#/definitions/SystemConfig"
+    },
+    "theme": {
+      "$ref": "#/definitions/ThemeConfig"
     }
   },
   "title": "Zenith bar config",

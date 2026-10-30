@@ -5,15 +5,19 @@ use std::rc::Rc;
 
 use crate::config::ResolvedConfig;
 use crate::modules::ModuleId;
+use crate::modules::calendar::source::CalendarSource;
 use crate::modules::clock::source::ClockSource;
 use crate::modules::logo::source::LogoSource;
 use crate::modules::media::source::MediaSource;
+use crate::modules::system::source::SystemSource;
 
 #[derive(Clone, Default)]
 pub struct Sources {
     pub clock: Option<Rc<ClockSource>>,
     pub logo: Option<Rc<LogoSource>>,
     pub media: Option<Rc<MediaSource>>,
+    pub calendar: Option<Rc<CalendarSource>>,
+    pub system: Option<Rc<SystemSource>>,
 }
 
 impl Sources {
@@ -23,6 +27,9 @@ impl Sources {
             clock: on(ModuleId::Clock).then(|| ClockSource::start(config.clock.clone())),
             logo: on(ModuleId::Logo).then(|| LogoSource::start(&config.logo)),
             media: on(ModuleId::Media).then(|| MediaSource::start(config.media.clone())),
+            calendar: on(ModuleId::Calendar)
+                .then(|| CalendarSource::start(config.calendar.clone())),
+            system: on(ModuleId::System).then(|| SystemSource::start(config.system.clone())),
         }
     }
 }

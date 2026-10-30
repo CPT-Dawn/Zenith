@@ -6,7 +6,9 @@ use gtk4_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
 
 use super::sources::Sources;
 use crate::config::{Position, ResolvedConfig};
-use crate::modules::{ModuleId, clock, logo, media};
+use crate::modules::calendar;
+use crate::modules::media;
+use crate::modules::{ModuleId, clock, logo, system};
 
 pub fn build(
     app: &gtk4::Application,
@@ -79,10 +81,8 @@ fn section(
             log::debug!("module `{id}` has no view yet, skipping");
             continue;
         };
-        widget.add_css_class("zb-module");
-        widget.add_css_class(&format!("zb-{id}"));
-        if config.bar.focal == Some(id) {
-            widget.add_css_class("zb-focal");
+        for class in config.module_classes(id) {
+            widget.add_css_class(&class);
         }
         widget.set_valign(gtk4::Align::Center);
         super::actions::attach(&widget, config.actions(id));
@@ -100,6 +100,14 @@ fn view(id: ModuleId, sources: &Sources) -> Option<gtk4::Widget> {
             .map(|s| clock::view::build(&s.state())),
         ModuleId::Logo => sources.logo.as_ref().map(|s| logo::view::build(&s.state())),
         ModuleId::Media => sources.media.as_ref().map(media::view::build),
+        ModuleId::Calendar => sources
+            .calendar
+            .as_ref()
+            .map(|s| calendar::view::build(&s.state())),
+        ModuleId::System => sources
+            .system
+            .as_ref()
+            .map(|s| system::view::build(&s.state())),
         _ => None,
     }
 }
