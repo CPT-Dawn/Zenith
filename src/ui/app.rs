@@ -52,7 +52,7 @@ pub fn run(options: Options) -> glib::ExitCode {
         let config = load_config(&config_path);
         let sources = Sources::start(&config);
         let style = Style::install(&display, &config, &style_path);
-        let bars = BarManager::start(app, &config, &sources);
+        let bars = BarManager::start(app, &display, &config, &sources);
         *runtime.borrow_mut() = Some(Runtime {
             _bars: bars,
             _style: style,

@@ -6,7 +6,9 @@ use gtk4_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
 
 use super::sources::Sources;
 use crate::config::{Position, ResolvedConfig};
-use crate::modules::{ModuleId, clock, logo, todo};
+use crate::modules::calendar;
+use crate::modules::todo;
+use crate::modules::{ModuleId, clock, logo, system};
 
 pub fn build(
     app: &gtk4::Application,
@@ -85,6 +87,7 @@ fn section(
             widget.add_css_class("zb-focal");
         }
         widget.set_valign(gtk4::Align::Center);
+        super::actions::attach(&widget, config.actions(id));
         section.append(&widget);
     }
     section
@@ -99,6 +102,14 @@ fn view(id: ModuleId, sources: &Sources) -> Option<gtk4::Widget> {
             .map(|s| clock::view::build(&s.state())),
         ModuleId::Logo => sources.logo.as_ref().map(|s| logo::view::build(&s.state())),
         ModuleId::Todo => sources.todo.as_ref().map(todo::view::build),
+        ModuleId::Calendar => sources
+            .calendar
+            .as_ref()
+            .map(|s| calendar::view::build(&s.state())),
+        ModuleId::System => sources
+            .system
+            .as_ref()
+            .map(|s| system::view::build(&s.state())),
         _ => None,
     }
 }

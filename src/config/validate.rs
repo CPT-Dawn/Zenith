@@ -4,6 +4,7 @@ use serde_json::{Map, Value};
 use toml_edit::{Document, Item, TableLike};
 
 use super::Diagnostic;
+use super::actions::ClickActions;
 use super::layout::SECTIONS;
 use super::raw::RawConfig;
 use crate::modules::ModuleId;
@@ -22,7 +23,27 @@ pub fn document(text: &str, document: &Document<&str>) -> Vec<Diagnostic> {
         &mut out,
     );
     layout(text, document, &mut out);
+    actions(text, document, &mut out);
     out
+}
+
+/// Click actions are strings. Checked here because serde loses positions inside
+/// the flattened `ClickActions`.
+fn actions(text: &str, document: &Document<&str>, out: &mut Vec<Diagnostic>) {
+    for id in ModuleId::ALL {
+        for key in ClickActions::KEYS {
+            let Some(item) = lookup(document, &[id.as_str(), key]) else {
+                continue;
+            };
+            if item.as_str().is_none() {
+                out.push(Diagnostic::at(
+                    text,
+                    item.span(),
+                    format!("`{key}` must be a string holding a shell command"),
+                ));
+            }
+        }
+    }
 }
 
 /// Module names must exist and appear at most once across all sections.
@@ -158,11 +179,16 @@ pub fn values(text: &str, document: &Document<&str>, raw: &RawConfig) -> Vec<Dia
         }
     }
 
-    // Per-module checks: (table, key, message).
-    let module_problems = [("clock", raw.clock.problems())];
+    // Per-module checks: (table, key, message). Keys may be dotted (`temperature.warm`).
+    let module_problems = [
+        ("clock", raw.clock.problems()),
+        ("calendar", raw.calendar.problems()),
+        ("system", raw.system.problems()),
+    ];
     for (table, problems) in module_problems {
         for (key, message) in problems {
-            out.push(at(&[table, key], message));
+            let path: Vec<&str> = std::iter::once(table).chain(key.split('.')).collect();
+            out.push(at(&path, message));
         }
     }
 

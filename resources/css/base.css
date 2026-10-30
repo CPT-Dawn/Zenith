@@ -47,6 +47,79 @@ window.zb-window {
   -gtk-icon-shadow: var(--zb-glow);
 }
 
+/* Calendar popover: a GtkCalendar dressed in the theme. */
+.zb-calendar-popover > contents {
+  padding: var(--zb-space-m);
+  border: 1px solid var(--zb-surface-border);
+  border-radius: var(--zb-bar-radius);
+  background-color: var(--zb-surface);
+  color: var(--zb-text);
+  font-family: var(--zb-font-family);
+  font-size: var(--zb-font-size);
+  font-feature-settings: "tnum";
+}
+
+.zb-calendar-popover calendar {
+  border: none;
+  background: none;
+  color: var(--zb-text);
+}
+
+.zb-calendar-popover calendar > header {
+  border: none;
+  background: none;
+}
+
+.zb-calendar-popover calendar > header > label {
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-calendar-popover calendar > header > button {
+  border: none;
+  border-radius: var(--zb-module-radius);
+  background: none;
+  box-shadow: none;
+  color: var(--zb-text-muted);
+}
+
+.zb-calendar-popover calendar > header > button:hover {
+  background-color: var(--zb-module-bg-hover);
+  color: var(--zb-text);
+}
+
+.zb-calendar-popover calendar > grid > label {
+  min-width: 2em;
+  min-height: 1.6em;
+  border-radius: var(--zb-module-radius);
+}
+
+.zb-calendar-popover calendar > grid > label.day-name {
+  color: var(--zb-text-muted);
+}
+
+.zb-calendar-popover calendar > grid > label.week-number {
+  color: var(--zb-text-dim);
+}
+
+.zb-calendar-popover calendar > grid > label.day-number.other-month {
+  color: var(--zb-text-dim);
+}
+
+.zb-calendar-popover calendar > grid > label.day-number:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-calendar-popover calendar > grid > label.day-number:selected {
+  background-color: var(--zb-module-bg-hover);
+  color: var(--zb-text);
+}
+
+.zb-calendar-popover calendar > grid > label.day-number.today {
+  background-color: var(--zb-accent);
+  color: var(--zb-surface);
+  font-weight: var(--zb-font-weight-strong);
+}
+
 /* State classes */
 .zb-warm {
   color: var(--zb-warm);
@@ -54,6 +127,7 @@ window.zb-window {
 
 .zb-hot {
   color: var(--zb-hot);
+  font-weight: var(--zb-font-weight-strong);
 }
 
 /* Todo: the bar button is just the module, not a GTK button */
