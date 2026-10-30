@@ -60,6 +60,50 @@
       },
       "type": "object"
     },
+    "CalendarConfig": {
+      "additionalProperties": false,
+      "description": "The `[calendar]` table.",
+      "properties": {
+        "format": {
+          "default": "%a %d %b",
+          "description": "strftime-style date format. The label is redrawn once a day, at local midnight.",
+          "type": "string"
+        },
+        "on_click": {
+          "default": null,
+          "description": "Shell command run on left click, instead of the module's built-in action.\nAn empty string disables the built-in action without running anything.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_right_click": {
+          "default": null,
+          "description": "Shell command run on right click, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_down": {
+          "default": null,
+          "description": "Shell command run on scroll down, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_up": {
+          "default": null,
+          "description": "Shell command run on scroll up, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
     "ClockConfig": {
       "additionalProperties": false,
       "description": "The `[clock]` table.",
@@ -211,6 +255,9 @@
   "properties": {
     "bar": {
       "$ref": "#/definitions/BarConfig"
+    },
+    "calendar": {
+      "$ref": "#/definitions/CalendarConfig"
     },
     "clock": {
       "$ref": "#/definitions/ClockConfig"

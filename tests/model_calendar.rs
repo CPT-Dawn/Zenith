@@ -11,6 +11,7 @@ fn at(time: &str) -> Zoned {
 fn calendar(format: &str) -> CalendarConfig {
     CalendarConfig {
         format: format.into(),
+        ..CalendarConfig::default()
     }
 }
 

@@ -36,6 +36,11 @@ right = ["media", "system"]
 # makes the clock wake every second instead of every minute.
 format = "%H:%M"
 
+[calendar]
+# strftime-style date format, e.g. "%A %d %B" or "%Y-%m-%d". The date is
+# redrawn once a day, at local midnight. Click it to open a month calendar.
+format = "%a %d %b"
+
 [logo]
 # A bundled zb-*-symbolic icon or any icon name from your icon theme.
 # An empty string hides the logo.
