@@ -6,6 +6,7 @@ use serde::Deserialize;
 
 use super::bar::BarConfig;
 use super::layout::LayoutConfig;
+use super::theme::ThemeConfig;
 use crate::modules::{clock::ClockConfig, logo::LogoConfig};
 
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, JsonSchema)]
@@ -15,4 +16,5 @@ pub struct RawConfig {
     pub layout: LayoutConfig,
     pub clock: ClockConfig,
     pub logo: LogoConfig,
+    pub theme: ThemeConfig,
 }

@@ -1,6 +1,7 @@
 //! The validated, typed config the UI consumes.
 
 use super::bar::{Monitors, Motion, Position};
+use super::theme::ThemeConfig;
 use crate::modules::{ModuleId, clock::ClockConfig, logo::LogoConfig};
 
 #[derive(Clone, Debug, PartialEq)]
@@ -9,8 +10,21 @@ pub struct ResolvedConfig {
     pub layout: Layout,
     pub clock: ClockConfig,
     pub logo: LogoConfig,
+    pub theme: ThemeConfig,
     /// Generated `:root { --zb-…: … }` block layered above the theme.
     pub css_overrides: String,
+}
+
+impl ResolvedConfig {
+    /// The config-given CSS classes of a module's view: `zb-module zb-<id>`, plus
+    /// `zb-focal` on the focal element. State classes come from the module's model.
+    pub fn module_classes(&self, id: ModuleId) -> Vec<String> {
+        let mut classes = vec!["zb-module".to_string(), format!("zb-{id}")];
+        if self.bar.focal == Some(id) {
+            classes.push("zb-focal".into());
+        }
+        classes
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]

@@ -17,6 +17,7 @@ pub use layout::{LayoutConfig, SECTIONS};
 pub use preset::Preset;
 pub use raw::RawConfig;
 pub use resolved::{Bar, Layout, ResolvedConfig};
+pub use theme::{Css, StyleLayer, ThemeConfig, ThemeName, stylesheets};
 
 /// Resolve config text, optionally on top of a preset. Empty text means all defaults.
 /// Diagnostic positions refer to `text`.
@@ -67,13 +68,14 @@ fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig
         motion: raw.bar.motion,
         focal,
     };
-    let css_overrides = theme::override_block(&bar);
+    let css_overrides = theme::override_block(&bar, &raw.theme);
 
     ResolvedConfig {
         bar,
         layout,
         clock: raw.clock,
         logo: raw.logo,
+        theme: raw.theme,
         css_overrides,
     }
 }
