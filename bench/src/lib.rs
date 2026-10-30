@@ -4,6 +4,7 @@
 //! session; everything here is pure and works on text or numbers.
 
 pub mod budget;
+pub mod cli;
 pub mod frame;
 pub mod measure;
 pub mod procfs;
