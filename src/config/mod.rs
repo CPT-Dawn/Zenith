@@ -2,21 +2,33 @@
 //!
 //! `run`, `check`, `init` and hot reload all go through [`resolve`].
 
+mod actions;
 mod bar;
 mod diagnostic;
 mod layout;
 mod preset;
 mod raw;
 mod resolved;
+pub mod schema;
 mod theme;
 mod validate;
 
+pub use actions::{Action, ClickActions, Gesture};
 pub use bar::{BarConfig, Monitors, Motion, Position};
 pub use diagnostic::Diagnostic;
 pub use layout::{LayoutConfig, SECTIONS};
 pub use preset::Preset;
 pub use raw::RawConfig;
 pub use resolved::{Bar, Layout, ResolvedConfig};
+pub use theme::{Css, REQUIRED_VARS, StyleLayer, ThemeConfig, ThemeName, stylesheets};
+
+/// The config file `init` writes: the preset's text, or the commented default starter.
+pub fn starter(preset: Option<Preset>) -> &'static str {
+    if let Some(preset) = preset {
+        match preset {}
+    }
+    include_str!("starter.toml")
+}
 
 /// Resolve config text, optionally on top of a preset. Empty text means all defaults.
 /// Diagnostic positions refer to `text`.
@@ -67,13 +79,16 @@ fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig
         motion: raw.bar.motion,
         focal,
     };
-    let css_overrides = theme::override_block(&bar);
+    let css_overrides = theme::override_block(&bar, &raw.theme);
 
     ResolvedConfig {
         bar,
         layout,
         clock: raw.clock,
         logo: raw.logo,
+        theme: raw.theme,
+        calendar: raw.calendar,
+        system: raw.system,
         css_overrides,
     }
 }
