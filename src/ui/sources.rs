@@ -8,12 +8,16 @@ use crate::modules::ModuleId;
 use crate::modules::calendar::source::CalendarSource;
 use crate::modules::clock::source::ClockSource;
 use crate::modules::logo::source::LogoSource;
+use crate::modules::media::source::MediaSource;
 use crate::modules::system::source::SystemSource;
+use crate::modules::todo::{self, source::TodoSource};
 
 #[derive(Clone, Default)]
 pub struct Sources {
     pub clock: Option<Rc<ClockSource>>,
     pub logo: Option<Rc<LogoSource>>,
+    pub todo: Option<Rc<TodoSource>>,
+    pub media: Option<Rc<MediaSource>>,
     pub calendar: Option<Rc<CalendarSource>>,
     pub system: Option<Rc<SystemSource>>,
 }
@@ -24,6 +28,8 @@ impl Sources {
         Self {
             clock: on(ModuleId::Clock).then(|| ClockSource::start(config.clock.clone())),
             logo: on(ModuleId::Logo).then(|| LogoSource::start(&config.logo)),
+            todo: on(ModuleId::Todo).then(|| TodoSource::start(todo::data_file())),
+            media: on(ModuleId::Media).then(|| MediaSource::start(config.media.clone())),
             calendar: on(ModuleId::Calendar)
                 .then(|| CalendarSource::start(config.calendar.clone())),
             system: on(ModuleId::System).then(|| SystemSource::start(config.system.clone())),

@@ -46,6 +46,16 @@ format = "%a %d %b"
 # An empty string hides the logo.
 icon = "zb-logo-symbolic"
 
+[media]
+# What's playing, from any MPRIS player. Placeholders: {title}, {artist},
+# {album}. Text next to an empty placeholder is dropped, so a track without
+# an artist shows just its title. Write {{ or }} for a literal brace.
+format = "{title} - {artist}"
+# Cut longer labels with "…" (the tooltip shows the whole label). 0 = no limit.
+max_length = 40
+# Hide the module when nothing is playing, instead of showing "No media".
+# Clicking plays/pauses the player being shown.
+hide_when_idle = false
 [system]
 # Metrics to show, in order: any of "cpu", "memory", "temperature".
 metrics = ["cpu", "memory", "temperature"]
@@ -60,6 +70,10 @@ hot = 85
 # thermal zones). To pin one, give a hwmon name, a thermal zone type or a path:
 # sensor = "k10temp"
 # sensor = "/sys/class/hwmon/hwmon3/temp1_input"
+
+[todo]
+# No settings of its own. Todos live in $XDG_DATA_HOME/zenith-bar/todos.json,
+# not here, so your dotfiles stay clean. Click the count to manage them.
 
 [theme]
 # Built-in theme: "midnight-bloom".

@@ -139,6 +139,13 @@ Each module also carries `zb-<module>`:
 | `zb-todo` | Todo list |
 | `zb-logo` | Logo |
 
+#### Media parts
+
+| Class | On |
+|---|---|
+| `zb-media-icon` | The play, pause or idle note icon. |
+| `zb-media-progress` | The hairline progress bar under the title (a `progressbar` with `trough` and `progress` nodes). Hidden when the track length is unknown or nothing plays. |
+
 ### State
 
 Modules add state classes while a state holds:
@@ -149,6 +156,21 @@ Modules add state classes while a state holds:
 | `zb-hot` | A metric crossed its critical threshold. |
 | `zb-playing` | Media is playing. |
 | `zb-paused` | Media is paused. |
+| `zb-urgent` | The todo module has an open high-priority todo (its icon also gains a `!`). |
+
+### Todo popover
+
+Inside `zb-todo-popover`:
+
+| Class | On |
+|---|---|
+| `zb-todo-row` | One todo. Also `zb-done` once completed, `zb-high` while open and high priority. |
+| `zb-todo-text` | A todo's text. |
+| `zb-todo-priority` | The priority button, plus `zb-priority-high`, `zb-priority-normal` or `zb-priority-low`. |
+| `zb-todo-action` | The edit and delete buttons. |
+| `zb-todo-add` | The add row: entry and priority picker. |
+| `zb-todo-list` | The list of todos. |
+| `zb-todo-empty` | The text shown when there are no todos. |
 
 ## Example `style.css`
 

@@ -1,0 +1,191 @@
+name: Release
+
+# Pushing a vX.Y.Z tag publishes a GitHub Release with git-cliff notes and
+# updates the zenith-bar AUR package. Pre-release tags (vX.Y.Z-rc.1) get a
+# GitHub pre-release and leave the AUR alone. Run it by hand with dry_run to
+# preview the notes, PKGBUILD and .SRCINFO as artifacts without publishing.
+
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release (example: v2.0.0)"
+        required: true
+      dry_run:
+        description: "Only build the notes and AUR files; publish nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+  DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+
+jobs:
+  notes:
+    name: Release notes
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    permissions:
+      contents: write
+    outputs:
+      stable: ${{ steps.kind.outputs.stable }}
+    steps:
+      - name: Install tools
+        run: pacman -Syu --noconfirm --needed git git-cliff github-cli
+
+      - name: Checkout the tag
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          fetch-depth: 0
+
+      - name: Classify the tag
+        id: kind
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "stable=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-[0-9A-Za-z.-]+$ ]]; then
+            echo "stable=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Not a release tag: $TAG" >&2
+            exit 1
+          fi
+
+      - name: Check the version matches Cargo.toml
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo_version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          if [[ "v$cargo_version" != "$TAG" ]]; then
+            echo "Tag $TAG does not match Cargo.toml version $cargo_version" >&2
+            exit 1
+          fi
+
+      - name: Render notes with git-cliff
+        run: |
+          git-cliff --current --strip header -o release-notes.md
+          cat release-notes.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload notes
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+
+      - name: Publish GitHub Release
+        if: env.DRY_RUN != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          args=(--verify-tag --title "Zenith ${TAG#v}" --notes-file release-notes.md)
+          [[ "${{ steps.kind.outputs.stable }}" == "true" ]] || args+=(--prerelease)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "Zenith ${TAG#v}" --notes-file release-notes.md
+          else
+            gh release create "$TAG" "${args[@]}"
+          fi
+
+  aur:
+    name: AUR package
+    needs: notes
+    if: needs.notes.outputs.stable == 'true'
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install tools
+        run: |
+          pacman -Syu --noconfirm --needed base-devel git openssh namcap
+          # makepkg refuses to run as root.
+          useradd --create-home builder
+
+      - name: Checkout the tag
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
+
+      - name: Configure SSH for the AUR
+        if: env.DRY_RUN != 'true'
+        shell: bash
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$AUR_SSH_PRIVATE_KEY" ]]; then
+            echo "Secret AUR_SSH_PRIVATE_KEY is not set." >&2
+            exit 1
+          fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          # Accept the key as-is or base64-encoded.
+          if grep -q "BEGIN .*PRIVATE KEY" <<<"$AUR_SSH_PRIVATE_KEY"; then
+            printf '%s\n' "$AUR_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/aur
+          else
+            printf '%s' "$AUR_SSH_PRIVATE_KEY" | tr -d '\r\n' | base64 -d > ~/.ssh/aur
+          fi
+          chmod 600 ~/.ssh/aur
+          ssh-keygen -y -f ~/.ssh/aur >/dev/null
+          ssh-keyscan -t ed25519,rsa aur.archlinux.org >> ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<'EOF'
+          Host aur.archlinux.org
+            User aur
+            IdentityFile ~/.ssh/aur
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+
+      - name: Clone the AUR repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$DRY_RUN" == "true" ]]; then
+            mkdir aur-repo
+          else
+            git clone ssh://aur@aur.archlinux.org/zenith-bar.git aur-repo
+          fi
+          chown -R builder: "$GITHUB_WORKSPACE"
+
+      - name: Generate PKGBUILD and .SRCINFO
+        working-directory: aur-repo
+        run: |
+          runuser -u builder -- bash ../.github/scripts/generate_aur_files.sh --tag "$TAG"
+          namcap PKGBUILD
+          cat PKGBUILD >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload AUR files
+        uses: actions/upload-artifact@v4
+        with:
+          name: aur-files
+          path: |
+            aur-repo/PKGBUILD
+            aur-repo/.SRCINFO
+          include-hidden-files: true
+
+      - name: Push to the AUR
+        if: env.DRY_RUN != 'true'
+        shell: bash
+        working-directory: aur-repo
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$PWD"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add PKGBUILD .SRCINFO
+          if git diff --cached --quiet; then
+            echo "AUR package already up to date."
+            exit 0
+          fi
+          git commit -m "zenith-bar: update to ${TAG#v}"
+          git push origin master

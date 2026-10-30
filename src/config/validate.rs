@@ -185,6 +185,7 @@ pub fn values(text: &str, document: &Document<&str>, raw: &RawConfig) -> Vec<Dia
         ("theme", raw.theme.problems()),
         ("calendar", raw.calendar.problems()),
         ("system", raw.system.problems()),
+        ("media", raw.media.problems()),
     ];
     for (table, problems) in module_problems {
         for (key, message) in problems {

@@ -8,6 +8,8 @@ use super::bar::BarConfig;
 use super::layout::LayoutConfig;
 use super::theme::ThemeConfig;
 use crate::modules::calendar::CalendarConfig;
+use crate::modules::media::MediaConfig;
+use crate::modules::todo::TodoConfig;
 use crate::modules::{clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
 
 #[derive(Clone, Debug, Default, PartialEq, Deserialize, JsonSchema)]
@@ -17,7 +19,9 @@ pub struct RawConfig {
     pub layout: LayoutConfig,
     pub clock: ClockConfig,
     pub logo: LogoConfig,
+    pub media: MediaConfig,
     pub theme: ThemeConfig,
     pub calendar: CalendarConfig,
     pub system: SystemConfig,
+    pub todo: TodoConfig,
 }

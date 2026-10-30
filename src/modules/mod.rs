@@ -18,7 +18,9 @@ use std::time::Duration;
 pub mod calendar;
 pub mod clock;
 pub mod logo;
+pub mod media;
 pub mod system;
+pub mod todo;
 pub mod zoned_source;
 
 /// Every module Zenith knows about. Names are the strings used in `[layout]`.
