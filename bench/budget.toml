@@ -1,0 +1,17 @@
+# Performance budgets: the ceilings every preset must stay under, enforced in
+# CI by `cargo bench-bar --preset <name> --budget bench/budget.toml`.
+# Provisional; replaced by measured values plus headroom below.
+
+rss_mib = 240
+pss_mib = 64
+idle_cpu_percent = 1.0
+first_frame_ms = 600
+
+[bloom]
+wakeups_per_sec = 10
+
+[minimal]
+wakeups_per_sec = 3
+
+[classic]
+wakeups_per_sec = 10
