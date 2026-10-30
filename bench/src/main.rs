@@ -159,7 +159,14 @@ impl Session {
         if let Some(a) = &dbus_address {
             cmd.env("DBUS_SESSION_BUS_ADDRESS", a);
         }
-        let mut sway = Killer(cmd.spawn().map_err(|e| format!("starting sway: {e}"))?);
+        let mut sway = Killer(cmd.spawn().map_err(|e| {
+            let hint = if e.kind() == std::io::ErrorKind::PermissionDenied {
+                " (in a container, sway's file capabilities can't be granted; try `setcap -r $(command -v sway)`)"
+            } else {
+                ""
+            };
+            format!("starting sway: {e}{hint}")
+        })?);
 
         let deadline = Instant::now() + STARTUP_TIMEOUT;
         let wayland_display = loop {
