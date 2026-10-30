@@ -3,6 +3,8 @@
 <gresources>
   <gresource prefix="/dev/cptdawn/ZenithBar">
     <file>css/base.css</file>
+    <file>css/ambient.css</file>
+    <file>css/motion-off.css</file>
     <file>themes/midnight-bloom.css</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/zb-logo-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/zb-system-warm-symbolic.svg</file>

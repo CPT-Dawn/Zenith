@@ -61,6 +61,15 @@ hot = 85
 # sensor = "k10temp"
 # sensor = "/sys/class/hwmon/hwmon3/temp1_input"
 
+[theme]
+# Built-in theme: "midnight-bloom".
+name = "midnight-bloom"
+# Optional overrides, layered above the theme (your style.css still wins):
+# accent = "#8de3dc"       # signature colour; tinted borders and glow follow it
+# surface_opacity = 0.78   # bar background opacity, 0 to 1
+# radius = 10              # module pill corner radius, in pixels
+# See docs/theming.md for every --zb-* variable and zb-* class.
+
 # Click actions: every module table also takes on_click, on_right_click,
 # on_scroll_up and on_scroll_down. Each is a shell command, run detached, that
 # replaces the module's built-in action for that gesture (an empty string just

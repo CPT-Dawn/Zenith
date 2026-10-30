@@ -182,6 +182,7 @@ pub fn values(text: &str, document: &Document<&str>, raw: &RawConfig) -> Vec<Dia
     // Per-module checks: (table, key, message). Keys may be dotted (`temperature.warm`).
     let module_problems = [
         ("clock", raw.clock.problems()),
+        ("theme", raw.theme.problems()),
         ("calendar", raw.calendar.problems()),
         ("system", raw.system.problems()),
     ];

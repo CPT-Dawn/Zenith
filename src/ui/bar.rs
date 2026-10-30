@@ -80,10 +80,8 @@ fn section(
             log::debug!("module `{id}` has no view yet, skipping");
             continue;
         };
-        widget.add_css_class("zb-module");
-        widget.add_css_class(&format!("zb-{id}"));
-        if config.bar.focal == Some(id) {
-            widget.add_css_class("zb-focal");
+        for class in config.module_classes(id) {
+            widget.add_css_class(&class);
         }
         widget.set_valign(gtk4::Align::Center);
         super::actions::attach(&widget, config.actions(id));

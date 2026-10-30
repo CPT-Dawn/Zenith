@@ -2,6 +2,7 @@
 
 use super::actions::ClickActions;
 use super::bar::{Monitors, Motion, Position};
+use super::theme::ThemeConfig;
 use crate::modules::calendar::CalendarConfig;
 use crate::modules::{ModuleId, clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
 
@@ -11,6 +12,7 @@ pub struct ResolvedConfig {
     pub layout: Layout,
     pub clock: ClockConfig,
     pub logo: LogoConfig,
+    pub theme: ThemeConfig,
     pub calendar: CalendarConfig,
     pub system: SystemConfig,
     /// Generated `:root { --zb-…: … }` block layered above the theme.
@@ -18,6 +20,16 @@ pub struct ResolvedConfig {
 }
 
 impl ResolvedConfig {
+    /// The config-given CSS classes of a module's view: `zb-module zb-<id>`, plus
+    /// `zb-focal` on the focal element. State classes come from the module's model.
+    pub fn module_classes(&self, id: ModuleId) -> Vec<String> {
+        let mut classes = vec!["zb-module".to_string(), format!("zb-{id}")];
+        if self.bar.focal == Some(id) {
+            classes.push("zb-focal".into());
+        }
+        classes
+    }
+
     /// The click actions configured in a module's table. One arm per module.
     pub fn actions(&self, id: ModuleId) -> &ClickActions {
         match id {
