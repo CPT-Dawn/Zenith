@@ -179,14 +179,16 @@ pub fn values(text: &str, document: &Document<&str>, raw: &RawConfig) -> Vec<Dia
         }
     }
 
-    // Per-module checks: (table, key, message).
+    // Per-module checks: (table, key, message). Keys may be dotted (`temperature.warm`).
     let module_problems = [
         ("clock", raw.clock.problems()),
         ("calendar", raw.calendar.problems()),
+        ("system", raw.system.problems()),
     ];
     for (table, problems) in module_problems {
         for (key, message) in problems {
-            out.push(at(&[table, key], message));
+            let path: Vec<&str> = std::iter::once(table).chain(key.split('.')).collect();
+            out.push(at(&path, message));
         }
     }
 

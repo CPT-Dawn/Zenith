@@ -86,6 +86,7 @@ fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig
         clock: raw.clock,
         logo: raw.logo,
         calendar: raw.calendar,
+        system: raw.system,
         css_overrides,
     }
 }

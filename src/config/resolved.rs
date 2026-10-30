@@ -3,7 +3,7 @@
 use super::actions::ClickActions;
 use super::bar::{Monitors, Motion, Position};
 use crate::modules::calendar::CalendarConfig;
-use crate::modules::{ModuleId, clock::ClockConfig, logo::LogoConfig};
+use crate::modules::{ModuleId, clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ResolvedConfig {
@@ -12,6 +12,7 @@ pub struct ResolvedConfig {
     pub clock: ClockConfig,
     pub logo: LogoConfig,
     pub calendar: CalendarConfig,
+    pub system: SystemConfig,
     /// Generated `:root { --zb-…: … }` block layered above the theme.
     pub css_overrides: String,
 }
@@ -23,6 +24,7 @@ impl ResolvedConfig {
             ModuleId::Clock => &self.clock.actions,
             ModuleId::Logo => &self.logo.actions,
             ModuleId::Calendar => &self.calendar.actions,
+            ModuleId::System => &self.system.actions,
             _ => &ClickActions::NONE,
         }
     }

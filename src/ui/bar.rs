@@ -7,7 +7,7 @@ use gtk4_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
 use super::sources::Sources;
 use crate::config::{Position, ResolvedConfig};
 use crate::modules::calendar;
-use crate::modules::{ModuleId, clock, logo};
+use crate::modules::{ModuleId, clock, logo, system};
 
 pub fn build(
     app: &gtk4::Application,
@@ -104,6 +104,10 @@ fn view(id: ModuleId, sources: &Sources) -> Option<gtk4::Widget> {
             .calendar
             .as_ref()
             .map(|s| calendar::view::build(&s.state())),
+        ModuleId::System => sources
+            .system
+            .as_ref()
+            .map(|s| system::view::build(&s.state())),
         _ => None,
     }
 }
