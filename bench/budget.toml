@@ -1,0 +1,30 @@
+# Performance budgets: the ceilings every preset must stay under, enforced in
+# CI by `cargo bench-bar --preset <name> --budget bench/budget.toml`.
+#
+# Set from measurements (docs/performance.md, "v2 budgets"): the worst run
+# seen on the reference laptop (Sway gles2 and pixman) or the GitHub runner,
+# plus headroom for machine-to-machine noise. Tighten them when v2 gets
+# leaner; never loosen one without new measurements in the docs.
+
+# Worst seen 202.5 MiB (laptop; shared GTK/Mesa/driver mappings count in
+# full, and how much of them is resident depends on the machine's state; see
+# docs/performance.md). The GitHub runner reads about 43 MiB.
+rss_mib = 256
+# Worst seen 131.1 MiB (laptop, pixman); about 33 MiB on the runner.
+pss_mib = 160
+# Worst seen 0.067 % (one 10 ms tick per 15 s); v1 idled at 17-73 %.
+idle_cpu_percent = 0.5
+# Worst seen 246 ms (GitHub runner).
+first_frame_ms = 400
+
+[bloom]
+# Worst seen 1.63 /s.
+wakeups_per_sec = 5
+
+[minimal]
+# Worst seen 0.43 /s.
+wakeups_per_sec = 1.5
+
+[classic]
+# Worst seen 1.67 /s.
+wakeups_per_sec = 5

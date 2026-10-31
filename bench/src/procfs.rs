@@ -3,23 +3,32 @@
 use crate::measure::Sample;
 use std::io;
 
-/// Read a live [`Sample`] for `pid`, summing context switches over all threads.
+/// Read a live [`Sample`] for `pid`.
 pub fn sample(pid: u32) -> io::Result<Sample> {
     let base = format!("/proc/{pid}");
     let bad = |what: &str| io::Error::new(io::ErrorKind::InvalidData, format!("{base}: cannot parse {what}"));
 
     let cpu_ticks = parse_cpu_ticks(&std::fs::read_to_string(format!("{base}/stat"))?).ok_or_else(|| bad("stat"))?;
     let rss_kib = parse_rss_kib(&std::fs::read_to_string(format!("{base}/status"))?).ok_or_else(|| bad("VmRSS"))?;
+    let pss_kib =
+        parse_pss_kib(&std::fs::read_to_string(format!("{base}/smaps_rollup"))?).ok_or_else(|| bad("smaps_rollup Pss"))?;
+    Ok(Sample { cpu_ticks, rss_kib, pss_kib })
+}
 
-    let mut context_switches = 0;
-    for task in std::fs::read_dir(format!("{base}/task"))? {
+/// `(thread id, context switches)` for every live thread of `pid`, for [`crate::measure::Wakeups`].
+pub fn threads(pid: u32) -> io::Result<Vec<(u32, u64)>> {
+    let mut out = Vec::new();
+    for task in std::fs::read_dir(format!("/proc/{pid}/task"))? {
+        let task = task?;
+        let Some(tid) = task.file_name().to_str().and_then(|s| s.parse().ok()) else {
+            continue;
+        };
         // A thread may exit between readdir and read; that's fine, skip it.
-        if let Ok(status) = std::fs::read_to_string(task?.path().join("status")) {
-            context_switches += parse_context_switches(&status).unwrap_or(0);
+        if let Ok(status) = std::fs::read_to_string(task.path().join("status")) {
+            out.push((tid, parse_context_switches(&status).unwrap_or(0)));
         }
     }
-
-    Ok(Sample { cpu_ticks, rss_kib, context_switches })
+    Ok(out)
 }
 
 /// CPU time in clock ticks from a `/proc/<pid>/stat` line: user + system time
@@ -38,6 +47,14 @@ pub fn parse_cpu_ticks(stat: &str) -> Option<u64> {
 /// Resident set size in KiB, from the `VmRSS:` line of `/proc/<pid>/status`.
 pub fn parse_rss_kib(status: &str) -> Option<u64> {
     status_field(status, "VmRSS")
+}
+
+/// Proportional set size in KiB, from the `Pss:` line of `/proc/<pid>/smaps_rollup`.
+///
+/// Each shared page is divided by the number of processes mapping it, so the
+/// GTK, font and GPU-driver pages every desktop app maps count only in part.
+pub fn parse_pss_kib(rollup: &str) -> Option<u64> {
+    status_field(rollup, "Pss")
 }
 
 /// Voluntary + involuntary context switches from a `/proc/<pid>[/task/<tid>]/status`.
@@ -96,6 +113,18 @@ nonvoluntary_ctxt_switches:\t25
     }
 
     #[test]
+    fn pss_comes_from_smaps_rollup_in_kib() {
+        let rollup = "\
+5581a0000000-7ffd5f1ff000 ---p 00000000 00:00 0                          [rollup]
+Rss:              198328 kB
+Pss:               51336 kB
+Pss_Dirty:         20088 kB
+Shared_Clean:     168948 kB
+";
+        assert_eq!(parse_pss_kib(rollup), Some(51336));
+    }
+
+    #[test]
     fn context_switches_count_voluntary_and_involuntary() {
         assert_eq!(parse_context_switches(STATUS), Some(1525));
     }
@@ -118,6 +147,8 @@ nonvoluntary_ctxt_switches:\t25
 
         let pid = std::process::id();
         let sample = sample(pid).expect("sample own process");
+        let threads = threads(pid).expect("threads of own process");
+        let total: u64 = threads.iter().map(|(_, n)| n).sum();
         let leader_only =
             parse_context_switches(&std::fs::read_to_string("/proc/self/status").unwrap()).unwrap();
 
@@ -126,9 +157,9 @@ nonvoluntary_ctxt_switches:\t25
 
         assert!(sample.rss_kib > 0);
         assert!(
-            sample.context_switches >= leader_only + 50,
+            threads.len() >= 2 && total >= leader_only + 50,
             "process total {} should include the worker's 50+ wakeups on top of the leader's {}",
-            sample.context_switches,
+            total,
             leader_only
         );
     }

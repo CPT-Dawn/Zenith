@@ -8,6 +8,12 @@ fn main() -> ExitCode {
 
     match cli::parse(std::env::args().skip(1)) {
         Ok(Command::Run(options)) => {
+            let current = std::env::var_os("GSK_RENDERER");
+            if let Some(renderer) = zenith_bar::ui::renderer::default_for(current.as_deref()) {
+                // SAFETY: GTK has not started and no other thread exists yet,
+                // so nothing can be reading the environment concurrently.
+                unsafe { std::env::set_var("GSK_RENDERER", renderer) };
+            }
             let code = zenith_bar::ui::app::run(options);
             ExitCode::from(code.get() as u8)
         }

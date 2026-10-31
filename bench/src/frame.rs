@@ -2,16 +2,58 @@
 //!
 //! A frame reaches the compositor when a surface that has a buffer attached is
 //! committed, so we watch requests for `wl_surface.attach(<buffer>)` followed by
-//! `wl_surface.commit()` on the same surface.
+//! `wl_surface.commit()` on the same surface. The hot-reload smoke test also
+//! watches later frames and layer-shell anchors.
 
 use std::collections::HashSet;
+
+/// A client request the harness cares about.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Request {
+    /// A surface with a buffer attached was committed: a frame reached the compositor.
+    Frame,
+    /// `zwlr_layer_surface_v1.set_anchor(edges)`; edges is the protocol bitmask.
+    Anchor(u32),
+}
+
+impl Request {
+    /// Anchored to the bottom edge and not the top (layer-shell: top = 1, bottom = 2).
+    pub fn is_bottom_anchor(self) -> bool {
+        matches!(self, Request::Anchor(edges) if edges & 2 != 0 && edges & 1 == 0)
+    }
+}
+
+/// Reads a `WAYLAND_DEBUG=client` log line by line and reports [`Request`]s.
+#[derive(Debug, Default)]
+pub struct Requests {
+    /// Surfaces with a non-null buffer attached but not yet committed.
+    pending: HashSet<String>,
+}
+
+impl Requests {
+    pub fn feed(&mut self, line: &str) -> Option<Request> {
+        let (interface, id, method, args) = request(line)?;
+        match (interface, method) {
+            ("zwlr_layer_surface_v1", "set_anchor") => args.trim().trim_end_matches(')').trim().parse().ok().map(Request::Anchor),
+            ("wl_surface", "attach") if !args.trim_start().starts_with("nil") => {
+                self.pending.insert(id.to_owned());
+                None
+            }
+            ("wl_surface", "attach") => {
+                self.pending.remove(id);
+                None
+            }
+            ("wl_surface", "commit") if self.pending.remove(id) => Some(Request::Frame),
+            _ => None,
+        }
+    }
+}
 
 /// Feed log lines in order; [`FirstFrame::feed`] returns `true` exactly once,
 /// on the line that commits the first buffer.
 #[derive(Debug, Default)]
 pub struct FirstFrame {
-    /// Surfaces with a non-null buffer attached but not yet committed.
-    pending: HashSet<String>,
+    requests: Requests,
     seen: bool,
 }
 
@@ -20,35 +62,19 @@ impl FirstFrame {
         if self.seen {
             return false;
         }
-        let Some((surface, method, args)) = surface_request(line) else {
-            return false;
-        };
-        match method {
-            "attach" if !args.trim_start().starts_with("nil") => {
-                self.pending.insert(surface.to_owned());
-            }
-            "attach" => {
-                self.pending.remove(surface);
-            }
-            "commit" if self.pending.contains(surface) => {
-                self.seen = true;
-                return true;
-            }
-            _ => {}
-        }
-        false
+        self.seen = self.requests.feed(line) == Some(Request::Frame);
+        self.seen
     }
 }
 
-/// Split a client request line on a `wl_surface` into (id, method, args).
-fn surface_request(line: &str) -> Option<(&str, &str, &str)> {
+/// Split a client request line into (interface, id, method, args).
+fn request(line: &str) -> Option<(&str, &str, &str, &str)> {
     // Requests are marked `->`; events (compositor to client) are not.
     let call = line.split_once("-> ")?.1.trim_start();
-    let rest = call.strip_prefix("wl_surface")?;
-    let rest = rest.strip_prefix('@').or_else(|| rest.strip_prefix('#'))?;
+    let (interface, rest) = call.split_once(['@', '#'])?;
     let (id, rest) = rest.split_once('.')?;
     let (method, args) = rest.split_once('(')?;
-    Some((id, method, args))
+    Some((interface, id, method, args))
 }
 
 #[cfg(test)]
@@ -87,5 +113,25 @@ mod tests {
             "[ 512.400]  -> wl_surface@22.commit()",
         ];
         assert_eq!(first_frame_line(&log), Some(5));
+    }
+
+    #[test]
+    fn every_buffer_commit_is_a_frame_and_anchors_are_reported() {
+        let log = [
+            "[ 1.0] {Default Queue}  -> zwlr_layer_surface_v1#21.set_anchor(13)",
+            "[ 2.0] {Default Queue}  -> wl_surface#20.attach(wl_buffer#35, 0, 0)",
+            "[ 2.1] {Default Queue}  -> wl_surface#20.commit()",
+            "[ 3.0] {Default Queue}  -> wl_surface#20.commit()",
+            "[ 4.0] {Default Queue}  -> wl_surface#20.attach(wl_buffer#36, 0, 0)",
+            "[ 4.1] {Default Queue}  -> wl_surface#20.commit()",
+            // As read from the pipe: with its newline.
+            "[ 5.0]  -> zwlr_layer_surface_v1@40.set_anchor(14)\n",
+            "[ 6.0] zwlr_layer_surface_v1#21.configure(1234, 1920, 34)",
+        ];
+        let mut requests = Requests::default();
+        let seen: Vec<Request> = log.iter().filter_map(|l| requests.feed(l)).collect();
+        assert_eq!(seen, vec![Request::Anchor(13), Request::Frame, Request::Frame, Request::Anchor(14)]);
+        assert!(Request::Anchor(14).is_bottom_anchor());
+        assert!(!Request::Anchor(13).is_bottom_anchor());
     }
 }

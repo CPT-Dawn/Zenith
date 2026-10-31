@@ -1,10 +1,15 @@
 name: Benchmark
 
+# Seam 3: every preset runs under headless Sway, must stay within its
+# Performance budget (bench/budget.toml), and must start and hot-reload.
+# See docs/performance.md for the method and the numbers behind the budgets.
+
 on:
   push:
     paths:
       - "bench/**"
       - "src/**"
+      - "resources/**"
       - "Cargo.toml"
       - "Cargo.lock"
       - ".github/workflows/bench.yml"
@@ -24,7 +29,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             base-devel git rust sway dbus mesa gtk4 gtk4-layer-shell \
-            ttf-dejavu playerctl
+            ttf-dejavu
           # Arch ships sway with cap_sys_nice, which a container can't grant,
           # so exec fails with EPERM. Headless benchmarking doesn't need it.
           setcap -r /usr/bin/sway
@@ -38,20 +43,23 @@ jobs:
       - name: Build Zenith (release)
         run: cargo build --release --locked
 
-      - name: Run benchmark under headless Sway
+      - name: Benchmark and smoke-test every preset under headless Sway
         shell: bash
         run: |
-          set -euo pipefail
-          # v1 ships `zenith`; v2 renames the binary to `zenith-bar`.
-          bin=target/release/zenith-bar
-          [[ -x $bin ]] || bin=target/release/zenith
-          args=(--bin "$bin" --renderer pixman --require-compositor)
-          # Budgets land once v2 has a measured baseline (see docs/performance.md).
-          [[ -f bench/budget.toml ]] && args+=(--budget bench/budget.toml)
-          cargo bench-bar "${args[@]}" | tee bench-result.txt
-          {
-            echo '### Benchmark (GitHub runner, software rendering)'
-            echo '```'
-            cat bench-result.txt
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          set -uo pipefail
+          status=0
+          echo '### Benchmark (GitHub runner, Sway pixman, default renderer)' >> "$GITHUB_STEP_SUMMARY"
+          for preset in bloom minimal classic; do
+            echo "::group::$preset"
+            cargo bench-bar --bin target/release/zenith-bar --preset "$preset" \
+              --renderer pixman --require-compositor --smoke \
+              --budget bench/budget.toml 2>&1 | tee "bench-$preset.txt"
+            code=${PIPESTATUS[0]}
+            echo "::endgroup::"
+            if (( code != 0 )); then
+              echo "::error title=Benchmark ($preset)::exit $code, see the log above"
+              status=1
+            fi
+            { echo '```'; cat "bench-$preset.txt"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          done
+          exit $status

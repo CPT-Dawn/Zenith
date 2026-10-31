@@ -11,9 +11,10 @@ use std::time::{Duration, Instant};
 
 use zenith_bench::budget::Budget;
 use zenith_bench::cli::{Options, USAGE};
-use zenith_bench::frame::FirstFrame;
-use zenith_bench::measure::{Measurements, measure};
+use zenith_bench::frame::{FirstFrame, Request, Requests};
+use zenith_bench::measure::{Measurements, Wakeups, measure};
 use zenith_bench::procfs;
+use zenith_bench::smoke;
 
 const EXIT_BUDGET: u8 = 1;
 const EXIT_ERROR: u8 = 2;
@@ -21,6 +22,10 @@ const EXIT_SKIP: u8 = 77;
 
 /// How long to wait for Sway's socket and for the bar's first frame.
 const STARTUP_TIMEOUT: Duration = Duration::from_secs(15);
+/// How often thread counters are read during the window (see [`Wakeups`]).
+const WAKEUP_SAMPLE_EVERY: Duration = Duration::from_secs(1);
+/// How long a running bar gets to react to an edit of its config or style.
+const RELOAD_TIMEOUT: Duration = Duration::from_secs(5);
 
 const SWAY_CONFIG: &str = "\
 # zenith-bench: a bare headless session. No swaybar, no xwayland, one output.
@@ -66,20 +71,27 @@ fn main() -> ExitCode {
 
 fn run(opts: &Options, sway: &Path) -> Result<ExitCode, String> {
     let budget = match &opts.budget {
-        Some(p) => Some(Budget::parse(&read(p)?)?),
+        Some(p) => Some(Budget::parse_for(&read(p)?, opts.preset.as_deref())?),
         None => None,
     };
     let bin = resolve_bin(&opts.bin)?;
 
-    let session = Session::start(sway, &opts.renderer)?;
-    let result = session.benchmark(&bin, opts);
+    let mut session = Session::start(sway, &opts.renderer)?;
+    let result = session.prepare(&bin, opts).and_then(|()| {
+        let m = session.benchmark(&bin, opts)?;
+        let failures = if opts.smoke { session.smoke(&bin, opts)? } else { Vec::new() };
+        Ok((m, failures))
+    });
     match &result {
-        Ok(_) => session.cleanup(),
-        Err(_) => eprintln!("zenith-bench: logs kept in {}", session.dir.display()),
+        Ok((_, failures)) if failures.is_empty() => session.cleanup(),
+        _ => eprintln!("zenith-bench: logs kept in {}", session.dir.display()),
     }
-    let m = result?;
+    let (m, failures) = result?;
 
     println!("zenith-bench: {}", bin.display());
+    if let Some(p) = &opts.preset {
+        println!("  preset {p}");
+    }
     println!(
         "  settle {} s, window {} s, sway renderer {}, CLK_TCK {}",
         opts.settle.as_secs_f64(),
@@ -88,6 +100,7 @@ fn run(opts: &Options, sway: &Path) -> Result<ExitCode, String> {
         clk_tck()
     );
     println!("  resident memory      {:>8.1} MiB", m.rss_mib);
+    println!("  proportional memory  {:>8.1} MiB", m.pss_mib);
     println!("  idle CPU             {:>8.3} %", m.idle_cpu_percent);
     println!("  wakeups              {:>8.2} /s", m.wakeups_per_sec);
     match m.first_frame_ms {
@@ -95,18 +108,28 @@ fn run(opts: &Options, sway: &Path) -> Result<ExitCode, String> {
         None => println!("  time to first frame       n/a (no frame within {} s)", STARTUP_TIMEOUT.as_secs()),
     }
 
+    let mut failed = false;
+    if opts.smoke {
+        if failures.is_empty() {
+            println!("  startup + hot reload ok");
+        }
+        for f in &failures {
+            eprintln!("zenith-bench: smoke test failed: {f}");
+            failed = true;
+        }
+    }
     if let Some(budget) = budget {
         let violations = budget.check(&m);
-        if !violations.is_empty() {
-            for v in &violations {
-                let measured = v.measured.map_or("not measured".to_owned(), |x| format!("{x:.3}"));
-                eprintln!("zenith-bench: budget exceeded: {} = {measured} > {}", v.metric, v.limit);
-            }
-            return Ok(ExitCode::from(EXIT_BUDGET));
+        for v in &violations {
+            let measured = v.measured.map_or("not measured".to_owned(), |x| format!("{x:.3}"));
+            eprintln!("zenith-bench: budget exceeded: {} = {measured} > {}", v.metric, v.limit);
         }
-        println!("  budget               ok");
+        if violations.is_empty() {
+            println!("  budget               ok");
+        }
+        failed |= !violations.is_empty();
     }
-    Ok(ExitCode::SUCCESS)
+    Ok(if failed { ExitCode::from(EXIT_BUDGET) } else { ExitCode::SUCCESS })
 }
 
 /// A private headless Sway plus a private D-Bus session bus, in a temp dir.
@@ -117,6 +140,9 @@ struct Session {
     dbus_address: Option<String>,
     sway: Killer,
     dbus: Option<Killer>,
+    /// The config and style the bar runs with (see [`Session::prepare`]).
+    config: Option<PathBuf>,
+    style: Option<PathBuf>,
 }
 
 impl Session {
@@ -185,7 +211,48 @@ impl Session {
             thread::sleep(Duration::from_millis(50));
         };
 
-        Ok(Session { dir, runtime, wayland_display, dbus_address, sway, dbus })
+        Ok(Session { dir, runtime, wayland_display, dbus_address, sway, dbus, config: None, style: None })
+    }
+
+    /// Decide the config and style. A preset's config comes from the binary
+    /// itself (`init --preset`). The smoke test edits both files, so it gets
+    /// private copies and never touches the caller's.
+    fn prepare(&mut self, bin: &Path, opts: &Options) -> Result<(), String> {
+        self.config = opts.config.as_deref().map(absolute);
+        self.style = opts.style.as_deref().map(absolute);
+        if let Some(preset) = &opts.preset {
+            let path = self.dir.join("preset.toml");
+            let out = Command::new(bin)
+                .args(["init", "--preset", preset, "--force", "--config"])
+                .arg(&path)
+                .stdin(Stdio::null())
+                .output()
+                .map_err(|e| format!("running {} init: {e}", bin.display()))?;
+            if !out.status.success() {
+                return Err(format!(
+                    "`{} init --preset {preset}` failed ({}): {}",
+                    bin.display(),
+                    out.status,
+                    String::from_utf8_lossy(&out.stderr).trim()
+                ));
+            }
+            self.config = Some(path);
+        }
+        if opts.smoke {
+            let copy = |from: &Option<PathBuf>, name: &str| -> Result<PathBuf, String> {
+                let text = match from {
+                    Some(p) => read(p)?,
+                    None => String::new(),
+                };
+                let to = self.dir.join(name);
+                fs::write(&to, text).map_err(|e| format!("writing {}: {e}", to.display()))?;
+                Ok(to)
+            };
+            let (config, style) = (copy(&self.config, "config.toml")?, copy(&self.style, "style.css")?);
+            self.config = Some(config);
+            self.style = Some(style);
+        }
+        Ok(())
     }
 
     fn bar_command(&self, bin: &Path, opts: &Options) -> Command {
@@ -207,11 +274,11 @@ impl Session {
         if let Some(a) = &self.dbus_address {
             cmd.env("DBUS_SESSION_BUS_ADDRESS", a);
         }
-        if let Some(c) = &opts.config {
-            cmd.env("ZENITH_CONFIG", absolute(c)).env("ZENITH_BAR_CONFIG", absolute(c));
+        if let Some(c) = &self.config {
+            cmd.env("ZENITH_CONFIG", c).env("ZENITH_BAR_CONFIG", c);
         }
-        if let Some(s) = &opts.style {
-            cmd.env("ZENITH_STYLE", absolute(s)).env("ZENITH_BAR_STYLE", absolute(s));
+        if let Some(s) = &self.style {
+            cmd.env("ZENITH_STYLE", s).env("ZENITH_BAR_STYLE", s);
         }
         for (k, v) in &opts.env {
             cmd.env(k, v);
@@ -244,16 +311,42 @@ impl Session {
 
         thread::sleep(opts.settle);
         alive(&mut bar)?;
+        let threads = || procfs::threads(pid).map_err(|e| e.to_string());
+        let mut wakeups = Wakeups::default();
         let before = procfs::sample(pid).map_err(|e| e.to_string())?;
+        wakeups.sample(&threads()?);
         let start = Instant::now();
-        thread::sleep(opts.window);
+        while let Some(left) = opts.window.checked_sub(start.elapsed()).filter(|d| !d.is_zero()) {
+            thread::sleep(left.min(WAKEUP_SAMPLE_EVERY));
+            wakeups.sample(&threads()?);
+        }
         let after = procfs::sample(pid).map_err(|e| e.to_string())?;
         let elapsed = start.elapsed();
         alive(&mut bar)?;
+        // After the window, so capturing never lands in the measurements.
+        if let Some(png) = &opts.screenshot {
+            self.screenshot(png)?;
+        }
 
-        let mut m = measure(&before, &after, elapsed, clk_tck());
+        let mut m = measure(&before, &after, wakeups.total(), elapsed, clk_tck());
         m.first_frame_ms = first_frame_ms;
         Ok(m)
+    }
+
+    /// Save a PNG of the whole headless output with `grim`.
+    fn screenshot(&self, png: &Path) -> Result<(), String> {
+        let grim = find_on_path("grim").ok_or("--screenshot needs `grim` on PATH")?;
+        let out = Command::new(grim)
+            .arg(absolute(png))
+            .env("WAYLAND_DISPLAY", &self.wayland_display)
+            .env("XDG_RUNTIME_DIR", &self.runtime)
+            .stdin(Stdio::null())
+            .output()
+            .map_err(|e| format!("running grim: {e}"))?;
+        if !out.status.success() {
+            return Err(format!("grim failed ({}): {}", out.status, String::from_utf8_lossy(&out.stderr).trim()));
+        }
+        Ok(())
     }
 
     /// Launch with `WAYLAND_DEBUG=client` and time spawn → first buffer commit.
@@ -291,10 +384,89 @@ impl Session {
         Ok(result)
     }
 
+    /// Startup and hot-reload smoke test on the live compositor: the bar must
+    /// draw, redraw on a style.css edit, re-anchor when its config moves it to
+    /// the bottom, and survive an invalid config. Returns what failed.
+    fn smoke(&self, bin: &Path, opts: &Options) -> Result<Vec<String>, String> {
+        let (Some(config), Some(style)) = (&self.config, &self.style) else {
+            return Err("smoke test needs its own config and style (see prepare)".into());
+        };
+        let mut cmd = self.bar_command(bin, opts);
+        cmd.env("WAYLAND_DEBUG", "client").stderr(Stdio::piped());
+        let mut bar = Killer(cmd.spawn().map_err(|e| format!("starting {}: {e}", bin.display()))?);
+        let stderr = bar.0.stderr.take().expect("piped stderr");
+        // The protocol log is kept with the other logs for when a step fails.
+        let mut log = fs::File::create(self.dir.join("smoke.log")).map_err(|e| e.to_string())?;
+        let (tx, rx) = mpsc::channel();
+        thread::spawn(move || {
+            use std::io::Write;
+            let mut requests = Requests::default();
+            let mut reader = BufReader::new(stderr);
+            let mut line = String::new();
+            while reader.read_line(&mut line).map(|n| n > 0).unwrap_or(false) {
+                let _ = log.write_all(line.as_bytes());
+                if let Some(r) = requests.feed(&line) {
+                    let _ = tx.send(r);
+                }
+                line.clear();
+            }
+        });
+        let expect = |want: fn(Request) -> bool, timeout: Duration| {
+            let deadline = Instant::now() + timeout;
+            while let Some(left) = deadline.checked_duration_since(Instant::now()) {
+                match rx.recv_timeout(left) {
+                    Ok(r) if want(r) => return true,
+                    Ok(_) => {}
+                    Err(_) => return false,
+                }
+            }
+            false
+        };
+        // Let the bar go quiet, then forget what it did before the next edit.
+        let settle = || {
+            thread::sleep(Duration::from_millis(500));
+            while rx.try_recv().is_ok() {}
+        };
+        let write = |path: &Path, text: &str| fs::write(path, text).map_err(|e| format!("writing {}: {e}", path.display()));
+
+        let mut failures = Vec::new();
+        if !expect(|r| r == Request::Frame, STARTUP_TIMEOUT) {
+            failures.push(format!("startup: no frame within {} s", STARTUP_TIMEOUT.as_secs()));
+            return Ok(failures);
+        }
+
+        settle();
+        write(style, &format!("{}\n.zb-bar {{ background: #ff0000; }}\n", read(style)?))?;
+        if !expect(|r| r == Request::Frame, RELOAD_TIMEOUT) {
+            failures.push("style.css edit: the bar did not redraw".to_owned());
+        }
+
+        settle();
+        write(config, &smoke::move_to_bottom(&read(config)?))?;
+        if !expect(Request::is_bottom_anchor, RELOAD_TIMEOUT) {
+            failures.push("config edit: the bar did not move to the bottom edge".to_owned());
+        }
+
+        write(config, "this is = = not toml\n")?;
+        thread::sleep(Duration::from_secs(2));
+        if !matches!(bar.0.try_wait(), Ok(None)) {
+            failures.push("invalid config: the bar exited instead of keeping its last good config".to_owned());
+        }
+        Ok(failures)
+    }
+
     fn cleanup(self) {
         drop(self.sway);
         drop(self.dbus);
-        let _ = fs::remove_dir_all(&self.dir);
+        // The document portal the bus activated keeps a FUSE mount in the
+        // runtime dir until it notices the bus is gone; retry until it has.
+        for _ in 0..50 {
+            if fs::remove_dir_all(&self.dir).is_ok() || !self.dir.exists() {
+                return;
+            }
+            thread::sleep(Duration::from_millis(100));
+        }
+        eprintln!("zenith-bench: warning: could not remove {}", self.dir.display());
     }
 }
 
@@ -314,6 +486,16 @@ fn start_dbus(dir: &Path) -> Result<(Killer, String), String> {
         Command::new(daemon)
             .args(["--session", "--nofork", "--nopidfile", "--print-address=1"])
             .current_dir(dir)
+            // Services this bus activates (xdg-desktop-portal and its
+            // backends) inherit its environment. Without this they would
+            // attach to the desktop session the harness was started from.
+            .env("XDG_RUNTIME_DIR", dir.join("runtime"))
+            .env("XDG_CURRENT_DESKTOP", "sway")
+            .env_remove("WAYLAND_DISPLAY")
+            .env_remove("DISPLAY")
+            .env_remove("SWAYSOCK")
+            .env_remove("HYPRLAND_INSTANCE_SIGNATURE")
+            .env_remove("NIRI_SOCKET")
             .stdin(Stdio::null())
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
