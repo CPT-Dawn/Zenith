@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Configuration reference
+    url: https://github.com/CPT-Dawn/Zenith/blob/main/docs/configuration.md
+    about: Every key with its default and an example. `zenith-bar check` explains config errors.

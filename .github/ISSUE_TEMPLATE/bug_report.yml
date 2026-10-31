@@ -1,0 +1,43 @@
+name: Bug report
+description: Something is broken, wrong or slower than it should be.
+labels: ["bug", "needs-triage"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead. Screenshots help.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Zenith version
+      description: Output of `zenith-bar --version`.
+      placeholder: zenith-bar 2.0.0
+    validations:
+      required: true
+  - type: input
+    id: compositor
+    attributes:
+      label: Compositor and version
+      placeholder: Hyprland 0.53.1
+    validations:
+      required: true
+  - type: input
+    id: distro
+    attributes:
+      label: Distribution and GTK version
+      placeholder: Arch Linux, gtk4 4.22.0
+  - type: textarea
+    id: config
+    attributes:
+      label: Config
+      description: Your `config.toml` (and `style.css` if relevant), trimmed to what reproduces the problem.
+      render: toml
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Output of `zenith-bar check`, and of `ZENITH_BAR_LOG=debug zenith-bar` around the problem.
+      render: text
