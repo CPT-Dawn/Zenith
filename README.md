@@ -28,13 +28,13 @@ Not on Arch? [Build from source](docs/installation.md#from-source): GTK 4.22+, g
 
 Then start it from your compositor. On Hyprland, with blur for the glass look:
 
-```ini
-exec-once = zenith-bar
-layerrule = blur on, match:namespace zenith-bar
-layerrule = ignore_alpha 0.3, match:namespace zenith-bar
+```lua
+-- hyprland.lua
+hl.on("hyprland.start", function() hl.exec_cmd("zenith-bar") end)
+hl.layer_rule({ name = "zenith-bar-blur", match = { namespace = "^zenith-bar$" }, blur = true, ignore_alpha = 0.3 })
 ```
 
-Sway, niri and river snippets are in [installation](docs/installation.md#compositor-notes).
+Still on `hyprland.conf`, or on Sway, niri or river? Those snippets are in [installation](docs/installation.md#compositor-notes).
 
 ## Configure
 

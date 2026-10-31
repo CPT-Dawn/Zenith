@@ -54,7 +54,25 @@ The layer-shell namespace is `zenith-bar`. Use it in any compositor rule that ma
 
 ### Hyprland
 
-In `~/.config/hypr/hyprland.conf`:
+With a Lua config (`~/.config/hypr/hyprland.lua`):
+
+```lua
+hl.on("hyprland.start", function()
+    hl.exec_cmd("zenith-bar")
+end)
+
+-- Smoked glass: blur what's behind the bar, but not the transparent gap around it.
+hl.layer_rule({
+    name         = "zenith-bar-blur",
+    match        = { namespace = "^zenith-bar$" },
+    blur         = true,
+    ignore_alpha = 0.3,
+})
+```
+
+This is the setup the README screenshots were taken with (Hyprland 0.57). To try the blur without reloading, pass the `hl.layer_rule` call to `hyprctl eval`.
+
+With a classic `~/.config/hypr/hyprland.conf`:
 
 ```ini
 exec-once = zenith-bar
