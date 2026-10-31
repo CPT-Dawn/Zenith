@@ -138,13 +138,17 @@ jobs:
           chmod 600 ~/.ssh/aur
           ssh-keygen -y -f ~/.ssh/aur >/dev/null
           ssh-keyscan -t ed25519,rsa aur.archlinux.org >> ~/.ssh/known_hosts
-          cat > ~/.ssh/config <<'EOF'
+          # Container jobs set HOME=/github/home, but ssh ignores $HOME and
+          # reads ~ from passwd (/root), so spell every path out.
+          cat > ~/.ssh/config <<EOF
           Host aur.archlinux.org
             User aur
-            IdentityFile ~/.ssh/aur
+            IdentityFile $HOME/.ssh/aur
+            UserKnownHostsFile $HOME/.ssh/known_hosts
             IdentitiesOnly yes
             StrictHostKeyChecking yes
           EOF
+          echo "GIT_SSH_COMMAND=ssh -F $HOME/.ssh/config" >> "$GITHUB_ENV"
 
       - name: Clone the AUR repository
         shell: bash
