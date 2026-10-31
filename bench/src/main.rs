@@ -323,10 +323,30 @@ impl Session {
         let after = procfs::sample(pid).map_err(|e| e.to_string())?;
         let elapsed = start.elapsed();
         alive(&mut bar)?;
+        // After the window, so capturing never lands in the measurements.
+        if let Some(png) = &opts.screenshot {
+            self.screenshot(png)?;
+        }
 
         let mut m = measure(&before, &after, wakeups.total(), elapsed, clk_tck());
         m.first_frame_ms = first_frame_ms;
         Ok(m)
+    }
+
+    /// Save a PNG of the whole headless output with `grim`.
+    fn screenshot(&self, png: &Path) -> Result<(), String> {
+        let grim = find_on_path("grim").ok_or("--screenshot needs `grim` on PATH")?;
+        let out = Command::new(grim)
+            .arg(absolute(png))
+            .env("WAYLAND_DISPLAY", &self.wayland_display)
+            .env("XDG_RUNTIME_DIR", &self.runtime)
+            .stdin(Stdio::null())
+            .output()
+            .map_err(|e| format!("running grim: {e}"))?;
+        if !out.status.success() {
+            return Err(format!("grim failed ({}): {}", out.status, String::from_utf8_lossy(&out.stderr).trim()));
+        }
+        Ok(())
     }
 
     /// Launch with `WAYLAND_DEBUG=client` and time spawn → first buffer commit.

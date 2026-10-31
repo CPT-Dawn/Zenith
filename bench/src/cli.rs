@@ -26,6 +26,8 @@ Options:
   --smoke               Also smoke-test hot reload (v2): a style.css edit must
                         redraw, moving the bar to the bottom must re-anchor it,
                         and an invalid config must not kill it
+  --screenshot <FILE>   After the window, save a PNG of the output (via `grim`)
+                        to check the bar renders correctly
   --require-compositor  Fail instead of skipping when `sway` is not installed
   -h, --help            Show this help
 
@@ -47,6 +49,8 @@ pub struct Options {
     pub budget: Option<PathBuf>,
     pub env: Vec<(String, String)>,
     pub require_compositor: bool,
+    /// Where to save a PNG of the idle bar, taken after the window.
+    pub screenshot: Option<PathBuf>,
     /// Sway's `WLR_RENDERER`; decides whether the bar gets GPU buffers.
     pub renderer: String,
 }
@@ -66,6 +70,7 @@ impl Options {
             budget: None,
             env: Vec::new(),
             require_compositor: false,
+            screenshot: None,
             renderer: "pixman".into(),
         };
         let mut args = args.into_iter();
@@ -87,6 +92,7 @@ impl Options {
                 }
                 "--renderer" => o.renderer = value()?,
                 "--require-compositor" => o.require_compositor = true,
+                "--screenshot" => o.screenshot = Some(PathBuf::from(value()?)),
                 other => return Err(format!("unknown option `{other}`")),
             }
         }
@@ -165,6 +171,13 @@ mod tests {
         let o = parse(&["--bin", "zenith-bar", "--preset", "minimal", "--smoke"]).unwrap();
         assert_eq!(o.preset.as_deref(), Some("minimal"));
         assert!(o.smoke);
+    }
+
+    #[test]
+    fn a_screenshot_of_the_idle_bar_is_opt_in() {
+        assert_eq!(parse(&["--bin", "zenith-bar"]).unwrap().screenshot, None);
+        let o = parse(&["--bin", "zenith-bar", "--screenshot", "bloom-cairo.png"]).unwrap();
+        assert_eq!(o.screenshot, Some(PathBuf::from("bloom-cairo.png")));
     }
 
     #[test]
