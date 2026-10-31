@@ -1,14 +1,14 @@
 //! The GTK application: single instance, config, sources, styles, bars and hot reload.
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 
 use gtk4::prelude::*;
 use gtk4::{gdk, gio, glib};
 
 use super::bar_manager::BarManager;
-use super::reload::{self, File, Outcome, Watched, Watcher};
+use super::reload::{self, Outcome, Watched, WatchedFile, Watcher};
 use super::sources::Sources;
 use super::style::Style;
 use crate::cli::Options;
@@ -62,11 +62,22 @@ pub fn run(options: Options) -> glib::ExitCode {
         let bars = BarManager::start(app, &display, &config, &sources);
 
         let weak = Rc::downgrade(&runtime);
+        let path = config_path.clone();
+        // Only the newest read of a burst of saves is applied.
+        let reads = Rc::new(Cell::new(0u64));
         let watcher = Watcher::start(Watched::new(&config_path, &style_path), move |files| {
-            if let Some(runtime) = weak.upgrade()
-                && let Some(runtime) = runtime.borrow_mut().as_mut()
-            {
-                runtime.reload(files);
+            if files.contains(&WatchedFile::Config) {
+                let (weak, reads) = (weak.clone(), reads.clone());
+                let read = reads.get() + 1;
+                reads.set(read);
+                read_config_async(&path, move |text| {
+                    if reads.get() == read {
+                        with_runtime(&weak, |runtime| runtime.reload_config(text));
+                    }
+                });
+            }
+            if files.contains(&WatchedFile::Style) {
+                with_runtime(&weak, Runtime::reload_style);
             }
         });
 
@@ -87,21 +98,25 @@ pub fn run(options: Options) -> glib::ExitCode {
     app.run_with_args(&["zenith-bar"])
 }
 
+fn with_runtime(weak: &Weak<RefCell<Option<Runtime>>>, f: impl FnOnce(&mut Runtime)) {
+    if let Some(runtime) = weak.upgrade()
+        && let Some(runtime) = runtime.borrow_mut().as_mut()
+    {
+        f(runtime);
+    }
+}
+
 impl Runtime {
-    fn reload(&mut self, files: &[File]) {
-        if files.contains(&File::Config) {
-            self.reload_config();
-        }
-        if files.contains(&File::Style) {
-            log::info!("style.css changed, reloading it");
-            self.style.reload_user();
-        }
+    fn reload_style(&mut self) {
+        log::info!("style.css changed, reloading it");
+        self.style.reload_user();
     }
 
-    /// Apply a saved config, or keep the running one if the edit is invalid.
-    fn reload_config(&mut self) {
+    /// Apply saved config text (`None`: it could not be read), or keep the running
+    /// config if the edit is invalid.
+    fn reload_config(&mut self, text: Option<String>) {
         let name = self.config_path.display().to_string();
-        let Some(text) = read_config(&self.config_path) else {
+        let Some(text) = text else {
             log::error!("{name}: keeping the running config");
             return;
         };
@@ -150,17 +165,40 @@ fn load_config(path: &Path) -> ResolvedConfig {
         log::error!("{}: using defaults", path.display());
         String::new()
     });
-    config::resolve(&text, None).unwrap_or_else(|diagnostics| {
+    config::resolve(&text).unwrap_or_else(|diagnostics| {
         let name = path.display().to_string();
         for diagnostic in diagnostics {
             log::error!("{}", diagnostic.render(&name));
         }
         log::error!("{name} has errors; using defaults");
-        config::resolve("", None).expect("defaults are valid")
+        config::resolve("").expect("defaults are valid")
     })
 }
 
-/// The config text: empty for a missing file, `None` (logged) if it cannot be read.
+/// Read the config off the main loop (ADR-0002) and hand `done` its text: empty for
+/// a missing file, `None` (logged) if it cannot be read.
+fn read_config_async(path: &Path, done: impl FnOnce(Option<String>) + 'static) {
+    let shown = path.display().to_string();
+    gio::File::for_path(path).load_contents_async(gio::Cancellable::NONE, move |result| {
+        done(match result {
+            Ok((bytes, _)) => match String::from_utf8(bytes.to_vec()) {
+                Ok(text) => Some(text),
+                Err(_) => {
+                    log::error!("{shown} is not UTF-8");
+                    None
+                }
+            },
+            Err(e) if e.matches(gio::IOErrorEnum::NotFound) => Some(String::new()),
+            Err(e) => {
+                log::error!("cannot read {shown}: {e}");
+                None
+            }
+        });
+    });
+}
+
+/// The config text at startup: empty for a missing file, `None` (logged) if it cannot
+/// be read. Synchronous on purpose: no bar exists yet, so there is nothing to block.
 fn read_config(path: &Path) -> Option<String> {
     match std::fs::read_to_string(path) {
         Ok(text) => Some(text),

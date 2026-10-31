@@ -3,7 +3,7 @@ use zenith_bar::config::{Action, Diagnostic, Gesture, RawConfig, ResolvedConfig,
 use zenith_bar::modules::ModuleId::{self, *};
 
 fn ok(text: &str) -> ResolvedConfig {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(config) => config,
         Err(diagnostics) => panic!("expected a valid config, got {diagnostics:#?}"),
     }
@@ -122,7 +122,7 @@ fn a_misspelt_action_key_is_reported_with_a_suggestion() {
     let text = "[logo]\non_clik = \"rofi\"\n";
 
     assert_eq!(
-        resolve(text, None),
+        resolve(text),
         Err(vec![Diagnostic {
             line: 2,
             column: 1,
@@ -134,14 +134,11 @@ fn a_misspelt_action_key_is_reported_with_a_suggestion() {
 
 #[test]
 fn an_action_that_is_not_a_string_is_reported_at_the_value() {
-    let errors: Vec<String> = resolve(
-        "[clock]\non_click = 5\n\n[logo]\non_scroll_up = [\"a\"]\n",
-        None,
-    )
-    .unwrap_err()
-    .iter()
-    .map(ToString::to_string)
-    .collect();
+    let errors: Vec<String> = resolve("[clock]\non_click = 5\n\n[logo]\non_scroll_up = [\"a\"]\n")
+        .unwrap_err()
+        .iter()
+        .map(ToString::to_string)
+        .collect();
 
     assert_eq!(
         errors,

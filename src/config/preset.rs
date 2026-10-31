@@ -1,13 +1,6 @@
-//! Built-in presets: a base layer the user's config is merged over.
-//!
-//! A preset is a complete config file. `init --preset` writes it verbatim, and
-//! [`super::resolve`] can lay any config text over it: tables merge key by key,
-//! except `[layout]`, which replaces the preset's layout as a whole (merging
-//! sections would leave a module in two places).
+//! Built-in presets: complete config files that `init --preset` writes verbatim.
 
 use std::str::FromStr;
-
-use toml::{Table, Value};
 
 /// A complete starter look: layout, geometry, motion and a theme.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -41,11 +34,6 @@ impl Preset {
             Preset::Classic => include_str!("presets/classic.toml"),
         }
     }
-
-    /// The preset as a TOML table, ready for [`overlay`].
-    pub(super) fn table(self) -> Table {
-        toml::from_str(self.text()).expect("built-in presets are valid TOML")
-    }
 }
 
 impl FromStr for Preset {
@@ -56,19 +44,5 @@ impl FromStr for Preset {
             .into_iter()
             .find(|preset| preset.as_str() == s)
             .ok_or(())
-    }
-}
-
-/// Lay `user` over `base`: user values win, tables merge, `[layout]` is replaced whole.
-pub(super) fn overlay(base: &mut Table, user: Table) {
-    for (key, value) in user {
-        match (base.get_mut(&key), value) {
-            (Some(Value::Table(base)), Value::Table(user)) if key != "layout" => {
-                overlay(base, user);
-            }
-            (_, value) => {
-                base.insert(key, value);
-            }
-        }
     }
 }

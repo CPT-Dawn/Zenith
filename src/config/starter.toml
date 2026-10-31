@@ -82,7 +82,7 @@ name = "midnight-bloom"
 # Optional overrides, layered above the theme (your style.css still wins):
 # accent = "#8de3dc"       # signature colour; tinted borders and glow follow it
 # surface_opacity = 0.78   # bar background opacity, 0 to 1
-# radius = 10              # module pill corner radius, in pixels
+# module_radius = 10       # module pill corner radius, in pixels ([bar] radius is the bar)
 # See docs/theming.md for every --zb-* variable and zb-* class.
 
 # Click actions: every module table also takes on_click, on_right_click,

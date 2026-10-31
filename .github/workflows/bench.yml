@@ -1,7 +1,8 @@
 name: Benchmark
 
 # Seam 3: every preset runs under headless Sway, must stay within its
-# Performance budget (bench/budget.toml), and must start and hot-reload.
+# Performance budget (bench/budget.toml), and must start, hot-reload, follow
+# output hotplug and pick up a config written after a first run (--smoke).
 # See docs/performance.md for the method and the numbers behind the budgets.
 
 on:

@@ -2,6 +2,7 @@
 
 use super::actions::ClickActions;
 use super::bar::{Monitors, Motion, Position};
+use super::layout::Section;
 use super::theme::ThemeConfig;
 use crate::modules::calendar::CalendarConfig;
 use crate::modules::media::MediaConfig;
@@ -67,6 +68,15 @@ pub struct Layout {
 }
 
 impl Layout {
+    /// The modules in one section, in order.
+    pub fn section(&self, section: Section) -> &[ModuleId] {
+        match section {
+            Section::Left => &self.left,
+            Section::Center => &self.center,
+            Section::Right => &self.right,
+        }
+    }
+
     /// Every module on the bar, left to right.
     pub fn modules(&self) -> impl Iterator<Item = ModuleId> + '_ {
         self.left

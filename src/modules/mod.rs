@@ -11,7 +11,7 @@
 
 use std::cell::{Cell, RefCell};
 use std::fmt;
-use std::rc::Rc;
+use std::rc::{Rc, Weak};
 use std::str::FromStr;
 use std::time::Duration;
 
@@ -155,5 +155,13 @@ impl<T: PartialEq> Shared<T> {
 
     pub fn with<R>(&self, f: impl FnOnce(&T) -> R) -> R {
         f(&self.value.borrow())
+    }
+}
+
+/// Run `f` on a source if it is still alive. Async callbacks hold their source weakly,
+/// so a source dropped by hot reload just ignores replies that arrive late.
+pub fn if_alive<T>(weak: &Weak<T>, f: impl FnOnce(&Rc<T>)) {
+    if let Some(source) = weak.upgrade() {
+        f(&source);
     }
 }

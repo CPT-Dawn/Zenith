@@ -16,6 +16,38 @@ pub enum Priority {
     Low,
 }
 
+impl Priority {
+    /// Every priority, most urgent first.
+    pub const ALL: [Priority; 3] = [Priority::High, Priority::Normal, Priority::Low];
+
+    /// The name the popover shows.
+    pub fn label(self) -> &'static str {
+        match self {
+            Priority::High => "High",
+            Priority::Normal => "Normal",
+            Priority::Low => "Low",
+        }
+    }
+
+    /// Its stable CSS class.
+    pub fn css_class(self) -> &'static str {
+        match self {
+            Priority::High => "zb-priority-high",
+            Priority::Normal => "zb-priority-normal",
+            Priority::Low => "zb-priority-low",
+        }
+    }
+
+    /// The priority a click on the badge moves to: high, normal, low, then high again.
+    pub fn next(self) -> Priority {
+        match self {
+            Priority::High => Priority::Normal,
+            Priority::Normal => Priority::Low,
+            Priority::Low => Priority::High,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Todo {
     pub id: u64,

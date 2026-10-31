@@ -18,7 +18,7 @@ pub fn check(options: &Options) -> u8 {
         }
     };
 
-    match config::resolve(&text, None) {
+    match config::resolve(&text) {
         Ok(_) => {
             println!("{shown} is valid");
             0

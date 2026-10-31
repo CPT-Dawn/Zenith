@@ -19,8 +19,10 @@ Stylesheets stack from lowest to highest priority. A later layer wins over an ea
 name = "midnight-bloom"   # built-in theme
 accent = "#ff79c6"        # optional: --zb-accent
 surface_opacity = 0.9     # optional, 0 to 1: --zb-surface-opacity
-radius = 6                # optional, pixels: --zb-module-radius
+module_radius = 6         # optional, pixels: --zb-module-radius
 ```
+
+Two radii, two keys: `[bar] radius` rounds the bar itself (`--zb-bar-radius`, always written, because it is bar geometry), and `[theme] module_radius` rounds the module pills inside it (`--zb-module-radius`, only written when set, so each theme keeps its own otherwise). Each key is named after the variable it sets.
 
 The overrides are variables like any other, so a theme's derived colours follow them. Midnight Bloom tints its borders, module backgrounds and glow from `--zb-accent`, so one `accent` line recolours all of them. `accent` takes a hex colour (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), a colour function (`rgb()`, `rgba()`, `hsl()`, `hsla()`, `hwb()`, `lab()`, `oklab()`, `oklch()`) or a colour name.
 
@@ -95,7 +97,7 @@ Every theme defines every variable below.
 |---|---|
 | `--zb-bar-height` | Bar height. Set from `[bar] height`. |
 | `--zb-bar-radius` | Bar corner radius. Set from `[bar] radius`. |
-| `--zb-module-radius` | Module pill corner radius. Overridden by `[theme] radius`. |
+| `--zb-module-radius` | Module pill corner radius. Overridden by `[theme] module_radius`. |
 | `--zb-space-xs` | Extra-small spacing. |
 | `--zb-space-s` | Small spacing: bar padding, section margin. |
 | `--zb-space-m` | Medium spacing: module padding. |

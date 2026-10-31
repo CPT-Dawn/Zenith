@@ -111,7 +111,7 @@ fn run(opts: &Options, sway: &Path) -> Result<ExitCode, String> {
     let mut failed = false;
     if opts.smoke {
         if failures.is_empty() {
-            println!("  startup + hot reload ok");
+            println!("  startup, hot reload, hotplug and first run ok");
         }
         for f in &failures {
             eprintln!("zenith-bench: smoke test failed: {f}");
@@ -384,75 +384,121 @@ impl Session {
         Ok(result)
     }
 
-    /// Startup and hot-reload smoke test on the live compositor: the bar must
-    /// draw, redraw on a style.css edit, re-anchor when its config moves it to
-    /// the bottom, and survive an invalid config. Returns what failed.
+    /// Smoke test on the live compositor: the bar must draw, redraw on a style.css
+    /// edit, re-anchor when its config moves it to the bottom, put a bar on a new
+    /// output and take it off again when the output goes, and survive an invalid
+    /// config. Then a fresh bar whose config directory does not exist yet must pick
+    /// up the config once `init` would have written it. Returns what failed.
     fn smoke(&self, bin: &Path, opts: &Options) -> Result<Vec<String>, String> {
         let (Some(config), Some(style)) = (&self.config, &self.style) else {
             return Err("smoke test needs its own config and style (see prepare)".into());
         };
-        let mut cmd = self.bar_command(bin, opts);
-        cmd.env("WAYLAND_DEBUG", "client").stderr(Stdio::piped());
-        let mut bar = Killer(cmd.spawn().map_err(|e| format!("starting {}: {e}", bin.display()))?);
-        let stderr = bar.0.stderr.take().expect("piped stderr");
-        // The protocol log is kept with the other logs for when a step fails.
-        let mut log = fs::File::create(self.dir.join("smoke.log")).map_err(|e| e.to_string())?;
-        let (tx, rx) = mpsc::channel();
-        thread::spawn(move || {
-            use std::io::Write;
-            let mut requests = Requests::default();
-            let mut reader = BufReader::new(stderr);
-            let mut line = String::new();
-            while reader.read_line(&mut line).map(|n| n > 0).unwrap_or(false) {
-                let _ = log.write_all(line.as_bytes());
-                if let Some(r) = requests.feed(&line) {
-                    let _ = tx.send(r);
-                }
-                line.clear();
-            }
-        });
-        let expect = |want: fn(Request) -> bool, timeout: Duration| {
-            let deadline = Instant::now() + timeout;
-            while let Some(left) = deadline.checked_duration_since(Instant::now()) {
-                match rx.recv_timeout(left) {
-                    Ok(r) if want(r) => return true,
-                    Ok(_) => {}
-                    Err(_) => return false,
-                }
-            }
-            false
-        };
-        // Let the bar go quiet, then forget what it did before the next edit.
-        let settle = || {
-            thread::sleep(Duration::from_millis(500));
-            while rx.try_recv().is_ok() {}
-        };
         let write = |path: &Path, text: &str| fs::write(path, text).map_err(|e| format!("writing {}: {e}", path.display()));
 
         let mut failures = Vec::new();
-        if !expect(|r| r == Request::Frame, STARTUP_TIMEOUT) {
+        let mut bar = LoggedBar::spawn(self.bar_command(bin, opts), &self.dir.join("smoke.log"))?;
+        if !bar.expect(|r, _| r == Request::Frame, STARTUP_TIMEOUT) {
             failures.push(format!("startup: no frame within {} s", STARTUP_TIMEOUT.as_secs()));
             return Ok(failures);
         }
 
-        settle();
+        bar.settle();
         write(style, &format!("{}\n.zb-bar {{ background: #ff0000; }}\n", read(style)?))?;
-        if !expect(|r| r == Request::Frame, RELOAD_TIMEOUT) {
+        if !bar.expect(|r, _| r == Request::Frame, RELOAD_TIMEOUT) {
             failures.push("style.css edit: the bar did not redraw".to_owned());
         }
 
-        settle();
+        bar.settle();
         write(config, &smoke::move_to_bottom(&read(config)?))?;
-        if !expect(Request::is_bottom_anchor, RELOAD_TIMEOUT) {
+        if !bar.expect(|r, _| r.is_bottom_anchor(), RELOAD_TIMEOUT) {
             failures.push("config edit: the bar did not move to the bottom edge".to_owned());
         }
 
+        bar.settle();
+        failures.extend(self.hotplug(&bar)?);
+
         write(config, "this is = = not toml\n")?;
         thread::sleep(Duration::from_secs(2));
-        if !matches!(bar.0.try_wait(), Ok(None)) {
+        if !bar.alive() {
             failures.push("invalid config: the bar exited instead of keeping its last good config".to_owned());
         }
+        // One instance per session: this bar must go before the first-run one starts.
+        drop(bar);
+
+        failures.extend(self.first_run(bin, opts)?);
         Ok(failures)
+    }
+
+    /// Plug in a second headless output, then unplug it: a bar must follow each.
+    fn hotplug(&self, bar: &LoggedBar) -> Result<Vec<String>, String> {
+        let before = self.outputs()?;
+        self.swaymsg(&["create_output"])?;
+        let added = self.outputs()?.into_iter().find(|o| !before.contains(o));
+        let Some(output) = added else {
+            return Err("`swaymsg create_output` added no output".into());
+        };
+
+        let mut failures = Vec::new();
+        if !bar.expect(|r, bars| r == Request::BarAdded && bars == 2, RELOAD_TIMEOUT)
+            || !bar.expect(|r, _| r == Request::Frame, RELOAD_TIMEOUT)
+        {
+            failures.push(format!("hotplug: no bar appeared on the new output {output}"));
+        }
+        bar.settle();
+        self.swaymsg(&["output", &output, "unplug"])?;
+        if !bar.expect(|r, bars| r == Request::BarRemoved && bars == 1, RELOAD_TIMEOUT) {
+            failures.push(format!("hotplug: the bar on {output} stayed after it was unplugged"));
+        } else if bar.settle_counting(Request::BarAdded) > 0 {
+            failures.push(format!("hotplug: a bar came back after {output} was unplugged"));
+        }
+        Ok(failures)
+    }
+
+    /// First run: the config directory does not exist when the bar starts. Creating
+    /// it and writing a config (what `zenith-bar init` does) must reach the bar.
+    fn first_run(&self, bin: &Path, opts: &Options) -> Result<Vec<String>, String> {
+        let dir = self.dir.join("first-run/zenith-bar");
+        let config = dir.join("config.toml");
+        let mut cmd = self.bar_command(bin, opts);
+        cmd.env("ZENITH_CONFIG", &config).env("ZENITH_BAR_CONFIG", &config);
+        let bar = LoggedBar::spawn(cmd, &self.dir.join("first-run.log"))?;
+        if !bar.expect(|r, _| r == Request::Frame, STARTUP_TIMEOUT) {
+            return Ok(vec!["first run: no frame without a config directory".to_owned()]);
+        }
+        bar.settle();
+        fs::create_dir_all(&dir).map_err(|e| format!("creating {}: {e}", dir.display()))?;
+        fs::write(&config, smoke::move_to_bottom("")).map_err(|e| format!("writing {}: {e}", config.display()))?;
+        Ok(if bar.expect(|r, _| r.is_bottom_anchor(), RELOAD_TIMEOUT) {
+            Vec::new()
+        } else {
+            vec!["first run: a config written after startup was not picked up".to_owned()]
+        })
+    }
+
+    /// Names of the compositor's outputs.
+    fn outputs(&self) -> Result<Vec<String>, String> {
+        let json = self.swaymsg(&["-t", "get_outputs", "-r"])?;
+        Ok(smoke::output_names(&json))
+    }
+
+    fn swaymsg(&self, args: &[&str]) -> Result<String, String> {
+        let swaymsg = find_on_path("swaymsg").ok_or("the smoke test needs `swaymsg` on PATH")?;
+        let sock = swaysock(&self.runtime).ok_or("sway has no IPC socket")?;
+        let out = Command::new(swaymsg)
+            .args(args)
+            .env("SWAYSOCK", sock)
+            .stdin(Stdio::null())
+            .output()
+            .map_err(|e| format!("running swaymsg: {e}"))?;
+        if !out.status.success() {
+            return Err(format!(
+                "`swaymsg {}` failed ({}): {}",
+                args.join(" "),
+                out.status,
+                String::from_utf8_lossy(&out.stdout).trim()
+            ));
+        }
+        Ok(String::from_utf8_lossy(&out.stdout).into_owned())
     }
 
     fn cleanup(self) {
@@ -467,6 +513,66 @@ impl Session {
             thread::sleep(Duration::from_millis(100));
         }
         eprintln!("zenith-bench: warning: could not remove {}", self.dir.display());
+    }
+}
+
+/// A bar launched with `WAYLAND_DEBUG=client`, and the requests it makes. The
+/// protocol log is kept with the other logs for when a step fails.
+struct LoggedBar {
+    bar: Killer,
+    /// Each request with the number of bars alive right after it.
+    rx: mpsc::Receiver<(Request, usize)>,
+}
+
+impl LoggedBar {
+    fn spawn(mut cmd: Command, log: &Path) -> Result<LoggedBar, String> {
+        cmd.env("WAYLAND_DEBUG", "client").stderr(Stdio::piped());
+        let mut bar = Killer(cmd.spawn().map_err(|e| format!("starting {:?}: {e}", cmd.get_program()))?);
+        let stderr = bar.0.stderr.take().expect("piped stderr");
+        let mut log = fs::File::create(log).map_err(|e| e.to_string())?;
+        let (tx, rx) = mpsc::channel();
+        thread::spawn(move || {
+            use std::io::Write;
+            let mut requests = Requests::default();
+            let mut reader = BufReader::new(stderr);
+            let mut line = String::new();
+            while reader.read_line(&mut line).map(|n| n > 0).unwrap_or(false) {
+                let _ = log.write_all(line.as_bytes());
+                if let Some(r) = requests.feed(&line) {
+                    let _ = tx.send((r, requests.bars()));
+                }
+                line.clear();
+            }
+        });
+        Ok(LoggedBar { bar, rx })
+    }
+
+    /// Wait for a request matching `want(request, bars alive)`.
+    fn expect(&self, want: impl Fn(Request, usize) -> bool, timeout: Duration) -> bool {
+        let deadline = Instant::now() + timeout;
+        while let Some(left) = deadline.checked_duration_since(Instant::now()) {
+            match self.rx.recv_timeout(left) {
+                Ok((r, bars)) if want(r, bars) => return true,
+                Ok(_) => {}
+                Err(_) => return false,
+            }
+        }
+        false
+    }
+
+    /// Let the bar go quiet, then forget what it did before the next step.
+    fn settle(&self) {
+        self.settle_counting(Request::Frame);
+    }
+
+    /// [`LoggedBar::settle`], counting the `kind` requests made meanwhile.
+    fn settle_counting(&self, kind: Request) -> usize {
+        thread::sleep(Duration::from_millis(500));
+        self.rx.try_iter().filter(|(r, _)| *r == kind).count()
+    }
+
+    fn alive(&mut self) -> bool {
+        matches!(self.bar.0.try_wait(), Ok(None))
     }
 }
 

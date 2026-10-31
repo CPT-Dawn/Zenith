@@ -2,8 +2,8 @@
 //!
 //! A frame reaches the compositor when a surface that has a buffer attached is
 //! committed, so we watch requests for `wl_surface.attach(<buffer>)` followed by
-//! `wl_surface.commit()` on the same surface. The hot-reload smoke test also
-//! watches later frames and layer-shell anchors.
+//! `wl_surface.commit()` on the same surface. The smoke test also watches later
+//! frames, layer-shell anchors, and layer surfaces (one per bar) coming and going.
 
 use std::collections::HashSet;
 
@@ -14,6 +14,10 @@ pub enum Request {
     Frame,
     /// `zwlr_layer_surface_v1.set_anchor(edges)`; edges is the protocol bitmask.
     Anchor(u32),
+    /// `zwlr_layer_shell_v1.get_layer_surface`: a bar was created.
+    BarAdded,
+    /// `zwlr_layer_surface_v1.destroy`: a bar was removed.
+    BarRemoved,
 }
 
 impl Request {
@@ -28,12 +32,27 @@ impl Request {
 pub struct Requests {
     /// Surfaces with a non-null buffer attached but not yet committed.
     pending: HashSet<String>,
+    /// Layer surfaces created and not yet destroyed.
+    bars: usize,
 }
 
 impl Requests {
+    /// Bars alive after the lines fed so far.
+    pub fn bars(&self) -> usize {
+        self.bars
+    }
+
     pub fn feed(&mut self, line: &str) -> Option<Request> {
         let (interface, id, method, args) = request(line)?;
         match (interface, method) {
+            ("zwlr_layer_shell_v1", "get_layer_surface") => {
+                self.bars += 1;
+                Some(Request::BarAdded)
+            }
+            ("zwlr_layer_surface_v1", "destroy") => {
+                self.bars = self.bars.saturating_sub(1);
+                Some(Request::BarRemoved)
+            }
             ("zwlr_layer_surface_v1", "set_anchor") => args.trim().trim_end_matches(')').trim().parse().ok().map(Request::Anchor),
             ("wl_surface", "attach") if !args.trim_start().starts_with("nil") => {
                 self.pending.insert(id.to_owned());
@@ -133,5 +152,20 @@ mod tests {
         assert_eq!(seen, vec![Request::Anchor(13), Request::Frame, Request::Frame, Request::Anchor(14)]);
         assert!(Request::Anchor(14).is_bottom_anchor());
         assert!(!Request::Anchor(13).is_bottom_anchor());
+    }
+
+    #[test]
+    fn layer_surfaces_are_counted_as_bars_come_and_go() {
+        let log = [
+            "[ 1.0] {Default Queue}  -> zwlr_layer_shell_v1#12.get_layer_surface(new id zwlr_layer_surface_v1#30, wl_surface#29, wl_output#9, 2, \"zenith-bar\")",
+            "[ 1.1]  -> zwlr_layer_shell_v1@12.get_layer_surface(new id zwlr_layer_surface_v1@41, wl_surface@40, wl_output@15, 2, \"zenith-bar\")",
+            // An event naming a layer surface is not a request.
+            "[ 1.2] {Default Queue} zwlr_layer_surface_v1#30.configure(7, 1920, 34)",
+            "[ 2.0] {Default Queue}  -> zwlr_layer_surface_v1#30.destroy()",
+        ];
+        let mut requests = Requests::default();
+        let seen: Vec<Request> = log.iter().filter_map(|l| requests.feed(l)).collect();
+        assert_eq!(seen, vec![Request::BarAdded, Request::BarAdded, Request::BarRemoved]);
+        assert_eq!(requests.bars(), 1);
     }
 }

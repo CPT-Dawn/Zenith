@@ -4,6 +4,7 @@
 
 mod actions;
 mod bar;
+mod deserialize;
 mod diagnostic;
 mod layout;
 mod preset;
@@ -16,7 +17,7 @@ mod validate;
 pub use actions::{Action, ClickActions, Gesture};
 pub use bar::{BarConfig, Monitors, Motion, Position};
 pub use diagnostic::Diagnostic;
-pub use layout::{LayoutConfig, SECTIONS};
+pub use layout::{LayoutConfig, Section};
 pub use preset::Preset;
 pub use raw::RawConfig;
 pub use resolved::{Bar, Layout, ResolvedConfig};
@@ -30,43 +31,28 @@ pub fn starter(preset: Option<Preset>) -> &'static str {
     }
 }
 
-/// Resolve config text, optionally on top of a preset. Empty text means all defaults
-/// (or the preset). Diagnostic positions refer to `text`.
-pub fn resolve(text: &str, preset: Option<Preset>) -> Result<ResolvedConfig, Vec<Diagnostic>> {
+/// Resolve config text. Empty text means all defaults. Diagnostic positions refer to `text`.
+///
+/// A preset is not a layer here: `init --preset` writes the preset's complete config
+/// file, which then resolves like any other.
+pub fn resolve(text: &str) -> Result<ResolvedConfig, Vec<Diagnostic>> {
     let document = toml_edit::Document::parse(text)
         .map_err(|e| vec![Diagnostic::at(text, e.span(), validate::tidy(e.message()))])?;
 
-    let diagnostics = validate::document(text, &document);
+    // Every problem is collected before giving up: structure, values, then the
+    // checks serde cannot make, reported in file order.
+    let mut diagnostics = validate::document(text, &document);
+    let deserialized = deserialize::deserialize(text);
+    diagnostics.extend(deserialized.diagnostics);
+    let raw = deserialized.raw;
+    let layout_known = !deserialized.broken_tables.contains(&"layout");
+    diagnostics.extend(validate::values(text, &document, &raw, layout_known));
     if !diagnostics.is_empty() {
-        return Err(diagnostics);
-    }
-
-    let raw: RawConfig = toml::from_str(text)
-        .map_err(|e| vec![Diagnostic::at(text, e.span(), validate::tidy(e.message()))])?;
-    let raw = match preset {
-        Some(preset) => over_preset(preset, text),
-        None => raw,
-    };
-
-    let diagnostics = validate::values(text, &document, &raw);
-    if !diagnostics.is_empty() {
+        diagnostics.sort_by_key(|d| (d.line, d.column));
         return Err(diagnostics);
     }
 
     Ok(build(&document, raw))
-}
-
-/// `text` laid over `preset`. Both already deserialize on their own, and the overlay
-/// only moves whole values, so the merge deserializes too.
-fn over_preset(preset: Preset, text: &str) -> RawConfig {
-    let mut merged = preset.table();
-    preset::overlay(
-        &mut merged,
-        toml::from_str(text).expect("already parsed as RawConfig"),
-    );
-    toml::Value::Table(merged)
-        .try_into()
-        .expect("a preset with valid overrides deserializes")
 }
 
 fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig {

@@ -18,7 +18,8 @@ pub struct ThemeConfig {
     /// Opacity of the bar surface from 0 (clear) to 1 (opaque), overriding `--zb-surface-opacity`.
     pub surface_opacity: Option<f64>,
     /// Corner radius of module pills in pixels, overriding `--zb-module-radius`.
-    pub radius: Option<u32>,
+    /// The bar's own corners are `[bar] radius`.
+    pub module_radius: Option<u32>,
 }
 
 impl ThemeConfig {
@@ -214,7 +215,7 @@ pub fn override_block(bar: &Bar, theme: &ThemeConfig) -> String {
     if let Some(opacity) = theme.surface_opacity {
         var("surface-opacity", &opacity);
     }
-    if let Some(radius) = theme.radius {
+    if let Some(radius) = theme.module_radius {
         var("module-radius", &format_args!("{radius}px"));
     }
     css.push_str("}\n");

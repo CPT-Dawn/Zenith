@@ -5,7 +5,7 @@ use gtk4::prelude::*;
 use gtk4_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
 
 use super::sources::Sources;
-use crate::config::{Position, ResolvedConfig};
+use crate::config::{Position, ResolvedConfig, Section};
 use crate::modules::calendar;
 use crate::modules::media;
 use crate::modules::todo;
@@ -13,7 +13,7 @@ use crate::modules::{ModuleId, clock, logo, system};
 
 pub fn build(
     app: &gtk4::Application,
-    monitor: Option<&gdk::Monitor>,
+    output: Option<&gdk::Monitor>,
     config: &ResolvedConfig,
     sources: &Sources,
 ) -> gtk4::ApplicationWindow {
@@ -27,8 +27,8 @@ pub fn build(
     window.set_layer(Layer::Top);
     window.set_namespace(Some("zenith-bar"));
     window.set_keyboard_mode(KeyboardMode::None);
-    if let Some(monitor) = monitor {
-        window.set_monitor(Some(monitor));
+    if let Some(output) = output {
+        window.set_monitor(Some(output));
     }
 
     let bar = &config.bar;
@@ -43,41 +43,22 @@ pub fn build(
     window.auto_exclusive_zone_enable();
 
     let root = gtk4::CenterBox::builder().css_classes(["zb-bar"]).build();
-    root.set_start_widget(Some(&section(
-        "zb-left",
-        &config.layout.left,
-        config,
-        sources,
-    )));
-    root.set_center_widget(Some(&section(
-        "zb-center",
-        &config.layout.center,
-        config,
-        sources,
-    )));
-    root.set_end_widget(Some(&section(
-        "zb-right",
-        &config.layout.right,
-        config,
-        sources,
-    )));
+    let [left, center, right] = Section::ALL.map(|s| section(s, config, sources));
+    root.set_start_widget(Some(&left));
+    root.set_center_widget(Some(&center));
+    root.set_end_widget(Some(&right));
     window.set_child(Some(&root));
 
     window
 }
 
-fn section(
-    class: &str,
-    modules: &[ModuleId],
-    config: &ResolvedConfig,
-    sources: &Sources,
-) -> gtk4::Box {
+fn section(which: Section, config: &ResolvedConfig, sources: &Sources) -> gtk4::Box {
     let section = gtk4::Box::builder()
         .orientation(gtk4::Orientation::Horizontal)
         .spacing(6)
-        .css_classes(["zb-section", class])
+        .css_classes(["zb-section", which.css_class()])
         .build();
-    for &id in modules {
+    for &id in config.layout.section(which) {
         let Some(widget) = view(id, sources) else {
             log::debug!("module `{id}` has no view yet, skipping");
             continue;

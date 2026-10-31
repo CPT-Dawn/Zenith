@@ -1,4 +1,16 @@
-//! Config edits the hot-reload smoke test makes to a running bar.
+//! Config edits the smoke test makes to a running bar, and what it reads back.
+
+/// The `"name"` of every output in `swaymsg -t get_outputs -r` JSON, in order.
+/// Output names never contain quotes or escapes, so a scan is enough.
+pub fn output_names(json: &str) -> Vec<String> {
+    json.split("\"name\":")
+        .skip(1)
+        .filter_map(|rest| {
+            let rest = rest.trim_start().strip_prefix('"')?;
+            Some(rest[..rest.find('"')?].to_owned())
+        })
+        .collect()
+}
 
 /// The same config with the bar moved to the bottom edge. Keeps every other
 /// line, so the edit is what a user saving their file would do.
@@ -34,6 +46,17 @@ pub fn move_to_bottom(config: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn output_names_are_read_from_get_outputs() {
+        let json = r#"[
+  { "id": 3, "type": "output", "name": "HEADLESS-1", "make": "headless",
+    "modes": [], "current_mode": { "width": 1920 } },
+  {"id":7,"type":"output","name":"HEADLESS-2","make":"headless"}
+]"#;
+        assert_eq!(output_names(json), ["HEADLESS-1", "HEADLESS-2"]);
+        assert!(output_names("[]").is_empty());
+    }
 
     #[test]
     fn existing_position_is_rewritten_in_place() {

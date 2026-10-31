@@ -22,7 +22,7 @@ Every run follows the same steps:
 4. **First-frame launch.** Start the bar with `WAYLAND_DEBUG=client`, time it to the first frame (15 s timeout), then kill it.
 5. **Idle launch.** Start the bar again without protocol logging, so logging can't inflate the idle numbers.
 6. Wait the **settle time** (default 10 s), take a sample, wait the **measurement window** (default 30 s), take another sample. With `--screenshot`, `grim` captures the output only after the second sample.
-7. With `--smoke`, launch the bar once more and check hot reload on the live compositor: it must draw, redraw after a `style.css` edit, re-anchor to the bottom edge after a config edit, and keep running after an invalid config.
+7. With `--smoke`, launch the bar once more and check it on the live compositor: it must draw, redraw after a `style.css` edit, re-anchor to the bottom edge after a config edit, put a bar on a second output added with `swaymsg create_output` and remove it after `swaymsg output <name> unplug`, and keep running after an invalid config. Then a fresh bar starts with a config directory that does not exist yet; creating the directory and writing a config (what `zenith-bar init` does) must reach it without a restart.
 8. Kill everything and remove the temp dir. On failure, the logs are kept and their path is printed.
 
 The settle time and window are fixed defaults. Change them only to investigate something, and say so when you publish numbers.
@@ -48,7 +48,7 @@ cargo bench-bar --bin target/release/zenith-bar \
 - `--config` / `--style` are exported as both `ZENITH_CONFIG`/`ZENITH_STYLE` (v1) and `ZENITH_BAR_CONFIG`/`ZENITH_BAR_STYLE` (v2).
 - `--preset NAME` (v2) generates the config with `zenith-bar init --preset NAME`.
 - `--env KEY=VALUE` (repeatable) passes extra environment to the bar, e.g. `--env GSK_RENDERER=ngl`.
-- `--smoke` adds the hot-reload smoke test (step 7). A failed step exits 1.
+- `--smoke` adds the smoke test (step 7): hot reload, hotplug and first run. A failed step exits 1.
 - `--screenshot FILE` saves a PNG of the idle output, used to check that a renderer draws the theme correctly. Needs `grim`.
 - `--budget FILE` takes `metric = ceiling` lines. The metrics are `rss_mib`, `pss_mib`, `idle_cpu_percent`, `wakeups_per_sec` and `first_frame_ms`. Top-level lines apply to every run; a `[preset]` table adds or overrides ceilings for that preset (with `--preset`). The harness exits 1 if any ceiling is exceeded, and also if a budgeted metric could not be measured.
 - If `sway` is not installed, the harness prints why and exits 77 (skipped). `--require-compositor` turns that into a failure; CI uses it.

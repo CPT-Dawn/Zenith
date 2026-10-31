@@ -4,11 +4,11 @@ use std::path::{Path, PathBuf};
 
 use pretty_assertions::assert_eq;
 use zenith_bar::config::{ResolvedConfig, resolve};
-use zenith_bar::ui::reload::{File, Outcome, Watched, evaluate, plan};
+use zenith_bar::ui::reload::{Outcome, Watched, WatchedFile, evaluate, plan};
 use zenith_bar::ui::sources::follow;
 
 fn ok(text: &str) -> ResolvedConfig {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(config) => config,
         Err(diagnostics) => panic!("expected a valid config, got {diagnostics:#?}"),
     }
@@ -23,11 +23,11 @@ fn events_are_matched_to_the_watched_file_by_full_path() {
 
     assert_eq!(
         watched.kind_of(Path::new("/cfg/zenith-bar/config.toml")),
-        Some(File::Config)
+        Some(WatchedFile::Config)
     );
     assert_eq!(
         watched.kind_of(Path::new("/cfg/zenith-bar/style.css")),
-        Some(File::Style)
+        Some(WatchedFile::Style)
     );
     // Editor swap and backup files share the directory but are not ours.
     assert_eq!(
@@ -66,9 +66,40 @@ fn a_symlinked_config_is_watched_where_it_really_lives() {
 
     assert_eq!(
         watched.kind_of(&root.join("dotfiles/bar.toml")),
-        Some(File::Config)
+        Some(WatchedFile::Config)
     );
     assert_eq!(watched.dirs(), [root.join("config"), root.join("dotfiles")]);
+}
+
+#[test]
+fn a_missing_config_directory_is_watched_from_its_nearest_existing_parent() {
+    let watched = Watched::new(
+        Path::new("/home/me/.config/zenith-bar/config.toml"),
+        Path::new("/home/me/.config/zenith-bar/style.css"),
+    );
+    let exists = |dir: &Path| dir == Path::new("/home/me/.config") || dir.ends_with("me");
+
+    assert_eq!(
+        watched.watch_points(exists),
+        [PathBuf::from("/home/me/.config")]
+    );
+    assert_eq!(
+        watched.watch_points(|_| true),
+        [PathBuf::from("/home/me/.config/zenith-bar")]
+    );
+}
+
+#[test]
+fn creating_or_removing_a_directory_on_the_way_means_watching_again() {
+    let watched = Watched::new(
+        Path::new("/home/me/.config/zenith-bar/config.toml"),
+        Path::new("/home/me/.config/zenith-bar/style.css"),
+    );
+
+    assert!(watched.is_on_the_way(Path::new("/home/me/.config/zenith-bar")));
+    assert!(watched.is_on_the_way(Path::new("/home/me/.config")));
+    assert!(!watched.is_on_the_way(Path::new("/home/me/.config/hypr")));
+    assert!(!watched.is_on_the_way(Path::new("/home/me/.config/zenith-bar/config.toml")));
 }
 
 fn scratch(name: &str) -> PathBuf {

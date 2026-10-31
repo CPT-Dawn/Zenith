@@ -16,11 +16,7 @@ pub struct CalendarConfig {
 impl CalendarConfig {
     /// Problems serde cannot catch, as (key, message).
     pub fn problems(&self) -> Vec<(&'static str, String)> {
-        let sample = jiff::Timestamp::UNIX_EPOCH.to_zoned(jiff::tz::TimeZone::UTC);
-        match jiff::fmt::strtime::format(&self.format, &sample) {
-            Ok(_) => Vec::new(),
-            Err(e) => vec![("format", format!("invalid calendar format: {e}"))],
-        }
+        crate::modules::zoned_source::format_problems("calendar", &self.format)
     }
 }
 

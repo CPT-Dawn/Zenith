@@ -23,9 +23,11 @@ Options:
   --env <KEY=VALUE>     Extra environment for the bar; repeatable
   --renderer <NAME>     Sway's renderer (WLR_RENDERER): pixman (software, no GPU
                         needed, what CI uses), gles2 or vulkan [default: pixman]
-  --smoke               Also smoke-test hot reload (v2): a style.css edit must
+  --smoke               Also smoke-test the live bar (v2): a style.css edit must
                         redraw, moving the bar to the bottom must re-anchor it,
-                        and an invalid config must not kill it
+                        a new output must get a bar and lose it when unplugged,
+                        an invalid config must not kill it, and a config written
+                        after a first run without one must be picked up
   --screenshot <FILE>   After the window, save a PNG of the output (via `grim`)
                         to check the bar renders correctly
   --require-compositor  Fail instead of skipping when `sway` is not installed

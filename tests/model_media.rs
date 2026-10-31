@@ -257,7 +257,7 @@ fn progress_follows_the_playback_rate() {
 }
 
 #[test]
-fn while_playing_it_wakes_once_per_two_hundredth_of_the_track() {
+fn before_the_progress_bar_is_measured_it_wakes_once_per_two_hundredth_of_the_track() {
     let mut media = Media::new();
     media.player_added(
         ":1.1",
@@ -266,6 +266,49 @@ fn while_playing_it_wakes_once_per_two_hundredth_of_the_track() {
     );
 
     assert_eq!(media.view_state(&config(), at(0)).next_wake, Some(at(1)));
+}
+
+#[test]
+fn the_tick_moves_the_progress_bar_by_one_pixel_of_its_width() {
+    let mut media = Media::new();
+    media.player_added(
+        ":1.1",
+        &player("Playing", metadata("Song", &[], 200), 0),
+        at(0),
+    );
+
+    media.set_progress_width(100);
+
+    assert_eq!(media.view_state(&config(), at(0)).next_wake, Some(at(2)));
+}
+
+#[test]
+fn a_wide_progress_bar_still_ticks_no_faster_than_four_times_a_second() {
+    let mut media = Media::new();
+    media.player_added(
+        ":1.1",
+        &player("Playing", metadata("Song", &[], 200), 0),
+        at(0),
+    );
+
+    media.set_progress_width(4000);
+
+    assert_eq!(media.view_state(&config(), at(0)).next_wake, Some(ms(250)));
+}
+
+#[test]
+fn a_hidden_progress_bar_keeps_the_last_width_it_had() {
+    let mut media = Media::new();
+    media.player_added(
+        ":1.1",
+        &player("Playing", metadata("Song", &[], 200), 0),
+        at(0),
+    );
+
+    media.set_progress_width(50);
+    media.set_progress_width(0);
+
+    assert_eq!(media.view_state(&config(), at(0)).next_wake, Some(at(4)));
 }
 
 #[test]

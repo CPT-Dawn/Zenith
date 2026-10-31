@@ -46,6 +46,11 @@ config.toml:5:11: unknown module `clok` (did you mean `clock`?)
 2 problems in config.toml
 ```
 
+Unknown keys, values of the wrong type and invalid formats are all reported in one run.
+Two limits: a TOML syntax error stops the run at that point (nothing after it can be
+read reliably), and inside a nested table such as `[system.temperature]` or a list,
+only the first bad value is reported.
+
 Lines and columns are 1-based. Diagnostics go to stderr. The exit code is `0` when the
 file is valid and `1` when it has problems or cannot be read, so `check` works in
 scripts, pre-commit hooks and AI agent loops.
@@ -122,7 +127,7 @@ Placement, geometry and motion of every bar.
 | `monitors` | `"all"` | `["DP-1", "HDMI-A-1"]` | Outputs that get a bar: `"all"`, or a list of connector names. Bars come and go as monitors are plugged in and out. |
 | `height` | `34` | `30` | Bar height in pixels. |
 | `margin` | `8` | `0` | Gap between the bar and the output edges, in pixels. `0` makes the bar flush; anything larger makes it float. |
-| `radius` | `14` | `0` | Corner radius of the bar, in pixels. |
+| `radius` | `14` | `0` | Corner radius of the bar, in pixels (`--zb-bar-radius`). Module pills have their own: `[theme] module_radius`. |
 | `motion` | `"subtle"` | `"off"` | Animation level: `"off"`, `"subtle"` (short transitions on events only) or `"ambient"` (continuous effects, at a cost; see [theming](theming.md#motion)). |
 | `focal` | `"clock"` | `"media"` | The module that gets the neon glow, or `"none"`. It must be in `[layout]` if you set it; the default quietly steps aside when the clock isn't on the bar. |
 
@@ -205,7 +210,7 @@ The look. See [theming](theming.md) for what each override changes and for the
 | `name` | `"midnight-bloom"` | `"tokyo-night"` | Built-in theme: `"midnight-bloom"`, `"tokyo-night"`, `"catppuccin-mocha"` or `"gruvbox-dark"`. |
 | `accent` | unset | `"#ff79c6"` | Signature colour, overriding the theme's `--zb-accent`. Tinted borders and the glow follow it. |
 | `surface_opacity` | unset | `0.9` | Opacity of the bar surface from `0` (clear) to `1` (opaque), overriding `--zb-surface-opacity`. |
-| `radius` | unset | `6` | Corner radius of module pills in pixels, overriding `--zb-module-radius`. |
+| `module_radius` | unset | `6` | Corner radius of module pills in pixels, overriding `--zb-module-radius`. The bar's own corners are `[bar] radius`. |
 
 ### Click actions
 

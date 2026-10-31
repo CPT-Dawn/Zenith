@@ -5,14 +5,14 @@ use zenith_bar::config::{
 use zenith_bar::modules::ModuleId::{self, *};
 
 fn ok(text: &str) -> ResolvedConfig {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(config) => config,
         Err(diagnostics) => panic!("expected a valid config, got {diagnostics:#?}"),
     }
 }
 
 fn errors(text: &str) -> Vec<String> {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(_) => panic!("expected diagnostics"),
         Err(diagnostics) => diagnostics.iter().map(Diagnostic::to_string).collect(),
     }
@@ -28,7 +28,7 @@ fn without_theme_overrides_the_block_carries_only_bar_geometry() {
 
 #[test]
 fn theme_overrides_become_root_variables() {
-    let text = "[theme]\naccent = \"#ff79c6\"\nsurface_opacity = 0.5\nradius = 6\n";
+    let text = "[theme]\naccent = \"#ff79c6\"\nsurface_opacity = 0.5\nmodule_radius = 6\n";
 
     assert_eq!(
         ok(text).css_overrides,

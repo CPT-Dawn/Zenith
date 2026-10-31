@@ -16,8 +16,6 @@ use super::model::{Command, Priority, Todo, TodoList};
 use super::source::TodoSource;
 use crate::ui::binding::bind;
 
-const PRIORITIES: [Priority; 3] = [Priority::High, Priority::Normal, Priority::Low];
-
 pub fn build(source: &Rc<TodoSource>) -> gtk4::Widget {
     let icon = gtk4::Image::new();
     let count = gtk4::Label::new(None);
@@ -51,7 +49,7 @@ fn popover(source: &Rc<TodoSource>) -> gtk4::Popover {
         .placeholder_text("Add a todo…")
         .hexpand(true)
         .build();
-    let picker = gtk4::DropDown::from_strings(&PRIORITIES.map(priority_name));
+    let picker = gtk4::DropDown::from_strings(&Priority::ALL.map(Priority::label));
     picker.set_selected(1);
     picker.set_tooltip_text(Some("Priority for new todos"));
     let add_row = gtk4::Box::new(gtk4::Orientation::Horizontal, 6);
@@ -83,7 +81,7 @@ fn popover(source: &Rc<TodoSource>) -> gtk4::Popover {
         let source = source.clone();
         let picker = picker.clone();
         entry.connect_activate(move |entry| {
-            let priority = PRIORITIES[(picker.selected() as usize).min(2)];
+            let priority = Priority::ALL[(picker.selected() as usize).min(2)];
             source.apply(Command::Add {
                 text: entry.text().into(),
                 priority,
@@ -196,9 +194,9 @@ fn row(todo: &Todo, source: &Rc<TodoSource>) -> Row {
     stack.set_hexpand(true);
 
     let priority = gtk4::Button::builder()
-        .label(priority_name(todo.priority))
+        .label(todo.priority.label())
         .tooltip_text("Change priority")
-        .css_classes(["zb-todo-priority", priority_class(todo.priority)])
+        .css_classes(["zb-todo-priority", todo.priority.css_class()])
         .build();
     let edit = icon_button("✎", "Edit");
     let delete = icon_button("✕", "Delete");
@@ -241,7 +239,7 @@ fn row(todo: &Todo, source: &Rc<TodoSource>) -> Row {
     });
     priority.connect_clicked({
         let send = send.clone();
-        let next = next_priority(todo.priority);
+        let next = todo.priority.next();
         move |_| send(Command::SetPriority { id, priority: next })
     });
     delete.connect_clicked({
@@ -338,29 +336,5 @@ fn set_keyboard(popover: &gtk4::Popover, mode: KeyboardMode) {
         .and_downcast::<gtk4::Window>()
     {
         window.set_keyboard_mode(mode);
-    }
-}
-
-fn priority_name(priority: Priority) -> &'static str {
-    match priority {
-        Priority::High => "High",
-        Priority::Normal => "Normal",
-        Priority::Low => "Low",
-    }
-}
-
-fn priority_class(priority: Priority) -> &'static str {
-    match priority {
-        Priority::High => "zb-priority-high",
-        Priority::Normal => "zb-priority-normal",
-        Priority::Low => "zb-priority-low",
-    }
-}
-
-fn next_priority(priority: Priority) -> Priority {
-    match priority {
-        Priority::High => Priority::Normal,
-        Priority::Normal => Priority::Low,
-        Priority::Low => Priority::High,
     }
 }

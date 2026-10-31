@@ -4,14 +4,14 @@
 //! Re-syncs after resume and time zone changes are event-driven.
 
 use std::cell::RefCell;
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 
 use gtk4::gio::prelude::*;
 use gtk4::{gio, glib};
 use jiff::tz::TimeZone;
 use jiff::{Timestamp, Zoned};
 
-use crate::modules::{Shared, ViewState};
+use crate::modules::{Shared, ViewState, if_alive};
 
 /// The pure model a [`ZonedSource`] runs: local time and config in, view state out.
 pub type ZonedModel<C> = fn(&Zoned, &C) -> ViewState;
@@ -109,7 +109,7 @@ impl<C: 'static> ZonedSource<C> {
                 move |signal| {
                     let going_to_sleep = signal.parameters.child_get::<bool>(0);
                     if !going_to_sleep {
-                        with(&weak, |source| {
+                        if_alive(&weak, |source| {
                             log::debug!("{}: resumed, re-syncing", source.name);
                             source.resync();
                         });
@@ -138,7 +138,7 @@ impl<C: 'static> ZonedSource<C> {
         monitor.connect_changed(move |_, _, _, event| {
             use gio::FileMonitorEvent::*;
             if matches!(event, Changed | Created | Deleted | Renamed | MovedIn) {
-                with(&weak, |source| {
+                if_alive(&weak, |source| {
                     *source.zone.borrow_mut() = local_zone(source.name);
                     log::debug!("{}: time zone changed, re-syncing", source.name);
                     source.resync();
@@ -154,12 +154,6 @@ impl<C> Drop for ZonedSource<C> {
         if let Some(timer) = self.timer.take() {
             timer.remove();
         }
-    }
-}
-
-fn with<C: 'static>(weak: &Weak<ZonedSource<C>>, f: impl FnOnce(&Rc<ZonedSource<C>>)) {
-    if let Some(source) = weak.upgrade() {
-        f(&source);
     }
 }
 
@@ -185,4 +179,14 @@ fn local_zone(name: &str) -> TimeZone {
             log::warn!("{name}: cannot read the local time zone, using UTC");
             TimeZone::UTC
         })
+}
+
+/// A config problem if `format` is not a valid strftime-style format, as `(key, message)`.
+/// `module` names the format in the message (`invalid clock format: …`).
+pub fn format_problems(module: &str, format: &str) -> Vec<(&'static str, String)> {
+    let sample = Timestamp::UNIX_EPOCH.to_zoned(TimeZone::UTC);
+    match jiff::fmt::strtime::format(format, &sample) {
+        Ok(_) => Vec::new(),
+        Err(e) => vec![("format", format!("invalid {module} format: {e}"))],
+    }
 }

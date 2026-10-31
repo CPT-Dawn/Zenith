@@ -249,3 +249,27 @@ fn blank_text_is_never_stored() {
     assert_eq!(list.get(taxes).expect("kept").text, "file taxes");
     assert_eq!(model::view_state(&list).label, "1");
 }
+
+#[test]
+fn priorities_are_listed_most_urgent_first_with_a_label_and_a_class() {
+    let shown: Vec<(&str, &str)> = Priority::ALL
+        .into_iter()
+        .map(|p| (p.label(), p.css_class()))
+        .collect();
+
+    assert_eq!(
+        shown,
+        vec![
+            ("High", "zb-priority-high"),
+            ("Normal", "zb-priority-normal"),
+            ("Low", "zb-priority-low"),
+        ]
+    );
+}
+
+#[test]
+fn clicking_a_priority_cycles_high_normal_low_and_back() {
+    assert_eq!(Priority::High.next(), Priority::Normal);
+    assert_eq!(Priority::Normal.next(), Priority::Low);
+    assert_eq!(Priority::Low.next(), Priority::High);
+}
