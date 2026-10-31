@@ -24,7 +24,7 @@ radius = 6                # optional, pixels: --zb-module-radius
 
 The overrides are variables like any other, so a theme's derived colours follow them. Midnight Bloom tints its borders, module backgrounds and glow from `--zb-accent`, so one `accent` line recolours all of them. `accent` takes a hex colour (`#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`), a colour function (`rgb()`, `rgba()`, `hsl()`, `hsla()`, `hwb()`, `lab()`, `oklab()`, `oklch()`) or a colour name.
 
-Built-in themes: `midnight-bloom` (the default).
+Built-in themes: `midnight-bloom` (the default: near-black smoked glass with a mint accent), `tokyo-night` (the Zenith 1.x palette), `catppuccin-mocha` and `gruvbox-dark`.
 
 ## Motion
 
