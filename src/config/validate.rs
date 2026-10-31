@@ -5,7 +5,7 @@ use toml_edit::{Document, Item, TableLike};
 
 use super::Diagnostic;
 use super::actions::ClickActions;
-use super::layout::SECTIONS;
+use super::layout::Section;
 use super::raw::RawConfig;
 use crate::modules::ModuleId;
 
@@ -49,7 +49,7 @@ fn actions(text: &str, document: &Document<&str>, out: &mut Vec<Diagnostic>) {
 /// Module names must exist and appear at most once across all sections.
 fn layout(text: &str, document: &Document<&str>, out: &mut Vec<Diagnostic>) {
     let mut seen: Vec<(ModuleId, &str)> = Vec::new();
-    for section in SECTIONS {
+    for section in Section::ALL.map(Section::as_str) {
         let Some(array) = lookup(document, &["layout", section]).and_then(Item::as_array) else {
             continue;
         };

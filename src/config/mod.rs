@@ -17,7 +17,7 @@ mod validate;
 pub use actions::{Action, ClickActions, Gesture};
 pub use bar::{BarConfig, Monitors, Motion, Position};
 pub use diagnostic::Diagnostic;
-pub use layout::{LayoutConfig, SECTIONS};
+pub use layout::{LayoutConfig, Section};
 pub use preset::Preset;
 pub use raw::RawConfig;
 pub use resolved::{Bar, Layout, ResolvedConfig};

@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use zenith_bar::config::{Diagnostic, Monitors, Motion, Position, resolve};
+use zenith_bar::config::{Diagnostic, Monitors, Motion, Position, Section, resolve};
 use zenith_bar::modules::ModuleId::{self, *};
 
 fn ok(text: &str) -> zenith_bar::config::ResolvedConfig {
@@ -266,4 +266,23 @@ fn layout_sections_left_out_default_to_empty_once_the_layout_is_given() {
     assert_eq!(config.layout.left, Vec::<ModuleId>::new());
     assert_eq!(config.layout.center, vec![Clock]);
     assert_eq!(config.layout.right, Vec::<ModuleId>::new());
+}
+
+#[test]
+fn each_section_has_its_layout_key_css_class_and_modules() {
+    let config = ok("[layout]\nleft = [\"logo\"]\nright = [\"clock\", \"media\"]\n");
+
+    let sections: Vec<(&str, &str, Vec<ModuleId>)> = Section::ALL
+        .into_iter()
+        .map(|s| (s.as_str(), s.css_class(), config.layout.section(s).to_vec()))
+        .collect();
+
+    assert_eq!(
+        sections,
+        vec![
+            ("left", "zb-left", vec![Logo]),
+            ("center", "zb-center", vec![]),
+            ("right", "zb-right", vec![Clock, Media]),
+        ]
+    );
 }

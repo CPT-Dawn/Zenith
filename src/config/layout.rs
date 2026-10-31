@@ -29,5 +29,33 @@ impl Default for LayoutConfig {
     }
 }
 
-/// Section names, in bar order.
-pub const SECTIONS: [&str; 3] = ["left", "center", "right"];
+/// One of the three ordered slots of a bar.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Section {
+    Left,
+    Center,
+    Right,
+}
+
+impl Section {
+    /// Every section, in bar order.
+    pub const ALL: [Section; 3] = [Section::Left, Section::Center, Section::Right];
+
+    /// Its key in `[layout]`.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Section::Left => "left",
+            Section::Center => "center",
+            Section::Right => "right",
+        }
+    }
+
+    /// Its stable CSS class.
+    pub fn css_class(self) -> &'static str {
+        match self {
+            Section::Left => "zb-left",
+            Section::Center => "zb-center",
+            Section::Right => "zb-right",
+        }
+    }
+}
