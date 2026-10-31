@@ -1,0 +1,54 @@
+/* Midnight Bloom: near-black teal smoked glass, a mint neon accent, Tokyo Night blue and lavender
+ * in support, warm colours only for state. A theme is only :root { --zb-* } tokens.
+ * Tokens tinted by the accent derive from --zb-accent, so one override recolours them all. */
+:root {
+  /* Typography */
+  --zb-font-family: "Inter", sans-serif;
+  --zb-font-size: 13px;
+  --zb-font-weight: 500;
+  --zb-font-weight-strong: 600;
+
+  /* Accent and supporting colours */
+  --zb-accent: #8de3dc;
+  --zb-accent-blue: #7aa2f7;
+  --zb-accent-lavender: #bb9af7;
+
+  /* Surfaces */
+  --zb-surface-color: rgb(9 17 19);
+  --zb-surface-opacity: 0.78;
+  --zb-surface: rgb(from var(--zb-surface-color) r g b / var(--zb-surface-opacity));
+  --zb-surface-border: color-mix(in srgb, var(--zb-accent) 16%, transparent);
+  --zb-module-bg: color-mix(in srgb, var(--zb-accent) 5%, transparent);
+  --zb-module-bg-hover: color-mix(in srgb, var(--zb-accent) 12%, transparent);
+
+  /* Text */
+  --zb-text: #e4f2f0;
+  --zb-text-muted: #9db4b5;
+  --zb-text-dim: #5d7377;
+
+  /* Semantic (state only) */
+  --zb-ok: #9ece6a;
+  --zb-warm: #e0af68;
+  --zb-hot: #f7768e;
+
+  /* Glow, used only on the focal element; the strong glow is the peak of the ambient pulse */
+  --zb-glow: 0 0 4px color-mix(in srgb, var(--zb-accent) 65%, transparent),
+    0 0 12px color-mix(in srgb, var(--zb-accent) 35%, transparent);
+  --zb-glow-strong: 0 0 6px color-mix(in srgb, var(--zb-accent) 85%, transparent),
+    0 0 18px color-mix(in srgb, var(--zb-accent) 50%, transparent);
+
+  /* Geometry */
+  --zb-bar-height: 34px;
+  --zb-bar-radius: 14px;
+  --zb-module-radius: 10px;
+  --zb-space-xs: 2px;
+  --zb-space-s: 4px;
+  --zb-space-m: 8px;
+  --zb-space-l: 12px;
+
+  /* Motion */
+  --zb-transition-duration: 180ms;
+  --zb-transition-easing: ease-out;
+  --zb-ambient-flow-duration: 12s;
+  --zb-ambient-pulse-duration: 3s;
+}

@@ -1,0 +1,34 @@
+#:schema https://raw.githubusercontent.com/CPT-Dawn/Zenith/main/schema/config.schema.json
+# Zenith bar config, from the Classic preset: the Zenith 1.x layout in Tokyo
+# Night. Todos on the left, clock, logo and date in the middle, media and
+# system on the right.
+#
+# Every key is optional; anything not written here takes its default. Run
+# `zenith-bar init --force` to see every key with comments, and
+# `zenith-bar check` after editing. The bar reloads this file on save.
+
+[bar]
+position = "top"
+height = 32
+margin = 8
+radius = 12
+# 1.x animated all the time; "ambient" brings that back at a cost in wakeups.
+motion = "subtle"
+focal = "clock"
+
+[layout]
+left = ["todo"]
+center = ["clock", "logo", "calendar"]
+right = ["media", "system"]
+
+[clock]
+format = "%a %H:%M"
+
+[calendar]
+format = "%d %b"
+
+[theme]
+# "midnight-bloom", "tokyo-night", "catppuccin-mocha" or "gruvbox-dark".
+name = "tokyo-night"
+surface_opacity = 0.72
+module_radius = 8

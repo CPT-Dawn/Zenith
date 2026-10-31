@@ -1,0 +1,267 @@
+/* Component CSS. Reads only var(--zb-*) and styles only zb-* classes: no literal colours here. */
+
+window.zb-window {
+  background: none;
+}
+
+.zb-bar {
+  min-height: var(--zb-bar-height);
+  padding: 0 var(--zb-space-s);
+  border: 1px solid var(--zb-surface-border);
+  border-radius: var(--zb-bar-radius);
+  background-color: var(--zb-surface);
+  color: var(--zb-text);
+  font-family: var(--zb-font-family);
+  font-size: var(--zb-font-size);
+  font-weight: var(--zb-font-weight);
+  font-feature-settings: "tnum";
+}
+
+.zb-section {
+  margin: var(--zb-space-s) 0;
+}
+
+.zb-module {
+  padding: 0 var(--zb-space-m);
+  border-radius: var(--zb-module-radius);
+  background-color: var(--zb-module-bg);
+  transition: background-color var(--zb-transition-duration) var(--zb-transition-easing),
+    color var(--zb-transition-duration) var(--zb-transition-easing);
+}
+
+.zb-module:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-clock {
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-logo {
+  color: var(--zb-accent);
+}
+
+/* Media: icon + label over a hairline progress track */
+.zb-media {
+  color: var(--zb-text-muted);
+}
+
+.zb-media .zb-media-icon {
+  color: var(--zb-text-dim);
+}
+
+.zb-media.zb-playing {
+  color: var(--zb-text);
+}
+
+.zb-media.zb-playing .zb-media-icon {
+  color: var(--zb-accent);
+}
+
+.zb-media.zb-paused .zb-media-icon {
+  color: var(--zb-accent-lavender);
+}
+
+.zb-media-progress,
+.zb-media-progress trough,
+.zb-media-progress progress {
+  min-height: 2px;
+  border: none;
+  border-radius: 1px;
+}
+
+.zb-media-progress trough {
+  background-color: var(--zb-surface-border);
+}
+
+.zb-media-progress progress {
+  background-color: var(--zb-accent);
+}
+
+.zb-media.zb-paused .zb-media-progress progress {
+  background-color: var(--zb-text-dim);
+}
+
+.zb-focal {
+  color: var(--zb-accent);
+  text-shadow: var(--zb-glow);
+  -gtk-icon-shadow: var(--zb-glow);
+}
+
+/* Calendar popover: a GtkCalendar dressed in the theme. */
+.zb-calendar-popover > contents {
+  padding: var(--zb-space-m);
+  border: 1px solid var(--zb-surface-border);
+  border-radius: var(--zb-bar-radius);
+  background-color: var(--zb-surface);
+  color: var(--zb-text);
+  font-family: var(--zb-font-family);
+  font-size: var(--zb-font-size);
+  font-feature-settings: "tnum";
+}
+
+.zb-calendar-popover calendar {
+  border: none;
+  background: none;
+  color: var(--zb-text);
+}
+
+.zb-calendar-popover calendar > header {
+  border: none;
+  background: none;
+}
+
+.zb-calendar-popover calendar > header > label {
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-calendar-popover calendar > header > button {
+  border: none;
+  border-radius: var(--zb-module-radius);
+  background: none;
+  box-shadow: none;
+  color: var(--zb-text-muted);
+}
+
+.zb-calendar-popover calendar > header > button:hover {
+  background-color: var(--zb-module-bg-hover);
+  color: var(--zb-text);
+}
+
+.zb-calendar-popover calendar > grid > label {
+  min-width: 2em;
+  min-height: 1.6em;
+  border-radius: var(--zb-module-radius);
+}
+
+.zb-calendar-popover calendar > grid > label.day-name {
+  color: var(--zb-text-muted);
+}
+
+.zb-calendar-popover calendar > grid > label.week-number {
+  color: var(--zb-text-dim);
+}
+
+.zb-calendar-popover calendar > grid > label.day-number.other-month {
+  color: var(--zb-text-dim);
+}
+
+.zb-calendar-popover calendar > grid > label.day-number:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-calendar-popover calendar > grid > label.day-number:selected {
+  background-color: var(--zb-module-bg-hover);
+  color: var(--zb-text);
+}
+
+.zb-calendar-popover calendar > grid > label.day-number.today {
+  background-color: var(--zb-accent);
+  color: var(--zb-surface);
+  font-weight: var(--zb-font-weight-strong);
+}
+
+/* State classes */
+.zb-warm {
+  color: var(--zb-warm);
+}
+
+.zb-hot {
+  color: var(--zb-hot);
+  font-weight: var(--zb-font-weight-strong);
+}
+
+/* Todo: the bar button is just the module, not a GTK button */
+menubutton.zb-todo > button {
+  min-height: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background: none;
+  color: inherit;
+}
+
+.zb-urgent {
+  color: var(--zb-hot);
+}
+
+popover.zb-todo-popover > contents {
+  padding: var(--zb-space-l);
+  border: 1px solid var(--zb-surface-border);
+  border-radius: var(--zb-bar-radius);
+  background-color: var(--zb-surface);
+  color: var(--zb-text);
+  font-family: var(--zb-font-family);
+  font-size: var(--zb-font-size);
+}
+
+.zb-todo-popover list,
+.zb-todo-popover row {
+  background: none;
+}
+
+.zb-todo-popover button,
+.zb-todo-popover entry {
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: var(--zb-module-bg);
+  color: inherit;
+}
+
+.zb-todo-popover button:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-todo-popover checkbutton > check:checked {
+  background-image: none;
+  background-color: var(--zb-accent);
+  color: var(--zb-surface);
+}
+
+.zb-todo-row {
+  padding: var(--zb-space-xs) var(--zb-space-s);
+  border-radius: var(--zb-module-radius);
+}
+
+.zb-todo-row:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-todo-row.zb-done .zb-todo-text {
+  color: var(--zb-text-dim);
+  text-decoration-line: line-through;
+}
+
+.zb-todo-row.zb-high .zb-todo-text {
+  color: var(--zb-hot);
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-todo-priority {
+  min-width: 4em;
+  font-size: 0.85em;
+}
+
+.zb-todo-popover .zb-priority-high {
+  color: var(--zb-hot);
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-todo-popover .zb-priority-low {
+  color: var(--zb-text-muted);
+}
+
+.zb-todo-empty {
+  padding: var(--zb-space-l);
+  color: var(--zb-text-muted);
+}
+
+/* A visible focus state for every popover control, keyboard users first */
+.zb-todo-popover button:focus-visible,
+.zb-todo-popover checkbutton:focus-visible > check,
+.zb-todo-popover dropdown > button:focus-visible,
+.zb-todo-popover entry:focus-within {
+  outline: 2px solid var(--zb-accent);
+  outline-offset: 1px;
+}
