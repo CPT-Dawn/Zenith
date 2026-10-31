@@ -59,6 +59,12 @@ impl MediaSource {
         self.publish();
     }
 
+    /// A view's progress line is `pixels` wide; the tick never runs finer than that.
+    pub fn set_progress_width(self: &Rc<Self>, pixels: u32) {
+        self.media.borrow_mut().set_progress_width(pixels);
+        self.publish();
+    }
+
     /// The built-in click action: play/pause the player the module is showing.
     pub fn play_pause(&self) {
         let Some(bus) = self.bus.borrow().clone() else {

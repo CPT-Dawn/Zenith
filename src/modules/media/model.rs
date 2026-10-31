@@ -40,9 +40,9 @@ impl PlaybackStatus {
     }
 }
 
-/// The progress bar is never more than this many steps wide, so ticking any finer is wasted.
-const PROGRESS_STEPS: u32 = 200;
-/// Even short tracks tick at most this often.
+/// Steps assumed until the view reports the progress bar's width.
+const UNMEASURED_STEPS: u32 = 200;
+/// Even short tracks (or very wide bars) tick at most this often.
 const MIN_TICK: Duration = Duration::from_millis(250);
 
 /// What a player has loaded, from its `Metadata` map.
@@ -147,14 +147,14 @@ impl Player {
         Some(self.position(now).as_secs_f64() / length.as_secs_f64())
     }
 
-    /// How long until the progress bar can move by one step, if it is moving at all.
-    fn next_tick(&self, now: Duration) -> Option<Duration> {
+    /// How long until a progress bar `steps` wide can move by one step, if it is moving.
+    fn next_tick(&self, now: Duration, steps: u32) -> Option<Duration> {
         let length = self.track.length?;
         let moving = self.status == PlaybackStatus::Playing && self.rate > 0.0;
         if !moving || self.position(now) >= length {
             return None;
         }
-        Some((length.div_f64(self.rate) / PROGRESS_STEPS).max(MIN_TICK))
+        Some((length.div_f64(self.rate) / steps.max(1)).max(MIN_TICK))
     }
 }
 
@@ -163,11 +163,21 @@ impl Player {
 pub struct Media {
     players: Vec<Player>,
     events: u64,
+    /// The progress bar's width in pixels, once a view has been laid out.
+    progress_width: Option<u32>,
 }
 
 impl Media {
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// The progress bar is `pixels` wide: it can show one step per pixel, so the
+    /// tick never runs finer than that. A hidden (zero-width) bar keeps the last width.
+    pub fn set_progress_width(&mut self, pixels: u32) {
+        if pixels > 0 {
+            self.progress_width = Some(pixels);
+        }
     }
 
     /// A player appeared; `properties` is its `GetAll` reply. `name` is its unique bus name.
@@ -245,7 +255,7 @@ impl Media {
             icon: Some(icon.into()),
             classes: vec![class],
             progress: player.progress(now),
-            next_wake: player.next_tick(now),
+            next_wake: player.next_tick(now, self.progress_width.unwrap_or(UNMEASURED_STEPS)),
             ..ViewState::default()
         }
     }
