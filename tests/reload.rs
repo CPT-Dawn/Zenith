@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use pretty_assertions::assert_eq;
 use zenith_bar::config::{ResolvedConfig, resolve};
-use zenith_bar::ui::reload::{File, Outcome, Watched, evaluate, plan};
+use zenith_bar::ui::reload::{Outcome, Watched, WatchedFile, evaluate, plan};
 use zenith_bar::ui::sources::follow;
 
 fn ok(text: &str) -> ResolvedConfig {
@@ -23,11 +23,11 @@ fn events_are_matched_to_the_watched_file_by_full_path() {
 
     assert_eq!(
         watched.kind_of(Path::new("/cfg/zenith-bar/config.toml")),
-        Some(File::Config)
+        Some(WatchedFile::Config)
     );
     assert_eq!(
         watched.kind_of(Path::new("/cfg/zenith-bar/style.css")),
-        Some(File::Style)
+        Some(WatchedFile::Style)
     );
     // Editor swap and backup files share the directory but are not ours.
     assert_eq!(
@@ -66,7 +66,7 @@ fn a_symlinked_config_is_watched_where_it_really_lives() {
 
     assert_eq!(
         watched.kind_of(&root.join("dotfiles/bar.toml")),
-        Some(File::Config)
+        Some(WatchedFile::Config)
     );
     assert_eq!(watched.dirs(), [root.join("config"), root.join("dotfiles")]);
 }

@@ -17,7 +17,7 @@ use crate::config::{self, Diagnostic, ResolvedConfig};
 use crate::modules::ModuleId;
 
 /// Called with the files that changed in one burst.
-type OnChange = Rc<dyn Fn(&[File])>;
+type OnChange = Rc<dyn Fn(&[WatchedFile])>;
 
 /// Quiet time after the last event before reloading. Editors save in several steps
 /// (truncate, write, rename, chmod); one reload follows the burst.
@@ -37,12 +37,12 @@ struct Inner {
     watched: Watched,
     on_change: OnChange,
     monitors: RefCell<Vec<gio::FileMonitor>>,
-    files: RefCell<BTreeSet<File>>,
+    files: RefCell<BTreeSet<WatchedFile>>,
     timer: RefCell<Option<glib::SourceId>>,
 }
 
 impl Watcher {
-    pub fn start(watched: Watched, on_change: impl Fn(&[File]) + 'static) -> Self {
+    pub fn start(watched: Watched, on_change: impl Fn(&[WatchedFile]) + 'static) -> Self {
         let inner = Rc::new(Inner {
             watched,
             on_change: Rc::new(on_change),
@@ -108,7 +108,7 @@ impl Inner {
             .flatten()
             .filter_map(|f| f.path())
             .collect();
-        let mut hits: Vec<File> = paths
+        let mut hits: Vec<WatchedFile> = paths
             .iter()
             .filter_map(|path| self.watched.kind_of(path))
             .collect();
@@ -121,7 +121,7 @@ impl Inner {
                     inner.arm();
                 }
             });
-            hits.extend([File::Config, File::Style]);
+            hits.extend([WatchedFile::Config, WatchedFile::Style]);
         }
         if !hits.is_empty() {
             self.add(hits);
@@ -129,7 +129,7 @@ impl Inner {
     }
 
     /// Record changed files and restart the quiet-time timer.
-    fn add(self: &Rc<Self>, files: Vec<File>) {
+    fn add(self: &Rc<Self>, files: Vec<WatchedFile>) {
         self.files.borrow_mut().extend(files);
         if let Some(timer) = self.timer.take() {
             timer.remove();
@@ -141,7 +141,7 @@ impl Inner {
             };
             // This timer has fired; forget it rather than remove it.
             inner.timer.take();
-            let files: Vec<File> = std::mem::take(&mut *inner.files.borrow_mut())
+            let files: Vec<WatchedFile> = std::mem::take(&mut *inner.files.borrow_mut())
                 .into_iter()
                 .collect();
             (inner.on_change)(&files);
@@ -163,7 +163,7 @@ impl Drop for Watcher {
 
 /// A file hot reload follows.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum File {
+pub enum WatchedFile {
     Config,
     Style,
 }
@@ -175,13 +175,13 @@ pub enum File {
 /// file (dotfile managers) is also matched where its target lives.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Watched {
-    files: Vec<(PathBuf, File)>,
+    files: Vec<(PathBuf, WatchedFile)>,
 }
 
 impl Watched {
     pub fn new(config: &Path, style: &Path) -> Self {
         let mut files = Vec::new();
-        for (path, file) in [(config, File::Config), (style, File::Style)] {
+        for (path, file) in [(config, WatchedFile::Config), (style, WatchedFile::Style)] {
             let path = std::path::absolute(path).unwrap_or_else(|_| path.to_owned());
             if let Ok(target) = path.canonicalize()
                 && target != path
@@ -195,7 +195,7 @@ impl Watched {
     }
 
     /// Which watched file a monitor event's path refers to, if any.
-    pub fn kind_of(&self, path: &Path) -> Option<File> {
+    pub fn kind_of(&self, path: &Path) -> Option<WatchedFile> {
         self.files
             .iter()
             .find(|(watched, _)| watched == path)

@@ -8,7 +8,7 @@ use gtk4::prelude::*;
 use gtk4::{gdk, gio, glib};
 
 use super::bar_manager::BarManager;
-use super::reload::{self, File, Outcome, Watched, Watcher};
+use super::reload::{self, Outcome, Watched, WatchedFile, Watcher};
 use super::sources::Sources;
 use super::style::Style;
 use crate::cli::Options;
@@ -88,11 +88,11 @@ pub fn run(options: Options) -> glib::ExitCode {
 }
 
 impl Runtime {
-    fn reload(&mut self, files: &[File]) {
-        if files.contains(&File::Config) {
+    fn reload(&mut self, files: &[WatchedFile]) {
+        if files.contains(&WatchedFile::Config) {
             self.reload_config();
         }
-        if files.contains(&File::Style) {
+        if files.contains(&WatchedFile::Style) {
             log::info!("style.css changed, reloading it");
             self.style.reload_user();
         }
