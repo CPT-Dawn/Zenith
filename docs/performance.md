@@ -168,3 +168,7 @@ What the numbers show:
 | Time to first frame | 400 ms | 246 ms (runner) | 281 / 1 259 ms |
 
 Tighten a budget when v2 gets leaner. Never loosen one without new measurements on this page.
+
+## The README screenshot
+
+`assets/midnight-bloom.png` is the harness's own capture of the default look: `cargo bench-bar --bin target/release/zenith-bar --preset bloom --screenshot full.png` (Sway `pixman`, default renderer), cropped to the top 70 px of the 1920×1080 output. Retake it the same way when the default look changes.

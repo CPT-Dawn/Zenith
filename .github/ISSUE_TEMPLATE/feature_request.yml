@@ -1,0 +1,21 @@
+name: Feature request
+description: An idea for Zenith, including new modules.
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to do?
+      description: The problem or workflow first, the solution second.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could Zenith help?
+      description: What it would look like on the bar or in the config.
+  - type: textarea
+    id: cost
+    attributes:
+      label: Idle cost
+      description: Zenith stays near-zero at idle. Would this need polling, a timer or animation? Any idea how to keep it event-driven?
