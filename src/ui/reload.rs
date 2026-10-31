@@ -2,7 +2,7 @@
 //!
 //! The decisions are pure ([`Watched`], [`evaluate`], [`plan`]); [`Watcher`] only turns
 //! inotify-backed directory monitors into one debounced callback, so an idle bar spends
-//! zero wakeups on watching.
+//! zero wakeups on watching, even while the config directory does not exist yet.
 
 use std::cell::RefCell;
 use std::collections::BTreeSet;
@@ -25,31 +25,49 @@ const DEBOUNCE: Duration = Duration::from_millis(150);
 
 /// Monitors the watched files' directories and reports which files changed, once per
 /// burst of events. Dropping it stops watching.
+///
+/// A directory that does not exist yet (first run, before `zenith-bar init`) is
+/// watched from its nearest existing parent, and the monitors are re-armed when a
+/// directory on the way is created or removed. inotify only, never GIO's polling.
 pub struct Watcher {
-    monitors: Vec<gio::FileMonitor>,
-    pending: Rc<Pending>,
+    inner: Rc<Inner>,
 }
 
-#[derive(Default)]
-struct Pending {
+struct Inner {
+    watched: Watched,
+    on_change: OnChange,
+    monitors: RefCell<Vec<gio::FileMonitor>>,
     files: RefCell<BTreeSet<File>>,
     timer: RefCell<Option<glib::SourceId>>,
 }
 
 impl Watcher {
     pub fn start(watched: Watched, on_change: impl Fn(&[File]) + 'static) -> Self {
-        let watched = Rc::new(watched);
-        let on_change: OnChange = Rc::new(on_change);
-        let pending = Rc::new(Pending::default());
+        let inner = Rc::new(Inner {
+            watched,
+            on_change: Rc::new(on_change),
+            monitors: RefCell::default(),
+            files: RefCell::default(),
+            timer: RefCell::default(),
+        });
+        inner.arm();
+        Self { inner }
+    }
+}
+
+impl Inner {
+    /// Replace the monitors with one per current watch point.
+    fn arm(self: &Rc<Self>) {
+        for monitor in self.monitors.take() {
+            monitor.cancel();
+        }
         let mut monitors = Vec::new();
-        for dir in watched.dirs() {
-            // GIO polls for missing paths every few seconds; an idle bar must not.
-            if !dir.is_dir() {
-                log::warn!(
-                    "{} does not exist; changes there apply after a restart",
+        for dir in self.watched.watch_points(Path::is_dir) {
+            if !self.watched.dirs().contains(&dir) {
+                log::debug!(
+                    "watching {} until the config directory appears",
                     dir.display()
                 );
-                continue;
             }
             let monitor = match gio::File::for_path(&dir)
                 .monitor_directory(gio::FileMonitorFlags::WATCH_MOVES, gio::Cancellable::NONE)
@@ -60,51 +78,73 @@ impl Watcher {
                     continue;
                 }
             };
-            let (watched, on_change) = (watched.clone(), on_change.clone());
-            let weak = Rc::downgrade(&pending);
+            let weak = Rc::downgrade(self);
             monitor.connect_changed(move |_, file, other, event| {
-                use gio::FileMonitorEvent::*;
-                if !matches!(
-                    event,
-                    Changed | ChangesDoneHint | Created | Deleted | Renamed | MovedIn | MovedOut
-                ) {
-                    return;
-                }
-                // A rename names the old path in `file` and the new one in `other`.
-                let hits: Vec<File> = [Some(file), other]
-                    .into_iter()
-                    .flatten()
-                    .filter_map(|f| watched.kind_of(&f.path()?))
-                    .collect();
-                if let (false, Some(pending)) = (hits.is_empty(), weak.upgrade()) {
-                    pending.add(hits, &on_change);
+                if let Some(inner) = weak.upgrade() {
+                    inner.event(file, other, event);
                 }
             });
             monitors.push(monitor);
         }
-        Self { monitors, pending }
+        *self.monitors.borrow_mut() = monitors;
     }
-}
 
-impl Pending {
+    fn event(
+        self: &Rc<Self>,
+        file: &gio::File,
+        other: Option<&gio::File>,
+        event: gio::FileMonitorEvent,
+    ) {
+        use gio::FileMonitorEvent::*;
+        if !matches!(
+            event,
+            Changed | ChangesDoneHint | Created | Deleted | Renamed | MovedIn | MovedOut
+        ) {
+            return;
+        }
+        // A rename names the old path in `file` and the new one in `other`.
+        let paths: Vec<PathBuf> = [Some(file), other]
+            .into_iter()
+            .flatten()
+            .filter_map(|f| f.path())
+            .collect();
+        let mut hits: Vec<File> = paths
+            .iter()
+            .filter_map(|path| self.watched.kind_of(path))
+            .collect();
+        if paths.iter().any(|path| self.watched.is_on_the_way(path)) {
+            // Re-arm outside this monitor's own callback. The files may already be
+            // there (init writes them right after creating the directory).
+            let weak = Rc::downgrade(self);
+            glib::idle_add_local_once(move || {
+                if let Some(inner) = weak.upgrade() {
+                    inner.arm();
+                }
+            });
+            hits.extend([File::Config, File::Style]);
+        }
+        if !hits.is_empty() {
+            self.add(hits);
+        }
+    }
+
     /// Record changed files and restart the quiet-time timer.
-    fn add(self: &Rc<Self>, files: Vec<File>, on_change: &OnChange) {
+    fn add(self: &Rc<Self>, files: Vec<File>) {
         self.files.borrow_mut().extend(files);
         if let Some(timer) = self.timer.take() {
             timer.remove();
         }
         let weak = Rc::downgrade(self);
-        let on_change = on_change.clone();
         let timer = glib::timeout_add_local_once(DEBOUNCE, move || {
-            let Some(pending) = weak.upgrade() else {
+            let Some(inner) = weak.upgrade() else {
                 return;
             };
             // This timer has fired; forget it rather than remove it.
-            pending.timer.take();
-            let files: Vec<File> = std::mem::take(&mut *pending.files.borrow_mut())
+            inner.timer.take();
+            let files: Vec<File> = std::mem::take(&mut *inner.files.borrow_mut())
                 .into_iter()
                 .collect();
-            on_change(&files);
+            (inner.on_change)(&files);
         });
         *self.timer.borrow_mut() = Some(timer);
     }
@@ -112,10 +152,10 @@ impl Pending {
 
 impl Drop for Watcher {
     fn drop(&mut self) {
-        for monitor in &self.monitors {
+        for monitor in self.inner.monitors.take() {
             monitor.cancel();
         }
-        if let Some(timer) = self.pending.timer.take() {
+        if let Some(timer) = self.inner.timer.take() {
             timer.remove();
         }
     }
@@ -160,6 +200,25 @@ impl Watched {
             .iter()
             .find(|(watched, _)| watched == path)
             .map(|&(_, file)| file)
+    }
+
+    /// Where to put the monitors: each directory, or its nearest ancestor that
+    /// `exists` while the directory itself does not. Each once.
+    pub fn watch_points(&self, exists: impl Fn(&Path) -> bool) -> Vec<PathBuf> {
+        let mut points: Vec<PathBuf> = self
+            .dirs()
+            .iter()
+            .filter_map(|dir| dir.ancestors().find(|a| exists(a)).map(Path::to_path_buf))
+            .collect();
+        points.sort();
+        points.dedup();
+        points
+    }
+
+    /// Whether `path` is a watched directory or one of its ancestors, so that its
+    /// creation or removal changes where the monitors belong.
+    pub fn is_on_the_way(&self, path: &Path) -> bool {
+        self.dirs().iter().any(|dir| dir.starts_with(path))
     }
 
     /// Every directory to monitor, each once.

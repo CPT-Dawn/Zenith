@@ -71,6 +71,37 @@ fn a_symlinked_config_is_watched_where_it_really_lives() {
     assert_eq!(watched.dirs(), [root.join("config"), root.join("dotfiles")]);
 }
 
+#[test]
+fn a_missing_config_directory_is_watched_from_its_nearest_existing_parent() {
+    let watched = Watched::new(
+        Path::new("/home/me/.config/zenith-bar/config.toml"),
+        Path::new("/home/me/.config/zenith-bar/style.css"),
+    );
+    let exists = |dir: &Path| dir == Path::new("/home/me/.config") || dir.ends_with("me");
+
+    assert_eq!(
+        watched.watch_points(exists),
+        [PathBuf::from("/home/me/.config")]
+    );
+    assert_eq!(
+        watched.watch_points(|_| true),
+        [PathBuf::from("/home/me/.config/zenith-bar")]
+    );
+}
+
+#[test]
+fn creating_or_removing_a_directory_on_the_way_means_watching_again() {
+    let watched = Watched::new(
+        Path::new("/home/me/.config/zenith-bar/config.toml"),
+        Path::new("/home/me/.config/zenith-bar/style.css"),
+    );
+
+    assert!(watched.is_on_the_way(Path::new("/home/me/.config/zenith-bar")));
+    assert!(watched.is_on_the_way(Path::new("/home/me/.config")));
+    assert!(!watched.is_on_the_way(Path::new("/home/me/.config/hypr")));
+    assert!(!watched.is_on_the_way(Path::new("/home/me/.config/zenith-bar/config.toml")));
+}
+
 fn scratch(name: &str) -> PathBuf {
     let dir = std::env::temp_dir()
         .join(format!("zenith-bar-test-{}", std::process::id()))
