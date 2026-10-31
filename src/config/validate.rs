@@ -148,8 +148,14 @@ pub fn closest<'a>(word: &str, candidates: impl IntoIterator<Item = &'a str>) ->
         .map(|(_, c)| c.to_string())
 }
 
-/// Checks on deserialized values that need the document for positions.
-pub fn values(text: &str, document: &Document<&str>, raw: &RawConfig) -> Vec<Diagnostic> {
+/// Checks on deserialized values that need the document for positions. `layout_known`
+/// is false when `[layout]` itself was invalid, so the focal module is not blamed for it.
+pub fn values(
+    text: &str,
+    document: &Document<&str>,
+    raw: &RawConfig,
+    layout_known: bool,
+) -> Vec<Diagnostic> {
     let at = |path: &[&str], message: String| {
         let span = lookup(document, path).and_then(Item::span);
         Diagnostic::at(text, span, message)
@@ -169,7 +175,7 @@ pub fn values(text: &str, document: &Document<&str>, raw: &RawConfig) -> Vec<Dia
                     .into_iter()
                     .flatten()
                     .any(|name| name == focal);
-                if !on_bar && lookup(document, &["bar", "focal"]).is_some() {
+                if layout_known && !on_bar && lookup(document, &["bar", "focal"]).is_some() {
                     out.push(at(
                         &["bar", "focal"],
                         format!("focal module `{focal}` is not in [layout]"),

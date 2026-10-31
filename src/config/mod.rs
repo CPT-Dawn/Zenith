@@ -4,6 +4,7 @@
 
 mod actions;
 mod bar;
+mod deserialize;
 mod diagnostic;
 mod layout;
 mod preset;
@@ -38,16 +39,16 @@ pub fn resolve(text: &str) -> Result<ResolvedConfig, Vec<Diagnostic>> {
     let document = toml_edit::Document::parse(text)
         .map_err(|e| vec![Diagnostic::at(text, e.span(), validate::tidy(e.message()))])?;
 
-    let diagnostics = validate::document(text, &document);
+    // Every problem is collected before giving up: structure, values, then the
+    // checks serde cannot make, reported in file order.
+    let mut diagnostics = validate::document(text, &document);
+    let deserialized = deserialize::deserialize(text);
+    diagnostics.extend(deserialized.diagnostics);
+    let raw = deserialized.raw;
+    let layout_known = !deserialized.broken_tables.contains(&"layout");
+    diagnostics.extend(validate::values(text, &document, &raw, layout_known));
     if !diagnostics.is_empty() {
-        return Err(diagnostics);
-    }
-
-    let raw: RawConfig = toml::from_str(text)
-        .map_err(|e| vec![Diagnostic::at(text, e.span(), validate::tidy(e.message()))])?;
-
-    let diagnostics = validate::values(text, &document, &raw);
-    if !diagnostics.is_empty() {
+        diagnostics.sort_by_key(|d| (d.line, d.column));
         return Err(diagnostics);
     }
 

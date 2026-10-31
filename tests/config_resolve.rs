@@ -124,6 +124,54 @@ fn a_value_of_the_wrong_type_is_reported_at_the_value() {
 }
 
 #[test]
+fn every_wrong_value_is_reported_across_and_within_tables() {
+    let text = "[bar]\nheight = \"tall\"\nposition = \"left\"\n\n\
+                [clock]\nformat = 5\n\n[media]\nmax_length = -1\n";
+
+    assert_eq!(
+        errors(text),
+        vec![
+            "2:10: invalid type: string \"tall\", expected u32",
+            "3:12: unknown variant `left`, expected `top` or `bottom`",
+            "6:10: invalid type: integer `5`, expected a string",
+            "9:14: invalid value: integer `-1`, expected u32",
+        ]
+    );
+}
+
+#[test]
+fn unknown_keys_wrong_values_and_bad_formats_are_reported_together() {
+    let text = "[bar]\nheigth = 30\nmargin = \"wide\"\n\n[clock]\nformat = \"%H:%\"\n";
+
+    let errors = errors(text);
+
+    assert_eq!(errors.len(), 3, "{errors:#?}");
+    assert_eq!(
+        errors[0],
+        "2:1: unknown key `heigth` in [bar] (did you mean `height`?)"
+    );
+    assert_eq!(
+        errors[1],
+        "3:10: invalid type: string \"wide\", expected u32"
+    );
+    assert!(
+        errors[2].starts_with("6:10: invalid clock format"),
+        "{}",
+        errors[2]
+    );
+}
+
+#[test]
+fn a_broken_layout_does_not_also_blame_the_focal_module() {
+    let text = "[bar]\nfocal = \"clock\"\n\n[layout]\nleft = 5\ncenter = [\"clock\"]\n";
+
+    assert_eq!(
+        errors(text),
+        vec!["5:8: invalid type: integer `5`, expected a sequence"]
+    );
+}
+
+#[test]
 fn an_unknown_enum_value_lists_the_choices() {
     assert_eq!(
         errors("[bar]\nposition = \"left\"\n"),

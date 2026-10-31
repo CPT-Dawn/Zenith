@@ -46,6 +46,11 @@ config.toml:5:11: unknown module `clok` (did you mean `clock`?)
 2 problems in config.toml
 ```
 
+Unknown keys, values of the wrong type and invalid formats are all reported in one run.
+Two limits: a TOML syntax error stops the run at that point (nothing after it can be
+read reliably), and inside a nested table such as `[system.temperature]` or a list,
+only the first bad value is reported.
+
 Lines and columns are 1-based. Diagnostics go to stderr. The exit code is `0` when the
 file is valid and `1` when it has problems or cannot be read, so `check` works in
 scripts, pre-commit hooks and AI agent loops.
