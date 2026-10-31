@@ -7,14 +7,14 @@
 
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::{Rc, Weak};
+use std::rc::Rc;
 use std::time::Duration;
 
 use gtk4::gio::prelude::*;
 use gtk4::{gio, glib};
 
 use super::{Media, MediaConfig, PropertyMap, Value};
-use crate::modules::{Shared, ViewState};
+use crate::modules::{Shared, ViewState, if_alive};
 
 const MPRIS_PREFIX: &str = "org.mpris.MediaPlayer2";
 const MPRIS_PATH: &str = "/org/mpris/MediaPlayer2";
@@ -143,7 +143,7 @@ impl MediaSource {
                 else {
                     return;
                 };
-                with(&weak, |source| source.owner_changed(&name, &old, &new));
+                if_alive(&weak, |source| source.owner_changed(&name, &old, &new));
             },
         ));
 
@@ -159,7 +159,7 @@ impl MediaSource {
                 let sender = signal.sender_name.to_owned();
                 let changed = map(&signal.parameters.child_value(1));
                 let invalidated = signal.parameters.child_value(2).n_children() > 0;
-                with(&weak, |source| {
+                if_alive(&weak, |source| {
                     source.changed(&sender, &changed);
                     if invalidated {
                         source.fetch_all(&sender);
@@ -181,7 +181,7 @@ impl MediaSource {
                 let Some((position,)) = signal.parameters.get::<(i64,)>() else {
                     return;
                 };
-                with(&weak, |source| {
+                if_alive(&weak, |source| {
                     source.media.borrow_mut().seeked(&sender, position, now());
                     source.publish();
                 });
@@ -209,7 +209,7 @@ impl MediaSource {
                         return;
                     }
                 };
-                with(&weak, |source| {
+                if_alive(&weak, |source| {
                     for name in names.iter().filter(|n| is_mpris(n)) {
                         source.resolve_owner(name);
                     }
@@ -240,7 +240,7 @@ impl MediaSource {
                 let Ok(Some((owner,))) = reply.map(|r| r.get::<(String,)>()) else {
                     return;
                 };
-                with(&weak, |source| source.owner_changed(&name, "", &owner));
+                if_alive(&weak, |source| source.owner_changed(&name, "", &owner));
             },
         );
     }
@@ -337,7 +337,7 @@ impl MediaSource {
             -1,
             gio::Cancellable::NONE,
             move |reply| match reply {
-                Ok(reply) => with(&weak, |source| on_reply(source, reply)),
+                Ok(reply) => if_alive(&weak, |source| on_reply(source, reply)),
                 Err(e) => log::info!("media: {method_name} on {player_name} failed: {e}"),
             },
         );
@@ -350,12 +350,6 @@ impl Drop for MediaSource {
         if let Some(timer) = self.timer.take() {
             timer.remove();
         }
-    }
-}
-
-fn with(weak: &Weak<MediaSource>, f: impl FnOnce(&Rc<MediaSource>)) {
-    if let Some(source) = weak.upgrade() {
-        f(&source);
     }
 }
 
