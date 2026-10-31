@@ -16,10 +16,12 @@ depends=(
   'glibc'
   'gtk4>=1:4.22'
   'gtk4-layer-shell'
+  'pango'
 )
 makedepends=('cargo')
 optdepends=('ttf-inter: the recommended UI font')
 options=('!lto')
+install="${pkgname}.install"
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
 sha256sums=('SKIP')
 

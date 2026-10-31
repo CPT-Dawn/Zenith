@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Writes PKGBUILD and .SRCINFO for the zenith-bar AUR package into the
+# Writes PKGBUILD, zenith-bar.install and .SRCINFO for the zenith-bar AUR package into the
 # current directory, from the template in packaging/aur/PKGBUILD.
 #
 #   generate_aur_files.sh --tag v2.0.0 [--tarball FILE]
@@ -30,7 +30,8 @@ pkgver="${BASH_REMATCH[1]}"
 pkgrel="${PKGREL:-1}"
 repo="${GITHUB_REPOSITORY:-CPT-Dawn/Zenith}"
 server_url="${GITHUB_SERVER_URL:-https://github.com}"
-template="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/packaging/aur/PKGBUILD"
+packaging="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/packaging/aur"
+template="$packaging/PKGBUILD"
 
 if [[ -z "$tarball" ]]; then
   tarball="$(mktemp)"
@@ -45,4 +46,5 @@ sed -e "s/^pkgver=.*/pkgver=${pkgver}/" \
     -e "s|^url=.*|url=\"${server_url}/${repo}\"|" \
     "$template" >PKGBUILD
 
+cp "$packaging/zenith-bar.install" zenith-bar.install
 makepkg --printsrcinfo >.SRCINFO

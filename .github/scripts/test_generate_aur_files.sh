@@ -53,6 +53,18 @@ assert_contains "$srcinfo" $'\tdepends = gtk4-layer-shell' "requires gtk4-layer-
 assert_contains "$srcinfo" $'\tmakedepends = cargo' "builds with cargo"
 assert_absent "$srcinfo" "playerctl" "playerctl dependency is gone"
 assert_contains "$pkgbuild" "pkgver=2.0.0" "PKGBUILD carries the version"
+assert_contains "$srcinfo" $'\tdepends = pango' "declares pango, which the binary links"
+
+# --- the install script warns 1.x users about the rename ---------------------
+install_file="$out/zenith-bar.install"
+[[ -f "$install_file" ]] && pass "zenith-bar.install written" || fail "zenith-bar.install written"
+assert_contains "$srcinfo" $'\tinstall = zenith-bar.install' ".SRCINFO declares the install script"
+notice() { # old-version -> what post_upgrade prints
+  bash -c 'source "$1"; post_upgrade 2.0.0-1 "$2"' _ "$install_file" "$1" 2>&1
+}
+if notice 1.2.0-1 | grep -q "zenith-bar"; then pass "upgrade from 1.x prints the rename notice"; else fail "upgrade from 1.x prints the rename notice"; fi
+if notice 1.2.0-1 | grep -q "migrating-from-v1"; then pass "the notice links the migration guide"; else fail "the notice links the migration guide"; fi
+if [[ -z "$(notice 2.0.0-1)" ]]; then pass "upgrade within 2.x stays quiet"; else fail "upgrade within 2.x stays quiet"; fi
 
 # The generated .SRCINFO must be exactly what makepkg derives from the PKGBUILD.
 if diff <(cd "$out" && makepkg --printsrcinfo) "$srcinfo" >/dev/null; then
@@ -82,7 +94,7 @@ done
 if $run_build; then
   build="$work/build"
   mkdir -p "$build"
-  cp "$pkgbuild" "$build/"
+  cp "$pkgbuild" "$install_file" "$build/"
   cp "$tarball" "$build/" # pre-seeded, so makepkg doesn't download it
   # Pin PKGDEST/SRCDEST so a user's makepkg.conf can't move the results.
   export PKGDEST="$build" SRCDEST="$build"
@@ -100,6 +112,8 @@ if $run_build; then
     assert_absent "$listing" "usr/bin/zenith$" "no v1 zenith binary"
     namcap "$pkgfile" | tee "$work/namcap.log"
     if grep -E ' E: ' "$work/namcap.log" >&2; then fail "namcap reports no errors"; else pass "namcap reports no errors"; fi
+    if grep -E 'implicitly satisfied' "$work/namcap.log" >&2; then fail "no implicit dependencies"; else pass "no implicit dependencies"; fi
+    if bsdtar -xOf "$pkgfile" .INSTALL 2>/dev/null | grep -q post_upgrade; then pass "package carries the install script"; else fail "package carries the install script"; fi
   fi
 fi
 
