@@ -3,7 +3,7 @@ use zenith_bar::config::{Diagnostic, resolve};
 use zenith_bar::modules::system::Metric::*;
 
 fn errors(text: &str) -> Vec<String> {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(_) => panic!("expected diagnostics"),
         Err(diagnostics) => diagnostics.iter().map(Diagnostic::to_string).collect(),
     }
@@ -11,7 +11,7 @@ fn errors(text: &str) -> Vec<String> {
 
 #[test]
 fn system_defaults_show_everything_every_two_seconds() {
-    let system = resolve("", None).unwrap().system;
+    let system = resolve("").unwrap().system;
 
     assert_eq!(system.metrics, vec![Cpu, Memory, Temperature]);
     assert_eq!(system.interval, 2);
@@ -32,7 +32,7 @@ warm = 60
 hot = 75
 sensor = "k10temp"
 "#;
-    let system = resolve(text, None).unwrap().system;
+    let system = resolve(text).unwrap().system;
 
     assert_eq!(system.metrics, vec![Temperature, Cpu]);
     assert_eq!(system.interval, 5);

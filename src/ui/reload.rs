@@ -188,7 +188,7 @@ pub enum Outcome {
 
 /// Resolve saved config text against the config that is running.
 pub fn evaluate(text: &str, running: &ResolvedConfig) -> Outcome {
-    match config::resolve(text, None) {
+    match config::resolve(text) {
         Err(diagnostics) => Outcome::Invalid(diagnostics),
         Ok(config) if config == *running => Outcome::Unchanged,
         Ok(config) => Outcome::Changed(Box::new(config)),

@@ -4,7 +4,7 @@ use zenith_bar::modules::media::MediaConfig;
 
 #[test]
 fn media_defaults_to_title_and_artist_cut_at_forty_characters() {
-    let config = resolve("", None).expect("defaults are valid");
+    let config = resolve("").expect("defaults are valid");
 
     assert_eq!(
         config.media,
@@ -21,7 +21,7 @@ fn media_defaults_to_title_and_artist_cut_at_forty_characters() {
 fn every_media_key_can_be_set() {
     let text = "[media]\nformat = \"{artist}: {title}\"\nmax_length = 25\nhide_when_idle = true\n";
 
-    let config = resolve(text, None).expect("valid config");
+    let config = resolve(text).expect("valid config");
 
     assert_eq!(
         config.media,
@@ -39,7 +39,7 @@ fn an_unknown_placeholder_is_reported_at_the_format() {
     let text = "[media]\nformat = \"{title} - {artsit}\"\n";
 
     assert_eq!(
-        resolve(text, None),
+        resolve(text),
         Err(vec![Diagnostic {
             line: 2,
             column: 10,
@@ -53,7 +53,7 @@ fn an_unknown_placeholder_is_reported_at_the_format() {
 
 #[test]
 fn an_unclosed_placeholder_is_reported() {
-    let errors = resolve("[media]\nformat = \"{title\"\n", None).unwrap_err();
+    let errors = resolve("[media]\nformat = \"{title\"\n").unwrap_err();
 
     assert_eq!(
         errors.iter().map(Diagnostic::to_string).collect::<Vec<_>>(),
@@ -63,14 +63,14 @@ fn an_unclosed_placeholder_is_reported() {
 
 #[test]
 fn literal_braces_are_written_doubled() {
-    let config = resolve("[media]\nformat = \"{{{title}}}\"\n", None).expect("valid config");
+    let config = resolve("[media]\nformat = \"{{{title}}}\"\n").expect("valid config");
 
     assert_eq!(config.media.format, "{{{title}}}");
 }
 
 #[test]
 fn a_click_command_replaces_play_pause() {
-    let config = resolve("[media]\non_click = \"playerctl next\"\n", None).expect("valid config");
+    let config = resolve("[media]\non_click = \"playerctl next\"\n").expect("valid config");
 
     assert_eq!(
         config
@@ -83,7 +83,7 @@ fn a_click_command_replaces_play_pause() {
 
 #[test]
 fn a_typo_in_a_media_key_gets_a_suggestion() {
-    let errors = resolve("[media]\nhide_when_idel = true\n", None).unwrap_err();
+    let errors = resolve("[media]\nhide_when_idel = true\n").unwrap_err();
 
     assert_eq!(errors[0].suggestion.as_deref(), Some("hide_when_idle"));
 }

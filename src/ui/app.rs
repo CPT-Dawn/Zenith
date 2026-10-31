@@ -150,13 +150,13 @@ fn load_config(path: &Path) -> ResolvedConfig {
         log::error!("{}: using defaults", path.display());
         String::new()
     });
-    config::resolve(&text, None).unwrap_or_else(|diagnostics| {
+    config::resolve(&text).unwrap_or_else(|diagnostics| {
         let name = path.display().to_string();
         for diagnostic in diagnostics {
             log::error!("{}", diagnostic.render(&name));
         }
         log::error!("{name} has errors; using defaults");
-        config::resolve("", None).expect("defaults are valid")
+        config::resolve("").expect("defaults are valid")
     })
 }
 

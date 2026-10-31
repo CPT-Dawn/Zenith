@@ -162,9 +162,9 @@ fn the_documented_defaults_are_the_real_defaults() {
         text.push_str(&format!("{} = {default}\n", row.key));
     }
 
-    let written = resolve(&text, None)
-        .unwrap_or_else(|e| panic!("documented defaults are invalid: {e:?}\n{text}"));
-    assert_eq!(written, resolve("", None).unwrap(), "\n{text}");
+    let written =
+        resolve(&text).unwrap_or_else(|e| panic!("documented defaults are invalid: {e:?}\n{text}"));
+    assert_eq!(written, resolve("").unwrap(), "\n{text}");
 }
 
 #[test]
@@ -173,10 +173,6 @@ fn every_documented_example_is_a_valid_config() {
         let Some(example) = row.example else { continue };
         let text = format!("[{}]\n{} = {example}\n", row.table, row.key);
 
-        assert!(
-            resolve(&text, None).is_ok(),
-            "{:?}\n{text}",
-            resolve(&text, None).err()
-        );
+        assert!(resolve(&text).is_ok(), "{:?}\n{text}", resolve(&text).err());
     }
 }

@@ -8,7 +8,7 @@ use zenith_bar::ui::reload::{File, Outcome, Watched, evaluate, plan};
 use zenith_bar::ui::sources::follow;
 
 fn ok(text: &str) -> ResolvedConfig {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(config) => config,
         Err(diagnostics) => panic!("expected a valid config, got {diagnostics:#?}"),
     }

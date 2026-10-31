@@ -3,14 +3,14 @@ use zenith_bar::config::{Diagnostic, Monitors, Motion, Position, resolve};
 use zenith_bar::modules::ModuleId::{self, *};
 
 fn ok(text: &str) -> zenith_bar::config::ResolvedConfig {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(config) => config,
         Err(diagnostics) => panic!("expected a valid config, got {diagnostics:#?}"),
     }
 }
 
 fn errors(text: &str) -> Vec<String> {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(_) => panic!("expected diagnostics"),
         Err(diagnostics) => diagnostics.iter().map(Diagnostic::to_string).collect(),
     }
@@ -39,7 +39,7 @@ fn unknown_key_is_reported_at_its_position_with_a_suggestion() {
     let text = "[bar]\nheight = 30\n  heigth = 32\n";
 
     assert_eq!(
-        resolve(text, None),
+        resolve(text),
         Err(vec![Diagnostic {
             line: 3,
             column: 3,
@@ -109,7 +109,7 @@ fn an_unknown_module_name_is_an_error_with_a_suggestion() {
 
 #[test]
 fn a_syntax_error_is_one_diagnostic_at_the_fault() {
-    let diagnostics = resolve("[bar]\nheight = = 3\n", None).unwrap_err();
+    let diagnostics = resolve("[bar]\nheight = = 3\n").unwrap_err();
 
     assert_eq!(diagnostics.len(), 1);
     assert_eq!((diagnostics[0].line, diagnostics[0].column), (2, 10));
@@ -173,7 +173,7 @@ fn an_unknown_focal_module_is_an_error_with_a_suggestion() {
 
 #[test]
 fn an_invalid_clock_format_is_reported_at_the_format() {
-    let diagnostics = resolve("[clock]\nformat = \"%H:%\"\n", None).unwrap_err();
+    let diagnostics = resolve("[clock]\nformat = \"%H:%\"\n").unwrap_err();
 
     assert_eq!(diagnostics.len(), 1);
     assert_eq!((diagnostics[0].line, diagnostics[0].column), (2, 10));
@@ -182,7 +182,7 @@ fn an_invalid_clock_format_is_reported_at_the_format() {
 
 #[test]
 fn diagnostics_render_with_the_file_name() {
-    let diagnostics = resolve("[bar]\nheigth = 30\n", None).unwrap_err();
+    let diagnostics = resolve("[bar]\nheigth = 30\n").unwrap_err();
 
     assert_eq!(
         diagnostics[0].render("config.toml"),

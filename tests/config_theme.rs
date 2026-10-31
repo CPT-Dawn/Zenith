@@ -5,14 +5,14 @@ use zenith_bar::config::{
 use zenith_bar::modules::ModuleId::{self, *};
 
 fn ok(text: &str) -> ResolvedConfig {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(config) => config,
         Err(diagnostics) => panic!("expected a valid config, got {diagnostics:#?}"),
     }
 }
 
 fn errors(text: &str) -> Vec<String> {
-    match resolve(text, None) {
+    match resolve(text) {
         Ok(_) => panic!("expected diagnostics"),
         Err(diagnostics) => diagnostics.iter().map(Diagnostic::to_string).collect(),
     }

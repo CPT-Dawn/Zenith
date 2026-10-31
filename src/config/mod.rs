@@ -30,9 +30,11 @@ pub fn starter(preset: Option<Preset>) -> &'static str {
     }
 }
 
-/// Resolve config text, optionally on top of a preset. Empty text means all defaults
-/// (or the preset). Diagnostic positions refer to `text`.
-pub fn resolve(text: &str, preset: Option<Preset>) -> Result<ResolvedConfig, Vec<Diagnostic>> {
+/// Resolve config text. Empty text means all defaults. Diagnostic positions refer to `text`.
+///
+/// A preset is not a layer here: `init --preset` writes the preset's complete config
+/// file, which then resolves like any other.
+pub fn resolve(text: &str) -> Result<ResolvedConfig, Vec<Diagnostic>> {
     let document = toml_edit::Document::parse(text)
         .map_err(|e| vec![Diagnostic::at(text, e.span(), validate::tidy(e.message()))])?;
 
@@ -43,10 +45,6 @@ pub fn resolve(text: &str, preset: Option<Preset>) -> Result<ResolvedConfig, Vec
 
     let raw: RawConfig = toml::from_str(text)
         .map_err(|e| vec![Diagnostic::at(text, e.span(), validate::tidy(e.message()))])?;
-    let raw = match preset {
-        Some(preset) => over_preset(preset, text),
-        None => raw,
-    };
 
     let diagnostics = validate::values(text, &document, &raw);
     if !diagnostics.is_empty() {
@@ -54,19 +52,6 @@ pub fn resolve(text: &str, preset: Option<Preset>) -> Result<ResolvedConfig, Vec
     }
 
     Ok(build(&document, raw))
-}
-
-/// `text` laid over `preset`. Both already deserialize on their own, and the overlay
-/// only moves whole values, so the merge deserializes too.
-fn over_preset(preset: Preset, text: &str) -> RawConfig {
-    let mut merged = preset.table();
-    preset::overlay(
-        &mut merged,
-        toml::from_str(text).expect("already parsed as RawConfig"),
-    );
-    toml::Value::Table(merged)
-        .try_into()
-        .expect("a preset with valid overrides deserializes")
 }
 
 fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig {
