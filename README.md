@@ -9,8 +9,10 @@
 </p>
 
 <p align="center">
-  <img src="assets/midnight-bloom.png" alt="Zenith with the default Midnight Bloom theme: a dark smoked-glass bar with a logo and todo count on the left, a mint glowing clock and the date in the middle, and media, CPU, memory and temperature on the right" />
+  <img src="assets/hero.png" alt="Zenith with the default Midnight Bloom theme floating over a snowy forest wallpaper on Hyprland: the compositor blurs the trees through the smoked-glass bar, with a logo and todo count on the left, a mint glowing clock and the date in the middle, and media, CPU, memory and temperature on the right" />
 </p>
+
+<p align="center"><sub>Midnight Bloom on Hyprland, with the wallpaper blurred through the glass. A real capture, not a mock-up.</sub></p>
 
 Zenith does nothing unless something on the bar changes. No polling helpers, no animations running in the background, a clock that wakes on the minute. And it still looks like the screenshot above: smoked glass, a mint neon accent, one glowing focal element.
 
@@ -78,6 +80,41 @@ zenith-bar init --preset classic   # the Zenith 1.x layout in Tokyo Night
 ```
 
 Themes: **Midnight Bloom** (default), **Tokyo Night**, **Catppuccin Mocha** and **Gruvbox Dark**. Override the accent, opacity or radius in one line, or restyle anything with your own `style.css` on top of documented `--zb-*` variables and `zb-*` classes.
+
+## Gallery
+
+Every shot below is the same bar over the same wallpaper on Hyprland, changed only by config. The glass bars let the compositor's blur through; `minimal` is flush and opaque on purpose.
+
+**Midnight Bloom** (default)
+![Midnight Bloom: smoked glass with a mint clock](assets/gallery/midnight-bloom.png)
+
+**Tokyo Night**: `[theme] name = "tokyo-night"`
+![Tokyo Night: navy glass with a blue clock](assets/gallery/tokyo-night.png)
+
+**Catppuccin Mocha**: `[theme] name = "catppuccin-mocha"`
+![Catppuccin Mocha: violet-tinted glass with a mauve clock](assets/gallery/catppuccin-mocha.png)
+
+**Gruvbox Dark**: `[theme] name = "gruvbox-dark"`
+![Gruvbox Dark: warm brown glass with a green clock](assets/gallery/gruvbox-dark.png)
+
+**Your own accent**: `[theme] accent = "#ff79c6"`, one line on top of any theme
+![Midnight Bloom with a pink accent on the clock and logo](assets/gallery/custom-accent.png)
+
+**Preset `minimal`**: flush to the edge, no glow, no motion
+![The minimal preset: a flat, opaque bar touching the screen edge](assets/gallery/preset-minimal.png)
+
+**Preset `classic`**: the Zenith 1.x layout, reborn in Tokyo Night
+![The classic preset: todos on the left, day, time, logo and date in the middle](assets/gallery/preset-classic.png)
+
+<details>
+<summary><b>Where it started: Zenith 1.x</b></summary>
+
+The original bar, for the record. v2 is a clean rewrite of this look, at a fraction of the cost (see [Numbers](#numbers)).
+
+![Zenith 1.x floating over a teal wallpaper, with media, CPU, memory and temperature](assets/v1/floating.png)
+![Zenith 1.x stuck flush to the top edge](assets/v1/flush.png)
+
+</details>
 
 ## Numbers
 

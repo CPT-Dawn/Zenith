@@ -171,4 +171,10 @@ Tighten a budget when v2 gets leaner. Never loosen one without new measurements 
 
 ## The README screenshot
 
-`assets/midnight-bloom.png` is the harness's own capture of the default look: `cargo bench-bar --bin target/release/zenith-bar --preset bloom --screenshot full.png` (Sway `pixman`, default renderer), cropped to the top 70 px of the 1920×1080 output. Retake it the same way when the default look changes.
+The README images (`assets/hero.png` and `assets/gallery/`) are captures from a live Hyprland 0.57 session, not the harness, because blur only exists on a real compositor. Each one is the release build on a 1920×1080 output with an empty workspace, taken with:
+
+- the layer rule from [installation](installation.md#hyprland) (`blur`, `ignore_alpha 0.3` on namespace `zenith-bar`) and Hyprland's blur set to size 4 with 3 passes;
+- an isolated `XDG_CONFIG_HOME`/`XDG_DATA_HOME` holding only that shot's config plus `tests/fixtures/todo/todos.json`, inside `dbus-run-session`, so no personal todos or media leak in;
+- `grim -g` of the top 150 px for the hero, or 56 px for a gallery strip, three seconds after launch.
+
+These are pictures, not measurements: every number lives in the tables above. The harness's `--screenshot` remains the way to check that a renderer draws the theme correctly. `assets/v1/` holds the original Zenith 1.x screenshots.
