@@ -33,4 +33,4 @@ format = "%a %d %b"
 name = "midnight-bloom"
 # Smoked glass: let the compositor's blur show through.
 surface_opacity = 0.72
-radius = 11
+module_radius = 11

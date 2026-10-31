@@ -43,4 +43,4 @@ v1's keys are not accepted (unknown keys are errors). Rough equivalents:
 
 ## CSS
 
-v1's `.zenith-*` classes are gone. v2 has stable `zb-*` classes and `--zb-*` variables, documented in [theming](theming.md). They are a public contract, so a v2 `style.css` keeps working across releases. Most v1 tweaks become a one-line `[theme]` override (`accent`, `surface_opacity`, `radius`) with no CSS at all.
+v1's `.zenith-*` classes are gone. v2 has stable `zb-*` classes and `--zb-*` variables, documented in [theming](theming.md). They are a public contract, so a v2 `style.css` keeps working across releases. Most v1 tweaks become a one-line `[theme]` override (`accent`, `surface_opacity`, `module_radius`) with no CSS at all.

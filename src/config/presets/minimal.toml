@@ -43,4 +43,4 @@ interval = 5
 name = "midnight-bloom"
 # An opaque bar needs no compositor blur.
 surface_opacity = 1
-radius = 6
+module_radius = 6

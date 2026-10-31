@@ -416,6 +416,16 @@
             "null"
           ]
         },
+        "module_radius": {
+          "default": null,
+          "description": "Corner radius of module pills in pixels, overriding `--zb-module-radius`.\nThe bar's own corners are `[bar] radius`.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "name": {
           "allOf": [
             {
@@ -423,16 +433,6 @@
             }
           ],
           "description": "Built-in theme to start from."
-        },
-        "radius": {
-          "default": null,
-          "description": "Corner radius of module pills in pixels, overriding `--zb-module-radius`.",
-          "format": "uint32",
-          "minimum": 0,
-          "type": [
-            "integer",
-            "null"
-          ]
         },
         "surface_opacity": {
           "default": null,

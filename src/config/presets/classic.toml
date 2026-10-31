@@ -31,4 +31,4 @@ format = "%d %b"
 # "midnight-bloom", "tokyo-night", "catppuccin-mocha" or "gruvbox-dark".
 name = "tokyo-night"
 surface_opacity = 0.72
-radius = 8
+module_radius = 8
