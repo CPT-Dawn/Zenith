@@ -1,7 +1,8 @@
 //! One bar per matching output, following hotplug.
 //!
 //! The decision of which outputs get a bar is pure ([`placement::reconcile`]); this file
-//! only applies it whenever GDK's output list changes. Bars share the process's sources,
+//! only applies it whenever GDK's output list changes. GDK calls an output a
+//! `gdk::Monitor`; everything here that is ours says output. Bars share the process's sources,
 //! so an extra output adds widgets, never polling.
 
 use std::cell::RefCell;
@@ -25,6 +26,7 @@ struct Inner {
     app: gtk4::Application,
     config: ResolvedConfig,
     sources: Sources,
+    /// Each bar with the output it is on.
     bars: RefCell<Vec<(gdk::Monitor, gtk4::ApplicationWindow)>>,
 }
 
@@ -64,34 +66,39 @@ impl BarManager {
 }
 
 impl Inner {
-    fn sync(&self, outputs: &gio::ListModel) {
-        let monitors: Vec<gdk::Monitor> = outputs
+    fn sync(&self, model: &gio::ListModel) {
+        let outputs: Vec<gdk::Monitor> = model
             .iter::<gdk::Monitor>()
             .filter_map(Result::ok)
             .collect();
         let connectors: Vec<Option<glib::GString>> =
-            monitors.iter().map(|m| m.connector()).collect();
-        let current: Vec<(gdk::Monitor, Option<&str>)> = monitors
+            outputs.iter().map(|output| output.connector()).collect();
+        let current: Vec<(gdk::Monitor, Option<&str>)> = outputs
             .iter()
             .cloned()
             .zip(connectors.iter().map(|c| c.as_deref()))
             .collect();
-        let have: Vec<gdk::Monitor> = self.bars.borrow().iter().map(|(m, _)| m.clone()).collect();
+        let have: Vec<gdk::Monitor> = self
+            .bars
+            .borrow()
+            .iter()
+            .map(|(output, _)| output.clone())
+            .collect();
 
         let changes = placement::reconcile(&have, &current, &self.config.bar.monitors);
 
         let mut bars = self.bars.borrow_mut();
-        for monitor in &changes.remove {
-            log::info!("removing bar from {}", name(monitor));
-            if let Some(i) = bars.iter().position(|(m, _)| m == monitor) {
+        for output in &changes.remove {
+            log::info!("removing bar from {}", name(output));
+            if let Some(i) = bars.iter().position(|(o, _)| o == output) {
                 bars.remove(i).1.destroy();
             }
         }
-        for monitor in changes.add {
-            log::info!("adding bar on {}", name(&monitor));
-            let window = bar::build(&self.app, Some(&monitor), &self.config, &self.sources);
+        for output in changes.add {
+            log::info!("adding bar on {}", name(&output));
+            let window = bar::build(&self.app, Some(&output), &self.config, &self.sources);
             window.present();
-            bars.push((monitor, window));
+            bars.push((output, window));
         }
     }
 }
@@ -99,20 +106,20 @@ impl Inner {
 /// A hotplugged output can join the list before its connector name is known (seen on
 /// Sway), so a `monitors` list only matches it once the name arrives: sync again then.
 fn watch_connector(inner: &Rc<Inner>, outputs: &gio::ListModel, i: u32) {
-    let Some(monitor) = outputs.item(i).and_downcast::<gdk::Monitor>() else {
+    let Some(output) = outputs.item(i).and_downcast::<gdk::Monitor>() else {
         return;
     };
     let weak = Rc::downgrade(inner);
     let outputs = outputs.downgrade();
-    monitor.connect_connector_notify(move |_| {
+    output.connect_connector_notify(move |_| {
         if let (Some(inner), Some(outputs)) = (weak.upgrade(), outputs.upgrade()) {
             inner.sync(&outputs);
         }
     });
 }
 
-fn name(monitor: &gdk::Monitor) -> String {
-    monitor
+fn name(output: &gdk::Monitor) -> String {
+    output
         .connector()
         .map_or_else(|| "an unnamed output".into(), |c| c.to_string())
 }

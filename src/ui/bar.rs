@@ -13,7 +13,7 @@ use crate::modules::{ModuleId, clock, logo, system};
 
 pub fn build(
     app: &gtk4::Application,
-    monitor: Option<&gdk::Monitor>,
+    output: Option<&gdk::Monitor>,
     config: &ResolvedConfig,
     sources: &Sources,
 ) -> gtk4::ApplicationWindow {
@@ -27,8 +27,8 @@ pub fn build(
     window.set_layer(Layer::Top);
     window.set_namespace(Some("zenith-bar"));
     window.set_keyboard_mode(KeyboardMode::None);
-    if let Some(monitor) = monitor {
-        window.set_monitor(Some(monitor));
+    if let Some(output) = output {
+        window.set_monitor(Some(output));
     }
 
     let bar = &config.bar;
