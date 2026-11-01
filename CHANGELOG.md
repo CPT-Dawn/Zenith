@@ -7,6 +7,17 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 v2 is a clean break from v1. Releases before 2.0.0 predate conventional
 commits; their notes live on the GitHub Releases page.
 
+## [2.1.0] - 2026-11-01
+
+### Features
+
+- **todo:** Put the next todo on the bar, not just a number
+
+### Bug Fixes
+
+- **todo:** Grab the keyboard before the popover, not after it
+- **popover:** Give the bar some personal space
+
 ## [2.0.0] - 2026-10-31
 
 ### Features
