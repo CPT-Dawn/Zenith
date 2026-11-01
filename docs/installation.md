@@ -14,7 +14,7 @@ paru -S zenith-bar      # builds from source (several minutes, pulls in cargo)
 Both install the same single binary, `/usr/bin/zenith-bar`, and conflict with each other, so switching is just installing the other one. `zenith-bar-bin` repackages the `zenith-bar-<version>-x86_64.tar.gz` attached to each [GitHub Release](https://github.com/CPT-Dawn/Zenith/releases), built in an Arch container by the release workflow. To check a tarball came from that workflow:
 
 ```sh
-gh attestation verify zenith-bar-2.1.0-x86_64.tar.gz --repo CPT-Dawn/Zenith
+gh attestation verify zenith-bar-2.2.0-x86_64.tar.gz --repo CPT-Dawn/Zenith
 ```
 
 The tarball also works on other glibc distributions that have GTK 4.22+ and gtk4-layer-shell: extract it and copy `zenith-bar` onto your `PATH`.
