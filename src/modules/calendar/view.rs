@@ -28,6 +28,7 @@ pub fn build(state: &Rc<Shared<ViewState>>) -> gtk4::Widget {
             return;
         };
         popover.set_child(Some(&gtk4::Calendar::new()));
+        crate::ui::popover::place(&popover);
         popover.popup();
     });
     label.add_controller(click);
