@@ -172,7 +172,7 @@ window.zb-window {
 }
 
 /* Todo: the bar button is just the module, not a GTK button */
-menubutton.zb-todo > button {
+button.zb-todo {
   min-height: 0;
   padding: 0;
   border: none;

@@ -2,7 +2,7 @@
 //! commands, detached, and swallow the event so the module's built-in action never sees it.
 //!
 //! Generic over modules: the bar calls [`attach`] on every module widget. A module's
-//! built-in actions are whatever its view wires up itself (a click gesture, a `MenuButton`
+//! built-in actions are whatever its view wires up itself (a click gesture, a button
 //! popover, …) in the normal bubble phase. Configured commands are handled in the capture
 //! phase on the same widget, so they run first and claim the event; unconfigured gestures
 //! are not intercepted and reach the built-in action untouched.

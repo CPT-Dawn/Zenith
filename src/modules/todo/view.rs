@@ -5,7 +5,7 @@
 //! and the priority button cycles high → normal → low. Escape cancels an edit or
 //! closes the popover. Focus is restored to the same row after every change.
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use gtk4::prelude::*;
@@ -23,16 +23,79 @@ pub fn build(source: &Rc<TodoSource>) -> gtk4::Widget {
     content.append(&icon);
     content.append(&count);
 
-    let button = gtk4::MenuButton::builder()
-        .child(&content)
-        .always_show_arrow(false)
-        .build();
+    // A plain button rather than a MenuButton: the popover needs the keyboard, and
+    // the keyboard mode must change before the popup exists (see `open`).
+    let button = gtk4::Button::builder().child(&content).build();
     bind(&button, &source.state(), move |_, state| {
         icon.set_icon_name(state.icon.as_deref());
         count.set_label(&state.label);
     });
-    button.set_popover(Some(&popover(source)));
+
+    let popover = popover(source);
+    popover.set_parent(&button);
+    // Clicking the button while the popover is open dismisses it on press (the popup
+    // grab), and the release then lands on the button; do not reopen it straight away.
+    let closed_at = Rc::new(Cell::new(0i64));
+    popover.connect_closed({
+        let closed_at = closed_at.clone();
+        move |popover| {
+            closed_at.set(glib::monotonic_time());
+            set_keyboard(popover, KeyboardMode::None);
+        }
+    });
+    let weak = popover.downgrade();
+    button.connect_clicked(move |button| {
+        let Some(popover) = weak.upgrade() else {
+            return;
+        };
+        if popover.is_visible() {
+            popover.popdown();
+        } else if glib::monotonic_time() - closed_at.get() > REOPEN_GUARD_US {
+            open(button, &popover);
+        }
+    });
+    button.connect_destroy(move |_| popover.unparent());
     button.upcast()
+}
+
+/// How long after the popover closes a click on the button counts as the closing click.
+const REOPEN_GUARD_US: i64 = 300_000;
+
+/// Give the bar the keyboard, then pop up once the compositor has that change.
+///
+/// The bar never takes the keyboard, except while this popover is open. The mode is
+/// double-buffered layer state applied on the bar's next commit, and a compositor
+/// that moves focus to the bar then dismisses any popup grab already in place
+/// (Hyprland does). So: switch the mode, redraw to commit it, and only create the
+/// popup after that frame has painted.
+fn open(button: &gtk4::Button, popover: &gtk4::Popover) {
+    let Some(window) = button.root().and_downcast::<gtk4::Window>() else {
+        popover.popup();
+        return;
+    };
+    window.set_keyboard_mode(KeyboardMode::Exclusive);
+    let Some(clock) = window.frame_clock() else {
+        popover.popup();
+        return;
+    };
+    let handler: Rc<Cell<Option<glib::SignalHandlerId>>> = Rc::default();
+    let weak = popover.downgrade();
+    let id = clock.connect_after_paint({
+        let handler = handler.clone();
+        move |clock| {
+            if let Some(id) = handler.take() {
+                clock.disconnect(id);
+            }
+            let weak = weak.clone();
+            glib::idle_add_local_once(move || {
+                if let Some(popover) = weak.upgrade() {
+                    popover.popup();
+                }
+            });
+        }
+    });
+    handler.set(Some(id));
+    window.queue_draw();
 }
 
 fn popover(source: &Rc<TodoSource>) -> gtk4::Popover {
@@ -40,10 +103,6 @@ fn popover(source: &Rc<TodoSource>) -> gtk4::Popover {
         .has_arrow(false)
         .css_classes(["zb-popover", "zb-todo-popover"])
         .build();
-
-    // The bar never takes the keyboard, except while this popover is open.
-    popover.connect_show(|popover| set_keyboard(popover, KeyboardMode::Exclusive));
-    popover.connect_closed(|popover| set_keyboard(popover, KeyboardMode::None));
 
     let entry = gtk4::Entry::builder()
         .placeholder_text("Add a todo…")
