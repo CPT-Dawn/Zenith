@@ -1,4 +1,4 @@
-//! The todo view: a count on the bar that opens a popover to manage the list.
+//! The todo view: the next todo on the bar that opens a popover to manage the list.
 //!
 //! Keyboard: Tab moves between the add entry, the priority picker and every row's
 //! controls; Enter adds; Space toggles a check; on a row, F2 edits, Delete deletes,
@@ -19,6 +19,7 @@ use crate::ui::binding::bind;
 pub fn build(source: &Rc<TodoSource>) -> gtk4::Widget {
     let icon = gtk4::Image::new();
     let count = gtk4::Label::new(None);
+    count.add_css_class("zb-todo-next");
     let content = gtk4::Box::new(gtk4::Orientation::Horizontal, 6);
     content.append(&icon);
     content.append(&count);
@@ -29,6 +30,8 @@ pub fn build(source: &Rc<TodoSource>) -> gtk4::Widget {
     bind(&button, &source.state(), move |_, state| {
         icon.set_icon_name(state.icon.as_deref());
         count.set_label(&state.label);
+        // An empty list is just the icon, still there to click.
+        count.set_visible(!state.label.is_empty());
     });
 
     let popover = popover(source);
@@ -69,6 +72,7 @@ const REOPEN_GUARD_US: i64 = 300_000;
 /// (Hyprland does). So: switch the mode, redraw to commit it, and only create the
 /// popup after that frame has painted.
 fn open(button: &gtk4::Button, popover: &gtk4::Popover) {
+    crate::ui::popover::place(popover);
     let Some(window) = button.root().and_downcast::<gtk4::Window>() else {
         popover.popup();
         return;

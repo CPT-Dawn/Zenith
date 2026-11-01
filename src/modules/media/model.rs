@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::time::Duration;
 
 use super::MediaConfig;
-use crate::modules::ViewState;
+use crate::modules::{ViewState, truncate};
 
 /// A D-Bus value, converted from a `Variant` at the source boundary.
 #[derive(Clone, Debug, PartialEq)]
@@ -373,15 +373,6 @@ fn label(format: &str, track: &Track) -> String {
         out.push_str(text_at(Some(last + 1)));
     }
     out
-}
-
-/// At most `max` characters, ending in `…` when cut. `0` means no limit.
-fn truncate(label: &str, max: usize) -> String {
-    if max == 0 || label.chars().count() <= max {
-        return label.to_string();
-    }
-    let kept: String = label.chars().take(max - 1).collect();
-    format!("{}…", kept.trim_end())
 }
 
 fn text(value: Option<&Value>) -> String {

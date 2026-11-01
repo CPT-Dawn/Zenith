@@ -10,14 +10,14 @@ fn add(list: &mut TodoList, text: &str, priority: Priority) -> u64 {
 }
 
 #[test]
-fn adding_todos_counts_them_on_the_bar() {
+fn the_bar_shows_the_next_todo_and_how_many_more_are_waiting() {
     let mut list = TodoList::default();
     add(&mut list, "water the plants", Priority::Normal);
     add(&mut list, "file taxes", Priority::Normal);
 
     let state = model::view_state(&list);
 
-    assert_eq!(state.label, "2");
+    assert_eq!(state.label, "water the plants +1");
     assert!(state.visible);
 }
 
@@ -28,11 +28,11 @@ fn completing_a_todo_takes_it_off_the_count_and_toggling_again_reopens_it() {
     add(&mut list, "file taxes", Priority::Normal);
 
     list.apply(Command::Toggle(plants));
-    assert_eq!(model::view_state(&list).label, "1");
+    assert_eq!(model::view_state(&list).label, "file taxes");
     assert!(list.get(plants).expect("still listed").done);
 
     list.apply(Command::Toggle(plants));
-    assert_eq!(model::view_state(&list).label, "2");
+    assert_eq!(model::view_state(&list).label, "water the plants +1");
 }
 
 #[test]
@@ -63,7 +63,7 @@ fn deleting_removes_the_todo_for_good() {
     assert_eq!(list.apply(Command::Delete(plants)), Some(plants));
 
     assert_eq!(list.get(plants), None);
-    assert_eq!(model::view_state(&list).label, "1");
+    assert_eq!(model::view_state(&list).label, "file taxes");
     assert_eq!(list.apply(Command::Delete(plants)), None);
 }
 
@@ -116,7 +116,10 @@ fn an_open_high_priority_todo_makes_the_bar_stand_out_beyond_colour() {
     let calm = model::view_state(&list);
     assert_eq!(calm.classes, Vec::<&str>::new());
     assert_eq!(calm.icon.as_deref(), Some("zb-todo-symbolic"));
-    assert_eq!(calm.tooltip.as_deref(), Some("1 open todo"));
+    assert_eq!(
+        calm.tooltip.as_deref(),
+        Some("Next: file taxes\n1 open todo")
+    );
 
     let fire = add(&mut list, "put out the fire", Priority::High);
     let urgent = model::view_state(&list);
@@ -124,7 +127,7 @@ fn an_open_high_priority_todo_makes_the_bar_stand_out_beyond_colour() {
     assert_eq!(urgent.icon.as_deref(), Some("zb-todo-urgent-symbolic"));
     assert_eq!(
         urgent.tooltip.as_deref(),
-        Some("2 open todos, 1 high priority")
+        Some("Next: put out the fire\n2 open todos, 1 high priority")
     );
 
     list.apply(Command::Toggle(fire));
@@ -132,10 +135,38 @@ fn an_open_high_priority_todo_makes_the_bar_stand_out_beyond_colour() {
 }
 
 #[test]
+fn the_most_urgent_open_todo_leads_the_bar() {
+    let mut list = TodoList::default();
+    add(&mut list, "water the plants", Priority::Low);
+    let done = add(&mut list, "renew passport", Priority::High);
+    list.apply(Command::Toggle(done));
+    add(&mut list, "file taxes", Priority::Normal);
+    add(&mut list, "put out the fire", Priority::High);
+
+    assert_eq!(model::view_state(&list).label, "put out the fire +2");
+}
+
+#[test]
+fn a_long_todo_is_cut_on_the_bar_but_whole_in_the_tooltip() {
+    let mut list = TodoList::default();
+    let text = "call the landlord about the leaking kitchen tap again";
+    add(&mut list, text, Priority::Normal);
+
+    let state = model::view_state(&list);
+
+    assert_eq!(state.label.chars().count(), model::BAR_TEXT_MAX);
+    assert_eq!(state.label, "call the landlord about the lea…");
+    assert_eq!(
+        state.tooltip.as_deref(),
+        Some(format!("Next: {text}\n1 open todo").as_str())
+    );
+}
+
+#[test]
 fn an_empty_list_still_shows_so_there_is_somewhere_to_click() {
     let state = model::view_state(&TodoList::default());
 
-    assert_eq!(state.label, "0");
+    assert_eq!(state.label, "");
     assert!(state.visible);
     assert_eq!(state.tooltip.as_deref(), Some("No open todos"));
     assert_eq!(state.next_wake, None);
@@ -247,7 +278,7 @@ fn blank_text_is_never_stored() {
 
     assert_eq!(edited, None);
     assert_eq!(list.get(taxes).expect("kept").text, "file taxes");
-    assert_eq!(model::view_state(&list).label, "1");
+    assert_eq!(model::view_state(&list).label, "file taxes");
 }
 
 #[test]

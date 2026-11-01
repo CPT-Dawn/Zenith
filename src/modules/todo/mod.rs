@@ -1,4 +1,4 @@
-//! Todo: a compact count of open todos on the bar and a popover to manage them.
+//! Todo: the most urgent open todo on the bar and a popover to manage them.
 
 pub mod config;
 pub mod model;

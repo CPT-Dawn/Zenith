@@ -192,7 +192,12 @@ CPU, memory and temperature, from `/proc` and `/sys`, on one timer.
 
 The todo module has no settings of its own beyond click actions. Todos live in
 `$XDG_DATA_HOME/zenith-bar/todos.json` (usually `~/.local/share/zenith-bar/`),
-not in your config, so your dotfiles stay clean. Click the count to open the list.
+not in your config, so your dotfiles stay clean.
+
+The bar shows the most urgent open todo (high before normal before low, oldest
+first) and how many more are open, e.g. `Ship the release +2`. Text longer than
+32 characters is cut with `…`; hover for the whole todo. With nothing open, only
+the icon is left. Click it to open the list.
 
 ### `[logo]`
 

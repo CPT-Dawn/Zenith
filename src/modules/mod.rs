@@ -104,6 +104,15 @@ impl Default for ViewState {
     }
 }
 
+/// At most `max` characters, ending in `…` when cut. `0` means no limit.
+pub fn truncate(label: &str, max: usize) -> String {
+    if max == 0 || label.chars().count() <= max {
+        return label.to_string();
+    }
+    let kept: String = label.chars().take(max - 1).collect();
+    format!("{}…", kept.trim_end())
+}
+
 /// A value published by one source and observed by any number of views (one per bar).
 pub struct Shared<T> {
     value: RefCell<T>,

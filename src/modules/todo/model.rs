@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::modules::ViewState;
+use crate::modules::{ViewState, truncate};
 
 /// Ordered most urgent first.
 #[derive(
@@ -136,8 +136,12 @@ impl TodoList {
     }
 }
 
-/// The bar shows the open count. Open high-priority todos add `zb-urgent` and swap the
-/// icon, so urgency never relies on colour alone.
+/// The longest todo text the bar shows before cutting it with `…`; the tooltip has it all.
+pub const BAR_TEXT_MAX: usize = 32;
+
+/// The bar shows the most urgent open todo (the first one in [`TodoList::items`]) and
+/// how many more are waiting, e.g. `Ship the release +2`. Open high-priority todos add
+/// `zb-urgent` and swap the icon, so urgency never relies on colour alone.
 pub fn view_state(list: &TodoList) -> ViewState {
     let open = list.open_count();
     let high = list
@@ -145,16 +149,26 @@ pub fn view_state(list: &TodoList) -> ViewState {
         .iter()
         .filter(|t| !t.done && t.priority == Priority::High)
         .count();
-    let tooltip = match (open, high) {
+    let counts = match (open, high) {
         (0, _) => "No open todos".to_string(),
         (1, 0) => "1 open todo".to_string(),
         (n, 0) => format!("{n} open todos"),
         (1, h) => format!("1 open todo, {h} high priority"),
         (n, h) => format!("{n} open todos, {h} high priority"),
     };
+    let next = list.items().find(|t| !t.done);
+    let label = match next {
+        None => String::new(),
+        Some(todo) if open > 1 => format!("{} +{}", truncate(&todo.text, BAR_TEXT_MAX), open - 1),
+        Some(todo) => truncate(&todo.text, BAR_TEXT_MAX),
+    };
+    let tooltip = match next {
+        Some(todo) => format!("Next: {}\n{counts}", todo.text),
+        None => counts,
+    };
     let urgent = high > 0;
     ViewState {
-        label: open.to_string(),
+        label,
         icon: Some(if urgent { ICON_URGENT } else { ICON }.to_string()),
         classes: if urgent {
             vec!["zb-urgent"]
