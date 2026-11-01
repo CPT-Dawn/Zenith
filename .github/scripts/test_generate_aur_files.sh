@@ -54,6 +54,7 @@ assert_contains "$srcinfo" $'\tmakedepends = cargo' "builds with cargo"
 assert_absent "$srcinfo" "playerctl" "playerctl dependency is gone"
 assert_contains "$pkgbuild" "pkgver=2.0.0" "PKGBUILD carries the version"
 assert_contains "$srcinfo" $'\tdepends = pango' "declares pango, which the binary links"
+assert_contains "$srcinfo" $'\tdepends = graphene' "declares graphene, which the binary links"
 
 # --- the install script warns 1.x users about the rename ---------------------
 install_file="$out/zenith-bar.install"
@@ -90,6 +91,79 @@ for bad in 2.0.0 v2.0.0-rc.1 v2.0 vnext; do
   fi
 done
 
+for bad in zenith zenith-bar-git; do
+  dir="$work/badpkg-$bad"
+  mkdir -p "$dir"
+  if (cd "$dir" && bash "$generator" --tag v2.0.0 --package "$bad" --tarball "$tarball") >/dev/null 2>&1; then
+    fail "package '$bad' is refused"
+  else
+    pass "package '$bad' is refused"
+  fi
+done
+
+# --- the release tarball for zenith-bar-bin -----------------------------------
+packer="$repo_root/.github/scripts/package_binary.sh"
+fake_bin="$work/fake-zenith-bar"
+printf '#!/bin/sh\necho zenith-bar 2.0.0\n' >"$fake_bin"
+bin_tarball="$(bash "$packer" --version 2.0.0 --binary "$fake_bin" --out "$work/dist")"
+[[ "$(basename "$bin_tarball")" == "zenith-bar-2.0.0-x86_64.tar.gz" ]] \
+  && pass "release tarball is named zenith-bar-<ver>-x86_64.tar.gz" \
+  || fail "release tarball is named zenith-bar-<ver>-x86_64.tar.gz (got $bin_tarball)"
+bsdtar -tvf "$bin_tarball" >"$work/bin-listing"
+for entry in zenith-bar LICENSE README.md; do
+  if grep -q " zenith-bar-2.0.0-x86_64/$entry\$" "$work/bin-listing"; then
+    pass "release tarball holds $entry"
+  else
+    fail "release tarball holds $entry"
+  fi
+done
+if grep -q '^-rwxr-xr-x .* zenith-bar-2.0.0-x86_64/zenith-bar$' "$work/bin-listing"; then
+  pass "release binary is executable"
+else
+  fail "release binary is executable"
+fi
+if (cd "$work/dist" && sha256sum -c --quiet zenith-bar-2.0.0-x86_64.tar.gz.sha256); then
+  pass "release .sha256 matches"
+else
+  fail "release .sha256 matches"
+fi
+again="$(bash "$packer" --version 2.0.0 --binary "$fake_bin" --out "$work/dist-again")"
+if cmp -s "$bin_tarball" "$again"; then pass "release tarball is reproducible"; else fail "release tarball is reproducible"; fi
+if bash "$packer" --version v2.0.0 --binary "$fake_bin" --out "$work/dist-bad" >/dev/null 2>&1; then
+  fail "packer refuses a v-prefixed version"
+else
+  pass "packer refuses a v-prefixed version"
+fi
+
+# --- zenith-bar-bin: PKGBUILD and .SRCINFO -----------------------------------
+bin_out="$work/aur-bin"
+mkdir -p "$bin_out"
+(cd "$bin_out" && bash "$generator" --tag v2.0.0 --package zenith-bar-bin --tarball "$bin_tarball")
+bin_srcinfo="$bin_out/.SRCINFO"
+bin_sha="$(sha256sum "$bin_tarball" | cut -d' ' -f1)"
+assert_contains "$bin_srcinfo" "pkgbase = zenith-bar-bin" "bin package is named zenith-bar-bin"
+assert_contains "$bin_srcinfo" $'\tpkgver = 2.0.0' "bin pkgver comes from the tag"
+assert_contains "$bin_srcinfo" $'\tsha256sums_x86_64 = '"$bin_sha" "bin checksum matches the release tarball"
+assert_contains "$bin_srcinfo" \
+  $'\tsource_x86_64 = zenith-bar-2.0.0-x86_64.tar.gz::https://github.com/CPT-Dawn/Zenith/releases/download/v2.0.0/zenith-bar-2.0.0-x86_64.tar.gz' \
+  "bin source is the GitHub Release asset"
+assert_contains "$bin_srcinfo" $'\tprovides = zenith-bar=2.0.0' "bin provides zenith-bar"
+assert_contains "$bin_srcinfo" $'\tconflicts = zenith-bar' "bin conflicts with zenith-bar"
+assert_absent "$bin_srcinfo" "makedepends" "bin needs no build tools"
+assert_contains "$bin_srcinfo" $'\tinstall = zenith-bar.install' "bin carries the install script"
+# Runtime dependencies must match the source package exactly.
+if diff <(grep -P '^\t(depends|optdepends) = ' "$srcinfo") \
+        <(grep -P '^\t(depends|optdepends) = ' "$bin_srcinfo") >/dev/null; then
+  pass "bin and source packages share runtime dependencies"
+else
+  fail "bin and source packages share runtime dependencies"
+fi
+if diff <(cd "$bin_out" && makepkg --printsrcinfo) "$bin_srcinfo" >/dev/null; then
+  pass "bin .SRCINFO is in sync with PKGBUILD"
+else
+  fail "bin .SRCINFO is in sync with PKGBUILD"
+fi
+
 # --- full build: the package installs /usr/bin/zenith-bar --------------------
 if $run_build; then
   build="$work/build"
@@ -114,6 +188,33 @@ if $run_build; then
     if grep -E ' E: ' "$work/namcap.log" >&2; then fail "namcap reports no errors"; else pass "namcap reports no errors"; fi
     if grep -E 'implicitly satisfied' "$work/namcap.log" >&2; then fail "no implicit dependencies"; else pass "no implicit dependencies"; fi
     if bsdtar -xOf "$pkgfile" .INSTALL 2>/dev/null | grep -q post_upgrade; then pass "package carries the install script"; else fail "package carries the install script"; fi
+
+    # --- zenith-bar-bin from the binary just built --------------------------
+    real_bin="$build/src/Zenith-2.0.0/target/release/zenith-bar"
+    bin_build="$work/build-bin"
+    mkdir -p "$bin_build"
+    real_tarball="$(bash "$packer" --version 2.0.0 --binary "$real_bin" --out "$bin_build")"
+    (cd "$bin_build" && bash "$generator" --tag v2.0.0 --package zenith-bar-bin --tarball "$real_tarball")
+    export PKGDEST="$bin_build" SRCDEST="$bin_build"
+    (cd "$bin_build" && makepkg --force --nodeps --noconfirm >"$work/makepkg-bin.log" 2>&1) \
+      || { tail -40 "$work/makepkg-bin.log" >&2; fail "makepkg builds the bin package"; }
+    bin_pkgfile="$(cd "$bin_build" && makepkg --packagelist | head -1)"
+    if [[ ! -f "$bin_pkgfile" ]]; then
+      fail "makepkg produced $bin_pkgfile"
+    else
+      pass "makepkg builds the bin package"
+      bsdtar -tf "$bin_pkgfile" >"$work/bin-pkg-listing"
+      assert_contains "$work/bin-pkg-listing" "usr/bin/zenith-bar" "bin installs the zenith-bar binary"
+      assert_contains "$work/bin-pkg-listing" "usr/share/licenses/zenith-bar-bin/LICENSE" "bin installs the licence"
+      if cmp -s "$real_bin" <(bsdtar -xOf "$bin_pkgfile" usr/bin/zenith-bar); then
+        pass "bin ships the release binary byte for byte"
+      else
+        fail "bin ships the release binary byte for byte"
+      fi
+      namcap "$bin_pkgfile" | tee "$work/namcap-bin.log"
+      if grep -E ' E: ' "$work/namcap-bin.log" >&2; then fail "namcap reports no errors for bin"; else pass "namcap reports no errors for bin"; fi
+      if grep -E 'implicitly satisfied' "$work/namcap-bin.log" >&2; then fail "no implicit dependencies in bin"; else pass "no implicit dependencies in bin"; fi
+    fi
   fi
 fi
 

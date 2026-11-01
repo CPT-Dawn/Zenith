@@ -1,9 +1,10 @@
 name: Release
 
-# Pushing a vX.Y.Z tag publishes a GitHub Release with git-cliff notes and
-# updates the zenith-bar AUR package. Pre-release tags (vX.Y.Z-rc.1) get a
-# GitHub pre-release and leave the AUR alone. Run it by hand with dry_run to
-# preview the notes, PKGBUILD and .SRCINFO as artifacts without publishing.
+# Pushing a vX.Y.Z tag publishes a GitHub Release with git-cliff notes and a
+# prebuilt x86_64 tarball, then updates the zenith-bar and zenith-bar-bin AUR
+# packages. Pre-release tags (vX.Y.Z-rc.1) get a GitHub pre-release with the
+# tarball and leave the AUR alone. Run it by hand with dry_run to preview the
+# notes, tarball, PKGBUILDs and .SRCINFOs as artifacts without publishing.
 
 on:
   push:
@@ -99,12 +100,81 @@ jobs:
             gh release create "$TAG" "${args[@]}"
           fi
 
-  aur:
-    name: AUR package
+  binary:
+    name: Release binary
     needs: notes
+    runs-on: ubuntu-latest
+    # Built on Arch so it links against the same glibc/GTK that
+    # zenith-bar-bin users have.
+    container: archlinux:latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Install tools
+        run: |
+          pacman -Syu --noconfirm --needed \
+            base-devel git rust gtk4 gtk4-layer-shell github-cli
+
+      - name: Checkout the tag
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
+
+      - name: Test
+        run: cargo test --locked --release
+
+      - name: Build
+        run: cargo build --locked --release
+
+      - name: Smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          got="$(target/release/zenith-bar --version)"
+          echo "$got"
+          [[ "$got" == "zenith-bar ${TAG#v}" ]]
+
+      - name: Pack the tarball
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          .github/scripts/package_binary.sh --version "${TAG#v}" \
+            --binary target/release/zenith-bar --out dist
+          cat dist/*.sha256 >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attest build provenance
+        if: env.DRY_RUN != 'true'
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/*.tar.gz
+
+      - name: Upload tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-binary
+          path: dist/
+
+      - name: Attach to the GitHub Release
+        if: env.DRY_RUN != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" dist/* --clobber --repo "$GITHUB_REPOSITORY"
+
+  aur:
+    name: AUR package (${{ matrix.package }})
+    needs: [notes, binary]
     if: needs.notes.outputs.stable == 'true'
     runs-on: ubuntu-latest
     container: archlinux:latest
+    strategy:
+      # One package failing shouldn't hold the other back.
+      fail-fast: false
+      matrix:
+        package: [zenith-bar, zenith-bar-bin]
     steps:
       - name: Install tools
         run: |
@@ -157,21 +227,38 @@ jobs:
           if [[ "$DRY_RUN" == "true" ]]; then
             mkdir aur-repo
           else
-            git clone ssh://aur@aur.archlinux.org/zenith-bar.git aur-repo
+            # Cloning a package that doesn't exist yet gives an empty repo,
+            # and the first push creates it.
+            git clone "ssh://aur@aur.archlinux.org/${{ matrix.package }}.git" aur-repo
           fi
           chown -R builder: "$GITHUB_WORKSPACE"
 
+      - name: Download the release tarball
+        if: matrix.package == 'zenith-bar-bin'
+        uses: actions/download-artifact@v4
+        with:
+          name: release-binary
+          path: dist
+
       - name: Generate PKGBUILD and .SRCINFO
         working-directory: aur-repo
+        shell: bash
         run: |
-          runuser -u builder -- bash ../.github/scripts/generate_aur_files.sh --tag "$TAG"
+          set -euo pipefail
+          args=(--tag "$TAG" --package "${{ matrix.package }}")
+          # Checksum the exact file the binary job attached to the release.
+          if [[ "${{ matrix.package }}" == "zenith-bar-bin" ]]; then
+            chown -R builder: ../dist
+            args+=(--tarball "../dist/zenith-bar-${TAG#v}-x86_64.tar.gz")
+          fi
+          runuser -u builder -- bash ../.github/scripts/generate_aur_files.sh "${args[@]}"
           namcap PKGBUILD
           cat PKGBUILD >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload AUR files
         uses: actions/upload-artifact@v4
         with:
-          name: aur-files
+          name: aur-files-${{ matrix.package }}
           path: |
             aur-repo/PKGBUILD
             aur-repo/zenith-bar.install
@@ -192,5 +279,5 @@ jobs:
             echo "AUR package already up to date."
             exit 0
           fi
-          git commit -m "zenith-bar: update to ${TAG#v}"
+          git commit -m "${{ matrix.package }}: update to ${TAG#v}"
           git push origin master

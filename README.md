@@ -21,7 +21,7 @@ It runs on any compositor with `wlr-layer-shell`: Hyprland (most tested), Sway, 
 ## Install
 
 ```sh
-paru -S zenith-bar
+paru -S zenith-bar-bin   # prebuilt; or zenith-bar to build from source
 ```
 
 Not on Arch? [Build from source](docs/installation.md#from-source): GTK 4.22+, gtk4-layer-shell and Rust.

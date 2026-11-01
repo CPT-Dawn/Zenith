@@ -4,7 +4,7 @@
 # pkgver, pkgrel and sha256sums with .github/scripts/generate_aur_files.sh.
 pkgname=zenith-bar
 _reponame=Zenith
-pkgver=2.0.0
+pkgver=2.2.0
 pkgrel=1
 pkgdesc="The lightest beautiful status bar for Wayland"
 arch=('x86_64')
@@ -14,6 +14,7 @@ depends=(
   'libgcc'
   'glib2'
   'glibc'
+  'graphene'
   'gtk4>=1:4.22'
   'gtk4-layer-shell'
   'pango'
