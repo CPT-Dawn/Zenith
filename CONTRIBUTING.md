@@ -10,7 +10,7 @@ New modules (workspaces, battery, network, tray, …) are deliberately out of sc
 
 ## Building
 
-You need GTK 4.22+, gtk4-layer-shell and Rust 1.92+ (see [installation](docs/installation.md#from-source)).
+You need GTK 4.22+, gtk4-layer-shell and Rust 1.97+ (see [installation](docs/installation.md#from-source)).
 
 ```sh
 cargo build

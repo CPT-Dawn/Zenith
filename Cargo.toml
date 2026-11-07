@@ -2,7 +2,7 @@
 name = "zenith-bar"
 version = "2.2.0"
 edition = "2024"
-rust-version = "1.92"
+rust-version = "1.97"
 authors = ["CPT-Dawn"]
 description = "The lightest beautiful status bar for Wayland"
 license = "MIT"
@@ -29,12 +29,19 @@ log = "0.4.34"
 env_logger = { version = "0.11.11", default-features = false, features = ["auto-color"] }
 # Only to enable async File::move_future (todo saves); use it through the gtk4::gio re-export.
 gio = { version = "0.22.2", features = ["v2_72"] }
+# The clipboard module's types and framing (the Hoarder socket API v1). Only the types:
+# its blocking client would stall the main loop (ADR-0002), so the module drives the
+# socket with gio itself.
+# TODO: switch to the crates.io release once hoarder-ipc is published.
+hoarder-ipc = { git = "https://github.com/CPT-Dawn/Hoarder", rev = "227d99717e3a9ed92d22ae96bb29d8ea5f6c3b16" }
 
 [build-dependencies]
 glib-build-tools = "0.22.8"
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
+# The fake Hoarder Daemon in tests/source_clipboard.rs receives fds over SCM_RIGHTS.
+rustix = { version = "1.1", features = ["net"] }
 
 [profile.release]
 opt-level = 3

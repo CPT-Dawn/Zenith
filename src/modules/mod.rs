@@ -16,6 +16,7 @@ use std::str::FromStr;
 use std::time::Duration;
 
 pub mod calendar;
+pub mod clipboard;
 pub mod clock;
 pub mod logo;
 pub mod media;
