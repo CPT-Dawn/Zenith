@@ -34,6 +34,9 @@ gio = { version = "0.22.2", features = ["v2_72"] }
 # socket with gio itself.
 # TODO: switch to the crates.io release once hoarder-ipc is published.
 hoarder-ipc = { git = "https://github.com/CPT-Dawn/Hoarder", rev = "227d99717e3a9ed92d22ae96bb29d8ea5f6c3b16" }
+# Bindings to libgio's Unix half (already linked): passing a pipe to the Daemon for
+# thumbnails and reading it back without blocking.
+gio-unix = "0.22.8"
 
 [build-dependencies]
 glib-build-tools = "0.22.8"

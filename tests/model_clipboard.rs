@@ -264,3 +264,26 @@ fn reconnecting_backs_off_to_half_a_minute_and_starts_over_after_a_success() {
     assert_eq!(delays, vec![1, 2, 4, 8, 16, 30, 30, 30]);
     assert_eq!(backoff.after_failure(), Duration::from_secs(1));
 }
+
+#[test]
+fn a_later_list_replaces_the_clips_and_keeps_the_recording() {
+    let mut clipboard = Clipboard::new();
+    clipboard.connected(recording(State::Paused), Vec::new());
+
+    clipboard.listed((1..=12).rev().map(|id| clip(id, "text", "x")).collect());
+
+    assert_eq!(ids(&clipboard), vec![12, 11, 10, 9, 8, 7, 6, 5, 4, 3]);
+    assert_eq!(
+        clipboard.view_state(&tz()).classes,
+        vec!["zb-clipboard-paused"]
+    );
+}
+
+#[test]
+fn a_list_without_a_daemon_is_ignored() {
+    let mut clipboard = Clipboard::new();
+
+    clipboard.listed(vec![clip(1, "text", "x")]);
+
+    assert_eq!(clipboard.recent(), Recent::default());
+}

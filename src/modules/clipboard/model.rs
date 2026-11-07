@@ -73,6 +73,14 @@ impl Clipboard {
         self.clips = clips;
     }
 
+    /// A fresh `list` answer, newer than every Clip event before it.
+    pub fn listed(&mut self, mut clips: Vec<ClipSummary>) {
+        if self.recording.is_some() {
+            clips.truncate(RECENT as usize);
+            self.clips = clips;
+        }
+    }
+
     /// The Daemon went away (or never came).
     pub fn disconnected(&mut self) {
         *self = Self::default();
