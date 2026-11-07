@@ -33,16 +33,18 @@ pub enum ModuleId {
     System,
     Todo,
     Logo,
+    Clipboard,
 }
 
 impl ModuleId {
-    pub const ALL: [ModuleId; 6] = [
+    pub const ALL: [ModuleId; 7] = [
         ModuleId::Clock,
         ModuleId::Calendar,
         ModuleId::Media,
         ModuleId::System,
         ModuleId::Todo,
         ModuleId::Logo,
+        ModuleId::Clipboard,
     ];
 
     pub fn as_str(self) -> &'static str {
@@ -53,6 +55,7 @@ impl ModuleId {
             ModuleId::System => "system",
             ModuleId::Todo => "todo",
             ModuleId::Logo => "logo",
+            ModuleId::Clipboard => "clipboard",
         }
     }
 }

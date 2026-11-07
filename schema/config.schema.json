@@ -104,6 +104,50 @@
       },
       "type": "object"
     },
+    "ClipboardConfig": {
+      "additionalProperties": false,
+      "description": "The `[clipboard]` table.",
+      "properties": {
+        "on_click": {
+          "default": null,
+          "description": "Shell command run on left click, instead of the module's built-in action.\nAn empty string disables the built-in action without running anything.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_right_click": {
+          "default": null,
+          "description": "Shell command run on right click, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_down": {
+          "default": null,
+          "description": "Shell command run on scroll down, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_up": {
+          "default": null,
+          "description": "Shell command run on scroll up, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "search_command": {
+          "default": "hoarder picker",
+          "description": "Shell command run by the popover's \"Search all…\" row.",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "ClockConfig": {
       "additionalProperties": false,
       "description": "The `[clock]` table.",
@@ -518,6 +562,9 @@
     },
     "calendar": {
       "$ref": "#/definitions/CalendarConfig"
+    },
+    "clipboard": {
+      "$ref": "#/definitions/ClipboardConfig"
     },
     "clock": {
       "$ref": "#/definitions/ClockConfig"

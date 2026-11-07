@@ -140,6 +140,7 @@ Each module also carries `zb-<module>`:
 | `zb-system` | System metrics |
 | `zb-todo` | Todo list |
 | `zb-logo` | Logo |
+| `zb-clipboard` | Clipboard history (Hoarder) |
 
 #### Media parts
 

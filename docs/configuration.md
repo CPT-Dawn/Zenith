@@ -134,7 +134,7 @@ Placement, geometry and motion of every bar.
 ### `[layout]`
 
 Which **Modules** appear in each **Section**, in order. Available modules:
-`logo`, `todo`, `clock`, `calendar`, `media`, `system`. A module may appear only
+`logo`, `todo`, `clock`, `calendar`, `media`, `system`, `clipboard`. A module may appear only
 once across all sections; leave it out of every section to disable it. Leaving
 `[layout]` out gives the default layout; once you write the table, any section
 you leave out is empty.
@@ -199,6 +199,23 @@ first) and how many more are open, e.g. `Ship the release +2`. Text longer than
 32 characters is cut with `…`; hover for the whole todo. With nothing open, only
 the icon is left. Click it to open the list.
 
+### `[clipboard]`
+
+Recent clipboard history from the [Hoarder](https://github.com/CPT-Dawn/Hoarder)
+clipboard daemon, over its socket. Not in the default layout: add `"clipboard"`
+to a section to use it.
+
+The icon shows whether Hoarder is recording, paused (hover to see until when) or
+offline. Left click opens the 10 most recent Clips, with thumbnails for images;
+click one to make it the clipboard again. Right click pauses recording, or
+resumes it. With no Hoarder running the module just shows the offline icon and
+quietly tries again, every few seconds at first and then twice a minute, so you
+can start Hoarder before or after the bar.
+
+| Key | Default | Example | Description |
+|---|---|---|---|
+| `search_command` | `"hoarder picker"` | `"~/bin/clips"` | Shell command run by the popover's "Search all…" row, which closes the popover first. |
+
 ### `[logo]`
 
 | Key | Default | Example | Description |
@@ -220,10 +237,11 @@ The look. See [theming](theming.md) for what each override changes and for the
 ### Click actions
 
 Every module table (`[clock]`, `[calendar]`, `[media]`, `[system]`, `[todo]`,
-`[logo]`) also takes these keys. Each is a shell command, run detached so a slow
-command never freezes the bar. A configured command **replaces** the module's
-built-in action for that gesture (media play/pause, the calendar and todo
-popovers); an empty string disables the built-in action without running anything.
+`[logo]`, `[clipboard]`) also takes these keys. Each is a shell command, run
+detached so a slow command never freezes the bar. A configured command
+**replaces** the module's built-in action for that gesture (media play/pause,
+the calendar, todo and clipboard popovers, clipboard pause); an empty string
+disables the built-in action without running anything.
 
 | Key | Default | Example | Description |
 |---|---|---|---|

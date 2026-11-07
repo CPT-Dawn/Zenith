@@ -91,5 +91,7 @@ fn view(id: ModuleId, sources: &Sources) -> Option<gtk4::Widget> {
             .system
             .as_ref()
             .map(|s| system::view::build(&s.state())),
+        // Its view lands with its source.
+        ModuleId::Clipboard => None,
     }
 }

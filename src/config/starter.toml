@@ -26,7 +26,7 @@ focal = "clock"
 
 [layout]
 # Modules per section, in order. A module may appear only once.
-# Available: logo, todo, clock, calendar, media, system.
+# Available: logo, todo, clock, calendar, media, system, clipboard.
 left = ["logo", "todo"]
 center = ["clock", "calendar"]
 right = ["media", "system"]
@@ -74,6 +74,12 @@ hot = 85
 [todo]
 # No settings of its own. Todos live in $XDG_DATA_HOME/zenith-bar/todos.json,
 # not here, so your dotfiles stay clean. Click the count to manage them.
+
+[clipboard]
+# Recent clipboard history from the Hoarder daemon. Add "clipboard" to [layout]
+# to show it: left click lists recent Clips, right click pauses recording.
+# Shell command run by the popover's "Search all…" row.
+search_command = "hoarder picker"
 
 [theme]
 # Built-in theme: "midnight-bloom", "tokyo-night", "catppuccin-mocha" or
