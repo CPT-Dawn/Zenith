@@ -149,6 +149,12 @@ Each module also carries `zb-<module>`:
 | `zb-media-icon` | The play, pause or idle note icon. |
 | `zb-media-progress` | The hairline progress bar under the title (a `progressbar` with `trough` and `progress` nodes). Hidden when the track length is unknown or nothing plays. |
 
+#### Clipboard parts
+
+| Class | On |
+|---|---|
+| `zb-clipboard-icon` | The clipboard icon on the bar. |
+
 ### State
 
 Modules add state classes while a state holds:
@@ -160,6 +166,9 @@ Modules add state classes while a state holds:
 | `zb-playing` | Media is playing. |
 | `zb-paused` | Media is paused. |
 | `zb-urgent` | The todo module has an open high-priority todo (its icon also gains a `!`). |
+| `zb-clipboard-active` | Hoarder is recording clipboard history. |
+| `zb-clipboard-paused` | Hoarder's recording is paused (the icon shows a pause sign). |
+| `zb-clipboard-offline` | Hoarder isn't running, or the bar lost it (the icon is struck through). The module tries again quietly. |
 
 ### Todo popover
 
@@ -174,6 +183,19 @@ Inside `zb-todo-popover`:
 | `zb-todo-add` | The add row: entry and priority picker. |
 | `zb-todo-list` | The list of todos. |
 | `zb-todo-empty` | The text shown when there are no todos. |
+
+### Clipboard popover
+
+Inside `zb-clipboard-popover`:
+
+| Class | On |
+|---|---|
+| `zb-clipboard-list` | The list of recent Clips. |
+| `zb-clipboard-row` | One Clip; click it to make it the clipboard again. |
+| `zb-clipboard-thumb` | An image Clip's thumbnail. |
+| `zb-clipboard-preview` | A Clip's preview text, on one line. |
+| `zb-clipboard-empty` | The text shown when there are no Clips, or no Hoarder. |
+| `zb-clipboard-search` | The "Search all…" button, which runs `[clipboard] search_command`. |
 
 ## Example `style.css`
 

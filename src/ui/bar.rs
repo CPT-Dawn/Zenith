@@ -7,6 +7,7 @@ use gtk4_layer_shell::{Edge, KeyboardMode, Layer, LayerShell};
 use super::sources::Sources;
 use crate::config::{Position, ResolvedConfig, Section};
 use crate::modules::calendar;
+use crate::modules::clipboard;
 use crate::modules::media;
 use crate::modules::todo;
 use crate::modules::{ModuleId, clock, logo, system};
@@ -91,7 +92,6 @@ fn view(id: ModuleId, sources: &Sources) -> Option<gtk4::Widget> {
             .system
             .as_ref()
             .map(|s| system::view::build(&s.state())),
-        // Its view lands with its source.
-        ModuleId::Clipboard => None,
+        ModuleId::Clipboard => sources.clipboard.as_ref().map(clipboard::view::build),
     }
 }

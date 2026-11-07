@@ -7,6 +7,7 @@ use std::rc::Rc;
 use crate::config::ResolvedConfig;
 use crate::modules::ModuleId;
 use crate::modules::calendar::source::CalendarSource;
+use crate::modules::clipboard::source::ClipboardSource;
 use crate::modules::clock::source::ClockSource;
 use crate::modules::logo::source::LogoSource;
 use crate::modules::media::source::MediaSource;
@@ -21,6 +22,7 @@ pub struct Sources {
     pub media: Option<Rc<MediaSource>>,
     pub calendar: Option<Rc<CalendarSource>>,
     pub system: Option<Rc<SystemSource>>,
+    pub clipboard: Option<Rc<ClipboardSource>>,
 }
 
 impl Sources {
@@ -34,6 +36,8 @@ impl Sources {
             calendar: on(ModuleId::Calendar)
                 .then(|| CalendarSource::start(config.calendar.clone())),
             system: on(ModuleId::System).then(|| SystemSource::start(config.system.clone())),
+            clipboard: on(ModuleId::Clipboard)
+                .then(|| ClipboardSource::start(config.clipboard.clone())),
         }
     }
 
@@ -84,6 +88,13 @@ impl Sources {
             old.system != new.system,
             || SystemSource::start(new.system.clone()),
             |s| s.reconfigure(new.system.clone()),
+        );
+        follow(
+            &mut self.clipboard,
+            on(ModuleId::Clipboard),
+            old.clipboard != new.clipboard,
+            || ClipboardSource::start(new.clipboard.clone()),
+            |s| s.reconfigure(new.clipboard.clone()),
         );
     }
 }

@@ -3,6 +3,7 @@
 pub mod config;
 pub mod model;
 pub mod source;
+pub mod view;
 
 pub use config::ClipboardConfig;
 pub use model::{Backoff, Clipboard, Kind, RECENT, Recent, Row};
