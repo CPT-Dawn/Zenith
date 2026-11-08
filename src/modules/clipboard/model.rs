@@ -43,13 +43,14 @@ pub enum Kind {
     Other,
 }
 
-impl Kind {
-    fn parse(kind: &str) -> Self {
+impl From<hoarder_ipc::Kind> for Kind {
+    fn from(kind: hoarder_ipc::Kind) -> Self {
+        // hoarder-ipc already reads kinds it does not know as `Other`.
         match kind {
-            "text" => Kind::Text,
-            "image" => Kind::Image,
-            "files" => Kind::Files,
-            _ => Kind::Other,
+            hoarder_ipc::Kind::Text => Kind::Text,
+            hoarder_ipc::Kind::Image => Kind::Image,
+            hoarder_ipc::Kind::Files => Kind::Files,
+            hoarder_ipc::Kind::Other => Kind::Other,
         }
     }
 }
@@ -121,7 +122,7 @@ impl Clipboard {
                 .iter()
                 .map(|clip| Row {
                     id: clip.id,
-                    kind: Kind::parse(&clip.kind),
+                    kind: clip.kind.into(),
                     label: one_line(&clip.preview),
                 })
                 .collect(),

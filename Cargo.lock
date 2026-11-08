@@ -612,8 +612,8 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "hoarder-ipc"
-version = "0.1.0"
-source = "git+https://github.com/CPT-Dawn/Hoarder?rev=227d99717e3a9ed92d22ae96bb29d8ea5f6c3b16#227d99717e3a9ed92d22ae96bb29d8ea5f6c3b16"
+version = "1.0.0"
+source = "git+https://github.com/CPT-Dawn/Hoarder?tag=v1.0.0#a64f43c0289bda443e30c6a22716fd47c6dd616b"
 dependencies = [
  "rustix",
  "serde",
