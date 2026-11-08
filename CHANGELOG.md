@@ -7,6 +7,23 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 v2 is a clean break from v1. Releases before 2.0.0 predate conventional
 commits; their notes live on the GitHub Releases page.
 
+## [2.3.0] - 2026-11-08
+
+### Features
+
+- **clipboard:** Model Hoarder's state for a bar that keeps its cool
+- **clipboard:** Give [clipboard] a seat at the config table
+- **clipboard:** Talk to Hoarder over gio, and keep calling back
+- **clipboard:** Put recent Clips one click away on the bar
+
+### Bug Fixes
+
+- **clipboard:** Build against hoarder-ipc v1.0.0, not a pre-release rev
+
+### Documentation
+
+- **clipboard:** Tell people Hoarder exists before they go looking
+
 ## [2.2.0] - 2026-11-01
 
 ### Features
@@ -16,7 +33,6 @@ commits; their notes live on the GitHub Releases page.
 ### Bug Fixes
 
 - **aur:** Declare graphene, which GTK quietly dragged in
-
 ## [2.1.0] - 2026-11-01
 
 ### Features
@@ -27,7 +43,6 @@ commits; their notes live on the GitHub Releases page.
 
 - **todo:** Grab the keyboard before the popover, not after it
 - **popover:** Give the bar some personal space
-
 ## [2.0.0] - 2026-10-31
 
 ### Features
