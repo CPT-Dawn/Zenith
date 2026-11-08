@@ -18,6 +18,10 @@ Zenith does nothing unless something on the bar changes. No polling helpers, no 
 
 It runs on any compositor with `wlr-layer-shell`: Hyprland (most tested), Sway, niri, river and friends.
 
+## Clipboard history
+
+Pair it with [Hoarder](https://github.com/CPT-Dawn/Hoarder) and the `clipboard` module puts your recent copies one click away on the bar: thumbnails for images, click to restore, right click to pause recording. Add `"clipboard"` to a section in `[layout]`; see [configuration](docs/configuration.md#clipboard).
+
 ## Install
 
 ```sh

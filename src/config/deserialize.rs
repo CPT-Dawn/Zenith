@@ -20,6 +20,7 @@ use super::raw::RawConfig;
 use super::theme::ThemeConfig;
 use super::validate::tidy;
 use crate::modules::calendar::CalendarConfig;
+use crate::modules::clipboard::ClipboardConfig;
 use crate::modules::media::MediaConfig;
 use crate::modules::todo::TodoConfig;
 use crate::modules::{clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
@@ -28,7 +29,7 @@ use crate::modules::{clock::ClockConfig, logo::LogoConfig, system::SystemConfig}
 type Check = fn(&Spanned<DeValue<'_>>) -> Vec<(Option<String>, toml::de::Error)>;
 
 /// One line per [`RawConfig`] field.
-const TABLES: [(&str, Check); 9] = [
+const TABLES: [(&str, Check); 10] = [
     ("bar", each_key::<BarConfig>),
     ("layout", each_key::<LayoutConfig>),
     ("clock", each_key::<ClockConfig>),
@@ -38,6 +39,7 @@ const TABLES: [(&str, Check); 9] = [
     ("calendar", each_key::<CalendarConfig>),
     ("system", each_key::<SystemConfig>),
     ("todo", each_key::<TodoConfig>),
+    ("clipboard", each_key::<ClipboardConfig>),
 ];
 
 /// What deserializing produced: the config built from every value that is valid,

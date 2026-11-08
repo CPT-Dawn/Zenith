@@ -27,7 +27,7 @@ You need:
 |---|---|---|---|---|
 | GTK 4 | 4.22 or newer | `gtk4` | `libgtk-4-dev` | `gtk4-devel` |
 | gtk4-layer-shell | 1.3 or newer | `gtk4-layer-shell` | `libgtk4-layer-shell-dev` | `gtk4-layer-shell-devel` |
-| Rust toolchain | 1.92 or newer (edition 2024) | `rust` or `rustup` | [rustup](https://rustup.rs) | [rustup](https://rustup.rs) |
+| Rust toolchain | 1.97 or newer (edition 2024) | `rust` or `rustup` | [rustup](https://rustup.rs) | [rustup](https://rustup.rs) |
 
 GTK 4.22 is recent: if your distribution ships an older GTK, Zenith won't build there yet. The package names above are the usual ones; check your distribution if one is missing.
 

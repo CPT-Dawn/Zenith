@@ -265,3 +265,71 @@ popover.zb-todo-popover > contents {
   outline: 2px solid var(--zb-accent);
   outline-offset: 1px;
 }
+
+/* Clipboard: an icon on the bar, the recent Clips in a popover */
+.zb-clipboard .zb-clipboard-icon {
+  color: var(--zb-text-muted);
+}
+
+.zb-clipboard.zb-clipboard-active .zb-clipboard-icon {
+  color: var(--zb-text);
+}
+
+.zb-clipboard.zb-clipboard-paused .zb-clipboard-icon {
+  color: var(--zb-accent-lavender);
+}
+
+.zb-clipboard.zb-clipboard-offline .zb-clipboard-icon {
+  color: var(--zb-text-dim);
+}
+
+popover.zb-clipboard-popover > contents {
+  padding: var(--zb-space-m);
+  border: 1px solid var(--zb-surface-border);
+  border-radius: var(--zb-bar-radius);
+  background-color: var(--zb-surface);
+  color: var(--zb-text);
+  font-family: var(--zb-font-family);
+  font-size: var(--zb-font-size);
+}
+
+.zb-clipboard-popover list,
+.zb-clipboard-popover row {
+  background: none;
+}
+
+.zb-clipboard-row {
+  min-height: 2em;
+  padding: var(--zb-space-xs) var(--zb-space-s);
+  border-radius: var(--zb-module-radius);
+}
+
+.zb-clipboard-row:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-clipboard-thumb {
+  border-radius: var(--zb-module-radius);
+}
+
+.zb-clipboard-preview {
+  color: var(--zb-text);
+}
+
+.zb-clipboard-empty {
+  padding: var(--zb-space-l);
+  color: var(--zb-text-muted);
+}
+
+.zb-clipboard-search {
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: var(--zb-module-bg);
+  color: var(--zb-text-muted);
+}
+
+.zb-clipboard-search:hover {
+  background-color: var(--zb-module-bg-hover);
+  color: var(--zb-text);
+}

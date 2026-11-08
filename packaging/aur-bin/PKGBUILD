@@ -21,7 +21,8 @@ depends=(
   'gtk4-layer-shell'
   'pango'
 )
-optdepends=('ttf-inter: the recommended UI font')
+optdepends=('ttf-inter: the recommended UI font'
+            'hoarder: clipboard history for the clipboard module')
 provides=("${_pkgname}=${pkgver}")
 conflicts=("${_pkgname}")
 # The release build is already stripped.
