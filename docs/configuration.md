@@ -203,7 +203,8 @@ the icon is left. Click it to open the list.
 
 Recent clipboard history from the [Hoarder](https://github.com/CPT-Dawn/Hoarder)
 clipboard daemon, over its socket. Not in the default layout: add `"clipboard"`
-to a section to use it.
+to a section to use it. It needs Hoarder installed (`paru -S hoarder-bin`) and its
+Daemon running (`systemctl --user enable --now hoarder`).
 
 The icon shows whether Hoarder is recording, paused (hover to see until when) or
 offline. Left click opens the 10 most recent Clips, with thumbnails for images;

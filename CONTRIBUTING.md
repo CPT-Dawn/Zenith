@@ -6,7 +6,7 @@ Thanks for helping. Zenith has one promise: **the lightest beautiful status bar 
 
 Use the [issue forms](https://github.com/CPT-Dawn/Zenith/issues/new/choose). For bugs, `zenith-bar --version`, your compositor and version, and the output of `zenith-bar check` save a round trip. `ZENITH_BAR_LOG=debug zenith-bar` gives detailed logs.
 
-New modules (workspaces, battery, network, tray, …) are deliberately out of scope for v2. Requests are still welcome: they are how we decide what comes next.
+New modules are added sparingly: v2 gained only `clipboard`, for Hoarder. Workspaces, battery, network and tray remain out of scope. Requests are still welcome: they are how we decide what comes next.
 
 ## Building
 

@@ -20,7 +20,8 @@ depends=(
   'pango'
 )
 makedepends=('cargo')
-optdepends=('ttf-inter: the recommended UI font')
+optdepends=('ttf-inter: the recommended UI font'
+            'hoarder: clipboard history for the clipboard module')
 options=('!lto')
 install="${pkgname}.install"
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")

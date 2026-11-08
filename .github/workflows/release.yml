@@ -273,7 +273,7 @@ jobs:
           set -euo pipefail
           git config --global --add safe.directory "$PWD"
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "ping@cptdawn.dev"
           git add PKGBUILD zenith-bar.install .SRCINFO
           if git diff --cached --quiet; then
             echo "AUR package already up to date."
