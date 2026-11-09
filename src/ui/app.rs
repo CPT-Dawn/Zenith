@@ -39,7 +39,10 @@ pub fn run(options: Options) -> glib::ExitCode {
     // launch forwards `activate` to the running instance and exits.
     let app = gtk4::Application::builder().application_id(APP_ID).build();
     let runtime: Rc<RefCell<Option<Runtime>>> = Rc::default();
+    // Set when the bar cannot start, so the process exits non-zero for supervisors.
+    let failed = Rc::new(Cell::new(false));
 
+    let failed_in_activate = failed.clone();
     app.connect_activate(move |app| {
         if runtime.borrow().is_some() {
             log::info!("already running");
@@ -47,11 +50,13 @@ pub fn run(options: Options) -> glib::ExitCode {
         }
         if !gtk4_layer_shell::is_supported() {
             log::error!("this compositor does not support the layer-shell protocol");
+            failed_in_activate.set(true);
             app.quit();
             return;
         }
         let Some(display) = gdk::Display::default() else {
             log::error!("no display");
+            failed_in_activate.set(true);
             app.quit();
             return;
         };
@@ -95,7 +100,12 @@ pub fn run(options: Options) -> glib::ExitCode {
     });
 
     // Our own flags were parsed already; GTK sees only the program name.
-    app.run_with_args(&["zenith-bar"])
+    let code = app.run_with_args(&["zenith-bar"]);
+    if failed.get() {
+        glib::ExitCode::FAILURE
+    } else {
+        code
+    }
 }
 
 fn with_runtime(weak: &Weak<RefCell<Option<Runtime>>>, f: impl FnOnce(&mut Runtime)) {
