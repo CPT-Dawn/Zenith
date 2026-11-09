@@ -629,3 +629,17 @@ fn adding_the_same_player_twice_replaces_it() {
 
     assert_eq!(media.view_state(&config(), at(2)).label, "No media");
 }
+
+#[test]
+fn an_absurd_playback_rate_never_panics() {
+    for rate in [1e20, 1e-20, f64::MAX, 1e300] {
+        let mut properties = player("Playing", metadata("Song", &[], 100), 10);
+        properties.insert("Rate".into(), Value::F64(rate));
+        let mut media = Media::new();
+        media.player_added(":1.1", &properties, at(0));
+
+        let state = media.view_state(&config(), at(50));
+
+        assert!(state.progress.is_some_and(|p| (0.0..=1.0).contains(&p)));
+    }
+}

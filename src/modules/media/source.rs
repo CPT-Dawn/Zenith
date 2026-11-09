@@ -157,8 +157,10 @@ impl MediaSource {
             gio::DBusSignalFlags::NONE,
             move |signal| {
                 let sender = signal.sender_name.to_owned();
-                let changed = map(&signal.parameters.child_value(1));
-                let invalidated = signal.parameters.child_value(2).n_children() > 0;
+                let Some((changed, invalidated)) = parse_properties_changed(signal.parameters)
+                else {
+                    return;
+                };
                 if_alive(&weak, |source| {
                     source.changed(&sender, &changed);
                     if invalidated {
@@ -288,7 +290,9 @@ impl MediaSource {
             "GetAll",
             (PLAYER_IFACE,).to_variant(),
             move |source, reply| {
-                let properties = map(&reply.child_value(0));
+                let Some(properties) = parse_get_all(&reply) else {
+                    return;
+                };
                 source
                     .media
                     .borrow_mut()
@@ -302,7 +306,9 @@ impl MediaSource {
         let player = name.to_owned();
         let arguments = (PLAYER_IFACE, "Position").to_variant();
         self.get(name, "Get", arguments, move |source, reply| {
-            let position = value(&reply.child_value(0));
+            let Some(position) = parse_get(&reply) else {
+                return;
+            };
             let changed = PropertyMap::from([("Position".to_owned(), position)]);
             source
                 .media
@@ -361,6 +367,37 @@ fn is_mpris(name: &str) -> bool {
 /// The monotonic clock the model's progress estimate runs on.
 fn now() -> Duration {
     Duration::from_micros(glib::monotonic_time().max(0) as u64)
+}
+
+/// A `PropertiesChanged` body `(sa{sv}as)`: the changed properties, and whether any were
+/// invalidated. Anything of another shape is ignored: any process can send this signal.
+pub fn parse_properties_changed(body: &glib::Variant) -> Option<(PropertyMap, bool)> {
+    if body.type_().as_str() != "(sa{sv}as)" {
+        log::debug!("media: ignoring PropertiesChanged of type {}", body.type_());
+        return None;
+    }
+    Some((
+        map(&body.child_value(1)),
+        body.child_value(2).n_children() > 0,
+    ))
+}
+
+/// A `GetAll` reply `(a{sv})` as a property map.
+pub fn parse_get_all(reply: &glib::Variant) -> Option<PropertyMap> {
+    if reply.type_().as_str() != "(a{sv})" {
+        log::debug!("media: ignoring GetAll reply of type {}", reply.type_());
+        return None;
+    }
+    Some(map(&reply.child_value(0)))
+}
+
+/// A `Get` reply `(v)` as a model value.
+pub fn parse_get(reply: &glib::Variant) -> Option<Value> {
+    if reply.type_().as_str() != "(v)" {
+        log::debug!("media: ignoring Get reply of type {}", reply.type_());
+        return None;
+    }
+    Some(value(&reply.child_value(0)))
 }
 
 /// An `a{sv}` as a model property map; anything else is empty.

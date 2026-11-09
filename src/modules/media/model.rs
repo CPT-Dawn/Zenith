@@ -44,6 +44,9 @@ impl PlaybackStatus {
 const UNMEASURED_STEPS: u32 = 200;
 /// Even short tracks (or very wide bars) tick at most this often.
 const MIN_TICK: Duration = Duration::from_millis(250);
+/// Below this a player counts as not advancing; above `MAX_RATE` it is clamped.
+const MIN_RATE: f64 = 1e-3;
+const MAX_RATE: f64 = 1e3;
 
 /// What a player has loaded, from its `Metadata` map.
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -111,7 +114,12 @@ impl Player {
             self.status = status;
         }
         if let Some(rate) = number(changed.get("Rate")) {
-            self.rate = rate.max(0.0);
+            // MPRIS rates are small; clamp so Duration math can never overflow.
+            self.rate = if rate < MIN_RATE {
+                0.0
+            } else {
+                rate.min(MAX_RATE)
+            };
         }
         if let Some(metadata) = changed.get("Metadata") {
             let track = Track::parse(metadata);
