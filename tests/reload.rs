@@ -38,6 +38,28 @@ fn events_are_matched_to_the_watched_file_by_full_path() {
 }
 
 #[test]
+fn a_not_yet_existing_path_with_dot_dot_still_matches_monitor_events() {
+    // `--config ../z/config.toml` before the file exists: canonicalize cannot resolve it,
+    // and gio reports events with the `..` already folded away.
+    let watched = Watched::new(
+        Path::new("/cfg/zenith-bar/../z/config.toml"),
+        Path::new("/cfg/zenith-bar/./style.css"),
+    );
+    use gtk4::gio::prelude::FileExt;
+    let event = |path: &str| gtk4::gio::File::for_path(path).path().unwrap();
+
+    assert_eq!(
+        watched.kind_of(&event("/cfg/zenith-bar/../z/config.toml")),
+        Some(WatchedFile::Config)
+    );
+    assert_eq!(
+        watched.kind_of(&event("/cfg/zenith-bar/./style.css")),
+        Some(WatchedFile::Style)
+    );
+    assert!(watched.is_on_the_way(&event("/cfg/z")));
+}
+
+#[test]
 fn files_in_one_directory_need_one_directory_watch() {
     let watched = Watched::new(
         Path::new("/cfg/zenith-bar/config.toml"),

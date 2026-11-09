@@ -183,6 +183,9 @@ impl Watched {
         let mut files = Vec::new();
         for (path, file) in [(config, WatchedFile::Config), (style, WatchedFile::Style)] {
             let path = std::path::absolute(path).unwrap_or_else(|_| path.to_owned());
+            // gio folds `.` and `..` out of event paths; match that even when the file
+            // does not exist yet and `canonicalize` below cannot resolve it.
+            let path = gio::File::for_path(&path).path().unwrap_or(path);
             if let Ok(target) = path.canonicalize()
                 && target != path
             {
