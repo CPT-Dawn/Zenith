@@ -39,7 +39,7 @@ pub fn build(
     };
     for side in [edge, Edge::Left, Edge::Right] {
         window.set_anchor(side, true);
-        window.set_margin(side, bar.margin as i32);
+        window.set_margin(side, i32::try_from(bar.margin).unwrap_or(i32::MAX));
     }
     window.auto_exclusive_zone_enable();
 

@@ -23,6 +23,7 @@
           "default": 8,
           "description": "Gap between the bar and the output edges, in pixels.",
           "format": "uint32",
+          "maximum": 2147483647,
           "minimum": 0,
           "type": "integer"
         },

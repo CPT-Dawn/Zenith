@@ -16,6 +16,7 @@ pub struct BarConfig {
     /// Bar height in pixels.
     pub height: u32,
     /// Gap between the bar and the output edges, in pixels.
+    #[schemars(range(max = 2147483647))]
     pub margin: u32,
     /// Corner radius of the bar, in pixels.
     pub radius: u32,
