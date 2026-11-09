@@ -7,6 +7,31 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 v2 is a clean break from v1. Releases before 2.0.0 predate conventional
 commits; their notes live on the GitHub Releases page.
 
+## [2.3.1] - 2026-11-09
+
+### Bug Fixes
+
+- **app:** Exit non-zero when the bar cannot start
+- **reload:** Fold .. out of watched paths like gio does
+- **config:** Reject known tables written as arrays or scalars, fix focal/margin/position
+- **media:** Ignore MPRIS signals and replies of the wrong shape
+- **media:** Clamp absurd playback rates so progress math can't overflow
+- **clipboard:** Stop a failed send from re-entering the list it was published from
+- **clipboard:** Only drop the link whose send actually failed
+- **todo:** Stop eating the list on odd files, links and encodings
+
+### Documentation
+
+- **todo:** Say what happens to odd todo files
+
+### Testing
+
+- **todo:** Two corrupt files in a row keep both backups
+
+### Build
+
+- **cliff:** Keep a blank line between releases on git-cliff 2.14
+
 ## [2.3.0] - 2026-11-08
 
 ### Features
@@ -33,6 +58,7 @@ commits; their notes live on the GitHub Releases page.
 ### Bug Fixes
 
 - **aur:** Declare graphene, which GTK quietly dragged in
+
 ## [2.1.0] - 2026-11-01
 
 ### Features
@@ -43,6 +69,7 @@ commits; their notes live on the GitHub Releases page.
 
 - **todo:** Grab the keyboard before the popover, not after it
 - **popover:** Give the bar some personal space
+
 ## [2.0.0] - 2026-10-31
 
 ### Features
@@ -130,4 +157,5 @@ commits; their notes live on the GitHub Releases page.
 - **aur:** Teach the PKGBUILD the zenith-bar name and forget playerctl
 - **release:** Let git-cliff write the changelog so humans don't
 - **aur:** Warn 1.x upgraders about the rename and declare pango
+
 
