@@ -293,14 +293,19 @@ impl ClipboardSource {
             });
             link.pending.insert(id, pending);
             send(&link.connection.socket(), line.as_bytes(), fd)
+                .map_err(|e| (e, link.cancellable.clone()))
         };
-        if let Err(e) = sent {
+        if let Err((e, failed_link)) = sent {
             // Not now: the caller may be a subscriber mid-publish, or a view
             // holding a borrow of the list. Dropping the link re-publishes.
             let weak = Rc::downgrade(self);
             let why = e.to_string();
             glib::idle_add_local_once(move || {
-                if let Some(source) = weak.upgrade() {
+                let Some(source) = weak.upgrade() else { return };
+                // Only if that link is still the current one: a reconnect may have
+                // won the race to the main loop, and its new link is healthy.
+                let current = source.link.borrow().as_ref().map(|l| l.cancellable.clone());
+                if current.as_ref() == Some(&failed_link) {
                     source.lost(&why);
                 }
             });
