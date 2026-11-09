@@ -157,7 +157,7 @@ pub fn values(
     layout_known: bool,
 ) -> Vec<Diagnostic> {
     let at = |path: &[&str], message: String| {
-        let span = lookup(document, path).and_then(Item::span);
+        let span = written_span(document, path);
         Diagnostic::at(text, span, message)
     };
     let mut out = Vec::new();
@@ -175,7 +175,10 @@ pub fn values(
                     .into_iter()
                     .flatten()
                     .any(|name| name == focal);
-                if layout_known && !on_bar && lookup(document, &["bar", "focal"]).is_some() {
+                if layout_known
+                    && !on_bar
+                    && lookup(document, &["bar", "focal"]).is_some_and(|i| i.as_str().is_some())
+                {
                     out.push(at(
                         &["bar", "focal"],
                         format!("focal module `{focal}` is not in [layout]"),
@@ -183,6 +186,13 @@ pub fn values(
                 }
             }
         }
+    }
+
+    if i32::try_from(raw.bar.margin).is_err() {
+        out.push(at(
+            &["bar", "margin"],
+            format!("bar.margin must be at most {}", i32::MAX),
+        ));
     }
 
     // Per-module checks: (table, key, message). Keys may be dotted (`temperature.warm`).
@@ -201,6 +211,21 @@ pub fn values(
     }
 
     out
+}
+
+/// Where to point for `path`: the key itself if written, else its nearest written
+/// ancestor table's first key (a derived value depends on its siblings), else that table.
+fn written_span(document: &Document<&str>, path: &[&str]) -> Option<std::ops::Range<usize>> {
+    if let Some(span) = lookup(document, path).and_then(Item::span) {
+        return Some(span);
+    }
+    (1..path.len()).rev().find_map(|n| {
+        let table = lookup(document, &path[..n])?.as_table_like()?;
+        let first = table.iter().next().and_then(|(k, _)| table.key(k));
+        first
+            .and_then(|k| k.span())
+            .or_else(|| lookup(document, &path[..n]).and_then(Item::span))
+    })
 }
 
 /// The item at `path`, if the user wrote it.

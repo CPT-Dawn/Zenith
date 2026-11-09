@@ -26,7 +26,7 @@ use crate::modules::todo::TodoConfig;
 use crate::modules::{clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
 
 /// The keys of one table that fail to deserialize, with their errors.
-type Check = fn(&Spanned<DeValue<'_>>) -> Vec<(Option<String>, toml::de::Error)>;
+type Check = fn(&Spanned<DeValue<'_>>) -> Vec<(Option<String>, Failure)>;
 
 /// One line per [`RawConfig`] field.
 const TABLES: [(&str, Check); 10] = [
@@ -89,7 +89,7 @@ pub fn deserialize(text: &str) -> Deserialized {
             failures
                 .iter()
                 .filter(|(k, _)| !action(k))
-                .map(|(_, e)| diagnostic(text, e)),
+                .map(|(_, f)| failure_diagnostic(text, f)),
         );
         // Keep the table's good keys; a table that is not a table at all goes.
         if let (DeValue::Table(table), false) = (value.get_ref(), failed.contains(&None)) {
@@ -111,15 +111,14 @@ pub fn deserialize(text: &str) -> Deserialized {
 }
 
 /// Deserialize a table one key at a time; `None` means the value is not a table.
-fn each_key<T: DeserializeOwned>(
-    value: &Spanned<DeValue<'_>>,
-) -> Vec<(Option<String>, toml::de::Error)> {
+fn each_key<T: DeserializeOwned>(value: &Spanned<DeValue<'_>>) -> Vec<(Option<String>, Failure)> {
     let DeValue::Table(table) = value.get_ref() else {
-        return T::deserialize(value.clone().into_deserializer())
-            .err()
-            .map(|e| (None, e))
-            .into_iter()
-            .collect();
+        let found = value.get_ref().type_str();
+        let failure = Failure {
+            span: Some(value.span()),
+            message: format!("expected a table, found {found}"),
+        };
+        return vec![(None, failure)];
     };
     table
         .iter()
@@ -128,9 +127,28 @@ fn each_key<T: DeserializeOwned>(
             one.insert(key.clone(), item.clone());
             let one = Spanned::new(value.span(), DeValue::Table(one));
             let error = T::deserialize(one.into_deserializer()).err()?;
-            Some((Some(key.get_ref().to_string()), error))
+            Some((Some(key.get_ref().to_string()), Failure::from(&error)))
         })
         .collect()
+}
+
+/// One value that did not deserialize: where, and what is wrong.
+pub struct Failure {
+    span: Option<std::ops::Range<usize>>,
+    message: String,
+}
+
+impl From<&toml::de::Error> for Failure {
+    fn from(e: &toml::de::Error) -> Self {
+        Self {
+            span: e.span(),
+            message: tidy(e.message()),
+        }
+    }
+}
+
+fn failure_diagnostic(text: &str, f: &Failure) -> Diagnostic {
+    Diagnostic::at(text, f.span.clone(), f.message.clone())
 }
 
 fn diagnostic(text: &str, e: &toml::de::Error) -> Diagnostic {

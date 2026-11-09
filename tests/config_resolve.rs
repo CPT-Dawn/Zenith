@@ -286,3 +286,39 @@ fn each_section_has_its_layout_key_css_class_and_modules() {
         ]
     );
 }
+
+#[test]
+fn a_known_table_written_as_an_array_is_rejected() {
+    let layout = errors(r#"layout = [["clock"],["clock"]]"#);
+    assert!(layout.iter().any(|m| m.contains("table")), "{layout:?}");
+    let bar = errors(r#"bar = ["bottom","all",30]"#);
+    assert!(bar.iter().any(|m| m.contains("table")), "{bar:?}");
+    let nested = errors("[[bar]]\nheight = 3\n");
+    assert!(nested.iter().any(|m| m.contains("table")), "{nested:?}");
+}
+
+#[test]
+fn a_module_table_written_as_a_scalar_is_rejected() {
+    let messages = errors("system = 3\n");
+    assert!(messages.iter().any(|m| m.contains("table")), "{messages:?}");
+}
+
+#[test]
+fn a_mistyped_focal_gets_one_diagnostic() {
+    let messages = errors("[bar]\nfocal = 3\n[layout]\nleft = [\"logo\"]\n");
+    assert_eq!(messages.len(), 1, "{messages:?}");
+}
+
+#[test]
+fn a_margin_beyond_i32_is_rejected() {
+    let messages = errors("[bar]\nmargin = 4000000000\n");
+    assert_eq!(messages.len(), 1, "{messages:?}");
+    assert!(messages[0].starts_with("2:"), "{messages:?}");
+}
+
+#[test]
+fn a_derived_problem_points_at_the_written_key() {
+    let messages = errors("# c\n[system.temperature]\nhot = 60\n");
+    assert_eq!(messages.len(), 1, "{messages:?}");
+    assert!(messages[0].starts_with("3:"), "{messages:?}");
+}
