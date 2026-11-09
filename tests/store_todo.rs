@@ -88,3 +88,68 @@ fn a_failed_save_leaves_the_previous_file_intact() {
     assert!(result.is_err());
     assert_eq!(fs::read_to_string(&path).unwrap(), "previous\n");
 }
+
+#[cfg(unix)]
+#[test]
+fn saving_through_a_symlink_keeps_the_link_and_updates_its_target() {
+    use std::os::unix::fs::symlink;
+
+    let dir = scratch("symlink");
+    fs::create_dir_all(dir.join("real")).unwrap();
+    let target = dir.join("real/todos.json");
+    fs::write(&target, "old\n").unwrap();
+    let link = dir.join("todos.json");
+    symlink("real/todos.json", &link).unwrap();
+
+    block_on(store::save(&link, "new\n".into())).expect("saved");
+
+    assert!(
+        fs::symlink_metadata(&link)
+            .unwrap()
+            .file_type()
+            .is_symlink()
+    );
+    assert_eq!(fs::read_to_string(&target).unwrap(), "new\n");
+    assert!(!dir.join("real/.todos.json.tmp").exists());
+}
+
+#[test]
+fn invalid_utf8_is_reported_as_corrupt_not_mangled() {
+    let path = scratch("latin1").join("todos.json");
+    fs::write(&path, b"caf\xe9").unwrap();
+
+    let err = block_on(store::read(&path)).expect_err("not text");
+
+    assert!(err.matches(gtk4::gio::IOErrorEnum::InvalidData), "{err}");
+}
+
+#[test]
+fn a_utf8_bom_is_accepted_and_stripped() {
+    let path = scratch("bom").join("todos.json");
+    fs::write(&path, b"\xEF\xBB\xBF{\"items\": []}").unwrap();
+
+    assert_eq!(
+        block_on(store::read(&path)).expect("read"),
+        Some("{\"items\": []}".into())
+    );
+}
+
+#[test]
+fn setting_aside_twice_keeps_both_backups() {
+    let dir = scratch("aside");
+    let path = dir.join("todos.json");
+    fs::write(&path, "first").unwrap();
+    block_on(store::set_aside(&path)).expect("first");
+    fs::write(&path, "second").unwrap();
+    block_on(store::set_aside(&path)).expect("second");
+
+    assert_eq!(
+        fs::read_to_string(dir.join("todos.json.corrupt")).unwrap(),
+        "first"
+    );
+    assert_eq!(
+        fs::read_to_string(dir.join("todos.json.corrupt.1")).unwrap(),
+        "second"
+    );
+    assert!(!path.exists());
+}

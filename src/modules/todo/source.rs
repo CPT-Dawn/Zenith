@@ -6,7 +6,6 @@ use std::cell::{Cell, RefCell};
 use std::path::PathBuf;
 use std::rc::Rc;
 
-use gtk4::gio::prelude::*;
 use gtk4::{gio, glib};
 
 use super::model::{self, Command, TodoList};
@@ -21,6 +20,8 @@ pub struct TodoSource {
     pending: RefCell<Option<Vec<Command>>>,
     saving: Cell<bool>,
     dirty: Cell<bool>,
+    /// Set when the file exists but could not be read or set aside: saving would destroy it.
+    read_only: Cell<bool>,
 }
 
 impl TodoSource {
@@ -33,6 +34,7 @@ impl TodoSource {
             pending: RefCell::new(Some(Vec::new())),
             saving: Cell::new(false),
             dirty: Cell::new(false),
+            read_only: Cell::new(false),
         });
         let weak = Rc::downgrade(&source);
         glib::spawn_future_local(async move {
@@ -82,8 +84,17 @@ impl TodoSource {
                 }
                 loaded.list
             }
+            Err(e) if e.matches(gio::IOErrorEnum::InvalidData) => {
+                log::warn!("todo: {path} is corrupt ({e}), starting with an empty list");
+                self.set_aside().await;
+                TodoList::default()
+            }
             Err(e) => {
-                log::warn!("todo: cannot read {path}: {e}; starting with an empty list");
+                log::warn!(
+                    "todo: cannot read {path}: {e}; starting with an empty list and \
+                     leaving the file alone (changes this run will not be saved)"
+                );
+                self.read_only.set(true);
                 TodoList::default()
             }
         };
@@ -99,18 +110,14 @@ impl TodoSource {
         }
     }
 
-    /// Keep a corrupt file as `<name>.corrupt` so the next save cannot destroy it.
+    /// Keep a corrupt file aside so the next save cannot destroy it.
     async fn set_aside(&self) {
-        let mut name = self.path.as_os_str().to_owned();
-        name.push(".corrupt");
-        let (moved, _progress) = gio::File::for_path(&self.path).move_future(
-            &gio::File::for_path(PathBuf::from(&name)),
-            gio::FileCopyFlags::OVERWRITE,
-            glib::Priority::DEFAULT,
-        );
-        match moved.await {
-            Ok(()) => log::warn!("todo: kept the corrupt file as {}", name.display()),
-            Err(e) => log::warn!("todo: cannot set the corrupt file aside: {e}"),
+        match store::set_aside(&self.path).await {
+            Ok(kept) => log::warn!("todo: kept the corrupt file as {}", kept.display()),
+            Err(e) => {
+                log::warn!("todo: cannot set the corrupt file aside: {e}; not saving this run");
+                self.read_only.set(true);
+            }
         }
     }
 
@@ -121,6 +128,9 @@ impl TodoSource {
 
     /// Save the current list. A change during a save triggers one more save afterwards.
     fn save(self: &Rc<Self>) {
+        if self.read_only.get() {
+            return;
+        }
         if self.saving.replace(true) {
             self.dirty.set(true);
             return;
