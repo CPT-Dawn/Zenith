@@ -157,7 +157,7 @@ impl MediaSource {
             gio::DBusSignalFlags::NONE,
             move |signal| {
                 let sender = signal.sender_name.to_owned();
-                let Some((changed, invalidated)) = parse_properties_changed(&signal.parameters)
+                let Some((changed, invalidated)) = parse_properties_changed(signal.parameters)
                 else {
                     return;
                 };
@@ -376,7 +376,10 @@ pub fn parse_properties_changed(body: &glib::Variant) -> Option<(PropertyMap, bo
         log::debug!("media: ignoring PropertiesChanged of type {}", body.type_());
         return None;
     }
-    Some((map(&body.child_value(1)), body.child_value(2).n_children() > 0))
+    Some((
+        map(&body.child_value(1)),
+        body.child_value(2).n_children() > 0,
+    ))
 }
 
 /// A `GetAll` reply `(a{sv})` as a property map.
