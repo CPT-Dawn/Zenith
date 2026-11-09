@@ -507,6 +507,39 @@ fn when_the_daemon_goes_away_it_goes_offline_and_comes_back_with_it() {
 }
 
 #[test]
+fn a_send_that_fails_while_the_list_is_published_goes_offline_without_panicking() {
+    on_main_loop(|context| {
+        let path = socket_path();
+        let daemon = FakeDaemon::start(&path, vec![clip(1, "image", "64×64")]);
+        let source = start(&path);
+        // As the popover does: every list change asks for each image row's thumbnail.
+        let asker = Rc::downgrade(&source);
+        let _subscription = source.recent().subscribe(move |recent| {
+            let Some(source) = asker.upgrade() else {
+                return;
+            };
+            for row in recent.rows.iter().filter(|r| r.kind == Kind::Image) {
+                source.thumb(row.id, |_| {});
+            }
+        });
+        wait_until(context, "listed", || recent(&source).rows.len() == 1);
+
+        daemon.push(event(
+            "clip_added",
+            json!({"clip": clip(2, "image", "640×480")}),
+        ));
+        let _book = daemon.kill();
+        wait_until(context, "offline", || {
+            classes(&source) == vec!["zb-clipboard-offline"]
+        });
+        assert_eq!(recent(&source), Recent::default());
+        // Thumbnail reads started before the hang-up finish on their own time;
+        // let them land here, not in whichever test owns the loop next.
+        run_for(context, Duration::from_millis(100));
+    });
+}
+
+#[test]
 fn a_daemon_started_after_the_bar_is_found() {
     on_main_loop(|context| {
         let path = socket_path();

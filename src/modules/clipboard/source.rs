@@ -295,7 +295,15 @@ impl ClipboardSource {
             send(&link.connection.socket(), line.as_bytes(), fd)
         };
         if let Err(e) = sent {
-            self.lost(&e.to_string());
+            // Not now: the caller may be a subscriber mid-publish, or a view
+            // holding a borrow of the list. Dropping the link re-publishes.
+            let weak = Rc::downgrade(self);
+            let why = e.to_string();
+            glib::idle_add_local_once(move || {
+                if let Some(source) = weak.upgrade() {
+                    source.lost(&why);
+                }
+            });
         }
     }
 
@@ -325,9 +333,13 @@ impl ClipboardSource {
     }
 
     fn publish(&self) {
-        let model = self.model.borrow();
-        self.state.set(model.view_state(&TimeZone::system()));
-        self.recent.set(model.recent());
+        // Subscribers run inside `set`; the model must not stay borrowed then.
+        let (state, recent) = {
+            let model = self.model.borrow();
+            (model.view_state(&TimeZone::system()), model.recent())
+        };
+        self.state.set(state);
+        self.recent.set(recent);
     }
 }
 
