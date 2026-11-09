@@ -192,7 +192,10 @@ CPU, memory and temperature, from `/proc` and `/sys`, on one timer.
 
 The todo module has no settings of its own beyond click actions. Todos live in
 `$XDG_DATA_HOME/zenith-bar/todos.json` (usually `~/.local/share/zenith-bar/`),
-not in your config, so your dotfiles stay clean.
+not in your config, so your dotfiles stay clean. A symlinked `todos.json` stays a
+symlink. A file Zenith can't parse is moved aside to `todos.json.corrupt` (then
+`.corrupt.1`, ...) before anything is saved; a file it can't read at all is left
+untouched, and changes made in that run are not saved.
 
 The bar shows the most urgent open todo (high before normal before low, oldest
 first) and how many more are open, e.g. `Ship the release +2`. Text longer than
