@@ -42,3 +42,29 @@ fn an_unreadable_todo_file_is_never_overwritten() {
     assert_eq!(fs::read_to_string(&path).unwrap(), original);
     assert!(!dir.join("todos.json.corrupt").exists());
 }
+
+#[test]
+fn a_second_corrupt_file_keeps_the_first_backup() {
+    let dir = std::env::temp_dir().join(format!("zenith-todo-{}-two-corrupt", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("todos.json");
+    let ctx = glib::MainContext::default();
+    let _guard = ctx.acquire().unwrap();
+    std::fs::write(&path, "first garbage").unwrap();
+    let a = TodoSource::start(path.clone());
+    run_until_idle(&ctx);
+    drop(a);
+    std::fs::write(&path, "second garbage").unwrap();
+    let b = TodoSource::start(path.clone());
+    run_until_idle(&ctx);
+    drop(b);
+    let kept: Vec<String> = std::fs::read_dir(&dir)
+        .unwrap()
+        .map(|e| std::fs::read_to_string(e.unwrap().path()).unwrap_or_default())
+        .collect();
+    assert!(
+        kept.iter().any(|c| c == "first garbage"),
+        "first backup lost: {kept:?}"
+    );
+}
