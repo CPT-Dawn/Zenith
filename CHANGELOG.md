@@ -7,6 +7,23 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 v2 is a clean break from v1. Releases before 2.0.0 predate conventional
 commits; their notes live on the GitHub Releases page.
 
+## [2.4.0] - 2026-11-16
+
+### Features
+
+- **runners:** Watch your CI runners without leaving the bar
+
+### Bug Fixes
+
+- **popover:** Stop open cards from stretching their module across the bar
+- **runners:** Read every page and stop hosted jobs padding the queue
+
+### Documentation
+
+- **claude:** Write down the commands that actually work here
+- Trim the README into a landing page that fits on one screen
+- **readme:** Fold the Hyprland snippet so it stops running off the edge
+
 ## [2.3.1] - 2026-11-09
 
 ### Bug Fixes
