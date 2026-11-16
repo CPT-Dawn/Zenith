@@ -144,7 +144,7 @@ fn fake_peekabus() -> FakeGitHub {
         json!({"total_count": 2, "jobs": [
             {"name": "e2e-mobile", "status": "in_progress", "runner_name": "ci-1-20261116-221235",
              "started_at": "2026-11-16T22:12:47Z", "html_url": "https://github.com/x"},
-            {"name": "deploy", "status": "queued", "runner_name": null, "started_at": null},
+            {"name": "deploy", "status": "queued", "runner_name": null, "started_at": null, "labels": ["self-hosted"]},
         ]})
         .to_string(),
     );
@@ -293,5 +293,67 @@ fn a_refused_token_is_reported_and_fetched_again_next_time() {
         let runs = std::fs::read_to_string(&marker).unwrap_or_default();
         let _ = std::fs::remove_file(&marker);
         assert_eq!(runs.lines().count(), 2);
+    });
+}
+
+#[test]
+fn every_page_of_runners_is_read_and_busy_repos_still_see_queued_runs() {
+    let github = fake_peekabus();
+    // 100 dead registrations of slot ci-1 fill page one; its live one is on page two.
+    let dead: Vec<_> = (0..100)
+        .map(|i| json!({"id": 100 + i, "name": format!("ci-1-20261101-{:06}", i), "status": "offline", "busy": false, "labels": []}))
+        .collect();
+    github.reply(
+        &format!("{REPO}/runners?per_page=100"),
+        200,
+        json!({"total_count": 101, "runners": dead}).to_string(),
+    );
+    github.reply(
+        &format!("{REPO}/runners?per_page=100&page=2"),
+        200,
+        json!({"total_count": 101, "runners": [
+            {"id": 1, "name": "ci-1-20261116-221235", "status": "online", "busy": false, "labels": []},
+        ]})
+        .to_string(),
+    );
+    // Twenty runs in progress don't push the queued run out of the poll.
+    let busy: Vec<_> = (0..20).map(|i| json!({"id": 1000 + i})).collect();
+    github.reply(
+        &format!("{REPO}/runs?status=in_progress&per_page=20"),
+        200,
+        json!({"total_count": 20, "workflow_runs": busy}).to_string(),
+    );
+    for i in 0..20 {
+        github.reply(
+            &format!("{REPO}/runs/{}/jobs?filter=latest&per_page=100", 1000 + i),
+            200,
+            json!({"total_count": 0, "jobs": []}).to_string(),
+        );
+    }
+    github.reply(
+        &format!("{REPO}/runs?status=queued&per_page=20"),
+        200,
+        json!({"total_count": 1, "workflow_runs": [{"id": 7}]}).to_string(),
+    );
+    github.reply(
+        &format!("{REPO}/runs/7/jobs?filter=latest&per_page=100"),
+        200,
+        json!({"total_count": 1, "jobs": [
+            {"name": "deploy", "status": "queued", "runner_name": null, "started_at": null, "labels": ["self-hosted"]},
+        ]})
+        .to_string(),
+    );
+    on_main_loop(|context| {
+        let source = RunnersSource::start(config(&github, "echo t"));
+        let fleet = source.fleet();
+        wait_until(context, "the poll lands", || {
+            fleet.with(|f| f.health == Health::Ok)
+        });
+
+        let repo = fleet.with(|f| f.repos[0].clone());
+        assert_eq!(repo.slots.len(), 1);
+        assert_eq!(repo.slots[0].state, SlotState::Idle);
+        assert_eq!(repo.stale, 100);
+        assert_eq!(repo.queued, 1);
     });
 }

@@ -39,7 +39,14 @@ fn job(name: &str, status: &str, runner: Option<&str>, started: &str) -> Value {
         "runner_name": runner,
         "started_at": started,
         "html_url": format!("https://github.com/o/r/actions/runs/10/job/{name}"),
+        "labels": ["self-hosted", "small"],
     })
+}
+
+fn hosted_job(name: &str, status: &str) -> Value {
+    let mut job = job(name, status, None, "2026-11-16T22:20:00Z");
+    job["labels"] = json!(["ubuntu-latest"]);
+    job
 }
 
 fn jobs(list: Vec<Value>) -> String {
@@ -122,6 +129,36 @@ fn a_runner_without_a_timestamp_suffix_is_its_own_slot() {
         ]
     );
     assert_eq!(fleet.repos[0].stale, 0);
+}
+
+#[test]
+fn only_timestamp_suffixes_are_stripped_so_numbered_runners_stay_apart() {
+    let json = runners(vec![
+        runner(1, "build-100001", "online", false),
+        runner(2, "build-100002", "online", true),
+        runner(3, "ci-3-20261116221235", "online", false),
+    ]);
+    let fleet = model::fleet(&[snapshot(&json, &[])], 0);
+
+    assert_eq!(
+        states(&fleet),
+        vec![
+            ("build-100001".to_string(), "idle"),
+            ("build-100002".to_string(), "running"),
+            ("ci-3".to_string(), "idle"),
+        ]
+    );
+}
+
+#[test]
+fn jobs_queued_for_github_hosted_runners_are_not_counted() {
+    let job_json = jobs(vec![
+        hosted_job("lint", "queued"),
+        job("deploy", "queued", None, "2026-11-16T22:20:00Z"),
+    ]);
+    let fleet = model::fleet(&[snapshot(&peekabus(), &[job_json])], 0);
+
+    assert_eq!(fleet.repos[0].queued, 1);
 }
 
 #[test]

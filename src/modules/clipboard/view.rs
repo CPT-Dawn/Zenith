@@ -2,12 +2,12 @@
 //! click pauses or resumes recording. Both are bubble-phase gestures, so configured
 //! `on_click` / `on_right_click` commands take precedence.
 
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use gtk4::gdk;
 use gtk4::prelude::*;
-use gtk4::{gdk, glib};
 
 use super::model::{Kind, Recent};
 use super::source::ClipboardSource;
@@ -15,8 +15,6 @@ use crate::ui::binding::bind;
 
 /// Thumbnails are at most 256 px; rows show them this big.
 const THUMB_SIZE: i32 = 40;
-/// How long after the popover closes a click on the module counts as the closing click.
-const REOPEN_GUARD_US: i64 = 300_000;
 
 pub fn build(source: &Rc<ClipboardSource>) -> gtk4::Widget {
     let icon = gtk4::Image::new();
@@ -29,28 +27,7 @@ pub fn build(source: &Rc<ClipboardSource>) -> gtk4::Widget {
 
     let (popover, refresh) = popover(source);
     popover.set_parent(&root);
-    let closed_at = Rc::new(Cell::new(0i64));
-    popover.connect_closed({
-        let closed_at = closed_at.clone();
-        move |_| closed_at.set(glib::monotonic_time())
-    });
-
-    let click = gtk4::GestureClick::builder()
-        .button(gdk::BUTTON_PRIMARY)
-        .build();
-    let weak = popover.downgrade();
-    click.connect_released(move |_, _, _, _| {
-        let Some(popover) = weak.upgrade() else {
-            return;
-        };
-        // The press that closed it must not open it again.
-        if glib::monotonic_time() - closed_at.get() > REOPEN_GUARD_US {
-            refresh();
-            crate::ui::popover::place(&popover);
-            popover.popup();
-        }
-    });
-    root.add_controller(click);
+    crate::ui::popover::open_on_click(&root, &popover, move || refresh());
 
     let right_click = gtk4::GestureClick::builder()
         .button(gdk::BUTTON_SECONDARY)

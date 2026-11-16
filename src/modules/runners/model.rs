@@ -39,6 +39,9 @@ pub struct ApiJob {
     pub workflow_name: Option<String>,
     #[serde(default)]
     pub html_url: Option<String>,
+    /// The job's `runs-on` labels.
+    #[serde(default)]
+    pub labels: Vec<String>,
 }
 
 /// What one poll learned about one repository.
@@ -132,6 +135,17 @@ struct JobsReply {
     jobs: Vec<ApiJob>,
 }
 
+/// The `total_count` of a paged listing.
+pub fn total_count(json: &str) -> Option<u64> {
+    #[derive(Deserialize)]
+    struct Total {
+        total_count: u64,
+    }
+    serde_json::from_str::<Total>(json)
+        .ok()
+        .map(|t| t.total_count)
+}
+
 pub fn parse_runners(json: &str) -> Result<Vec<Registration>, String> {
     serde_json::from_str::<RunnersReply>(json)
         .map(|r| r.runners)
@@ -208,8 +222,17 @@ fn repo_fleet(snapshot: &RepoSnapshot) -> RepoFleet {
         queued: snapshot
             .jobs
             .iter()
-            .filter(|j| WAITING.contains(&j.status.as_str()))
+            .filter(|j| WAITING.contains(&j.status.as_str()) && j.wants_self_hosted())
             .count(),
+    }
+}
+
+impl ApiJob {
+    /// Jobs for GitHub-hosted runners (`ubuntu-latest`, …) never wait for a slot.
+    fn wants_self_hosted(&self) -> bool {
+        self.labels
+            .iter()
+            .any(|l| l.eq_ignore_ascii_case("self-hosted"))
     }
 }
 
@@ -243,18 +266,21 @@ fn state(primary: &Registration, jobs: &[ApiJob]) -> SlotState {
     }
 }
 
-/// A registration's slot: its name without trailing all-digit parts of six or more
-/// digits (a date or time), so `ci-1-20261116-221235` is slot `ci-1` but `build-1` stays.
+/// A registration's slot: its name without a trailing timestamp, either
+/// `-YYYYMMDD-HHMMSS` or `-YYYYMMDDHHMMSS`. So `ci-1-20261116-221235` is slot `ci-1`,
+/// while `build-1` and `build-100001` stay themselves.
 fn slot_name(name: &str) -> &str {
-    let mut slot = name;
-    while let Some((head, tail)) = slot.rsplit_once('-') {
-        if tail.len() >= 6 && tail.bytes().all(|b| b.is_ascii_digit()) && !head.is_empty() {
-            slot = head;
-        } else {
-            break;
-        }
+    let digits = |s: &str, n: usize| s.len() == n && s.bytes().all(|b| b.is_ascii_digit());
+    let Some((head, time)) = name.rsplit_once('-') else {
+        return name;
+    };
+    if digits(time, 14) && !head.is_empty() {
+        return head;
     }
-    slot
+    match head.rsplit_once('-') {
+        Some((slot, date)) if digits(time, 6) && digits(date, 8) && !slot.is_empty() => slot,
+        _ => name,
+    }
 }
 
 /// Compare names with their digit runs as numbers.

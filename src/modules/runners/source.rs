@@ -19,8 +19,13 @@ use super::RunnersConfig;
 use super::model::{self, Fleet, Health, RepoSnapshot};
 use crate::modules::{Shared, ViewState, if_alive};
 
-/// At most this many active runs per repo get their jobs fetched in one poll.
+/// At most this many runs of each status (in progress, queued) per repo get their jobs
+/// fetched in one poll; each status has its own cap, so busy repos still see queued runs.
 const MAX_RUNS: usize = 20;
+/// GitHub's largest page.
+const PAGE: u64 = 100;
+/// Listings longer than this many pages are cut (10,000 runners or jobs of one run).
+const MAX_PAGES: u64 = 100;
 /// Per-request timeout, in seconds.
 const TIMEOUT_S: u32 = 15;
 
@@ -44,6 +49,8 @@ struct Inner {
 
 enum Failure {
     Unauthorized,
+    /// The source was dropped or reconfigured mid-poll.
+    Cancelled,
     Other(String),
 }
 
@@ -265,18 +272,23 @@ async fn poll_once(weak: &Weak<RunnersSource>, generation: u64) -> Result<Fleet,
             let source = alive();
             let token = token.clone();
             async move {
-                let source = source.ok_or(Failure::Other(String::new()))?;
+                let source = source.ok_or(Failure::Cancelled)?;
                 source.get(&url, &token).await
             }
         };
         let failed = |failure: Failure| match failure {
             Failure::Unauthorized => Health::Unauthorized,
-            Failure::Other(why) if why.is_empty() => gone(),
+            Failure::Cancelled => gone(),
             Failure::Other(why) => Health::Unreachable(why),
         };
 
-        let runners = fetch("runners?per_page=100".into()).await.map_err(failed)?;
-        let registrations = model::parse_runners(&runners).map_err(Health::Unreachable)?;
+        let mut registrations = Vec::new();
+        for page in pages(&mut fetch, &format!("runners?per_page={PAGE}"))
+            .await
+            .map_err(failed)?
+        {
+            registrations.extend(model::parse_runners(&page).map_err(Health::Unreachable)?);
+        }
         let mut runs = Vec::new();
         for status in ["in_progress", "queued"] {
             let reply = fetch(format!("runs?status={status}&per_page={MAX_RUNS}"))
@@ -284,13 +296,12 @@ async fn poll_once(weak: &Weak<RunnersSource>, generation: u64) -> Result<Fleet,
                 .map_err(failed)?;
             runs.extend(model::parse_run_ids(&reply).map_err(Health::Unreachable)?);
         }
-        runs.truncate(MAX_RUNS);
         let mut jobs = Vec::new();
         for run in runs {
-            let reply = fetch(format!("runs/{run}/jobs?filter=latest&per_page=100"))
-                .await
-                .map_err(failed)?;
-            jobs.extend(model::parse_jobs(&reply).map_err(Health::Unreachable)?);
+            let path = format!("runs/{run}/jobs?filter=latest&per_page={PAGE}");
+            for page in pages(&mut fetch, &path).await.map_err(failed)? {
+                jobs.extend(model::parse_jobs(&page).map_err(Health::Unreachable)?);
+            }
         }
         snapshots.push(RepoSnapshot {
             repo,
@@ -308,6 +319,21 @@ async fn poll_once(weak: &Weak<RunnersSource>, generation: u64) -> Result<Fleet,
             .retain(|url, _| used.contains(url));
     }
     Ok(model::fleet(&snapshots, expected))
+}
+
+/// Every page of a listing whose first page is `path` (which sets `per_page={PAGE}`).
+async fn pages<F, Fut>(fetch: &mut F, path: &str) -> Result<Vec<String>, Failure>
+where
+    F: FnMut(String) -> Fut,
+    Fut: std::future::Future<Output = Result<String, Failure>>,
+{
+    let first = fetch(path.to_string()).await?;
+    let count = model::total_count(&first).unwrap_or(0).div_ceil(PAGE);
+    let mut bodies = vec![first];
+    for page in 2..=count.min(MAX_PAGES) {
+        bodies.push(fetch(format!("{path}&page={page}")).await?);
+    }
+    Ok(bodies)
 }
 
 /// Run `command` with `sh -c`; its first line of output is the token.

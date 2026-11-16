@@ -236,7 +236,7 @@ card listing every slot with its labels and the job it runs, with a live elapsed
 time; click a job to open it, or "Actions ↗" for the repo's Actions page.
 
 Each poll makes, per repo, one request for the runners, two for the active runs,
-and one per active run for its jobs. Replies are cached with their `ETag`, so an
+and one per active run for its jobs (at most 20 in-progress and 20 queued runs; long listings are read page by page). Only jobs that ask for a `self-hosted` runner count as queued. Replies are cached with their `ETag`, so an
 unchanged reply costs nothing against GitHub's rate limit (5,000 requests an hour).
 
 | Key | Default | Example | Description |

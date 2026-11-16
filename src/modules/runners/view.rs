@@ -6,7 +6,7 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use gtk4::prelude::*;
-use gtk4::{gdk, gio, glib};
+use gtk4::{gio, glib};
 
 use super::model::{self, Fleet, Health, SlotState};
 use super::source::RunnersSource;
@@ -15,8 +15,6 @@ use crate::ui::binding::bind;
 
 /// More slots than this show as counts instead of dots.
 const MAX_DOTS: usize = 16;
-/// How long after the popover closes a click on the module counts as the closing click.
-const REOPEN_GUARD_US: i64 = 300_000;
 
 pub fn build(source: &Rc<RunnersSource>) -> gtk4::Widget {
     let root = gtk4::Box::new(gtk4::Orientation::Horizontal, 7);
@@ -41,26 +39,7 @@ pub fn build(source: &Rc<RunnersSource>) -> gtk4::Widget {
 
     let popover = popover(source);
     popover.set_parent(&root);
-    let closed_at = Rc::new(Cell::new(0i64));
-    popover.connect_closed({
-        let closed_at = closed_at.clone();
-        move |_| closed_at.set(glib::monotonic_time())
-    });
-    let click = gtk4::GestureClick::builder()
-        .button(gdk::BUTTON_PRIMARY)
-        .build();
-    let weak = popover.downgrade();
-    click.connect_released(move |_, _, _, _| {
-        let Some(popover) = weak.upgrade() else {
-            return;
-        };
-        // The press that closed it must not open it again.
-        if glib::monotonic_time() - closed_at.get() > REOPEN_GUARD_US {
-            crate::ui::popover::place(&popover);
-            popover.popup();
-        }
-    });
-    root.add_controller(click);
+    crate::ui::popover::open_on_click(&root, &popover, || {});
 
     root.connect_destroy(move |_| popover.unparent());
     root.upcast()
