@@ -44,3 +44,12 @@ v1's keys are not accepted (unknown keys are errors). Rough equivalents:
 ## CSS
 
 v1's `.zenith-*` classes are gone. v2 has stable `zb-*` classes and `--zb-*` variables, documented in [theming](theming.md). They are a public contract, so a v2 `style.css` keeps working across releases. Most v1 tweaks become a one-line `[theme]` override (`accent`, `surface_opacity`, `module_radius`) with no CSS at all.
+
+## Where it started
+
+The original bar, for the record. v2 is a clean rewrite of this look, at a fraction of the cost (see [v1 and v2 side by side](performance.md#v1-and-v2-side-by-side)).
+
+![Zenith 1.x floating over a teal wallpaper, with media, CPU, memory and temperature](../assets/v1/floating.png)
+![Zenith 1.x stuck flush to the top edge](../assets/v1/flush.png)
+
+[Back to the README](../README.md)

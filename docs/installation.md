@@ -128,3 +128,5 @@ ZENITH_BAR_LOG=debug zenith-bar
 ## Renderer
 
 Zenith draws with GTK's `cairo` renderer, which measured cheapest on every metric while rendering the themes the same as the GPU renderers ([performance](performance.md#renderer-comparison)). To try another one, set `GSK_RENDERER` yourself, e.g. `GSK_RENDERER=ngl zenith-bar`.
+
+[Back to the README](../README.md)

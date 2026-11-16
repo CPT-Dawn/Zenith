@@ -52,6 +52,19 @@ Several docs are checked by tests, so update them in the same PR:
 - **Theming**: every `--zb-*` variable and `zb-*` class must be listed in [docs/theming.md](docs/theming.md) (`tests/theming.rs`).
 - **Numbers**: a resource number goes in the README or docs only if the harness produced it, with the method and hardware next to it. Never loosen a budget without new measurements.
 
+## Screenshots, logo and social card
+
+- **Screenshots**: `assets/hero.png` and `assets/gallery/` are live Hyprland captures with a fixture config and todo file; [performance](docs/performance.md#the-readme-screenshot) has the exact setup. Retake them when a theme or the default layout changes.
+- **Logo**: `assets/logo.svg` is hand-written SVG in the Midnight Bloom palette, built on the bar's own `zb-logo` glyph. Check it still reads at 32 px: `resvg -w 32 assets/logo.svg logo.png`.
+- **Social card**: `assets/social-preview.png` (1280×640) shows the logo, the tagline and the hero stacked on four gallery strips. The strip stack is:
+
+  ```sh
+  magick -background '#091113' assets/hero.png assets/gallery/{tokyo-night,catppuccin-mocha,gruvbox-dark,custom-accent}.png \
+    -splice 0x16 -append -chop 0x16 card-shot.png
+  ```
+
+  A maintainer uploads the card under Settings → Social preview; GitHub has no API for it.
+
 ## Design records
 
 - [`GLOSSARY.md`](GLOSSARY.md) defines the domain words (Bar, Output, Module, Section, Theme, Preset, Focal element, Motion, …). Use them in code, tests and docs.
