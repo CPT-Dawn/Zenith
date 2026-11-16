@@ -272,3 +272,5 @@ schema's descriptions), regenerate it:
 ```sh
 UPDATE_SCHEMA=1 cargo test --test schema_drift
 ```
+
+[Back to the README](../README.md)

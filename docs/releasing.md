@@ -41,3 +41,5 @@ Locally (Arch, needs `git-cliff`, `makepkg`, `namcap`):
 ## One-time setup
 
 The AUR push needs the repository secret `AUR_SSH_PRIVATE_KEY`: the private half of an SSH key registered on the AUR account that maintains `zenith-bar` and `zenith-bar-bin`, either as-is or base64-encoded. The same key creates `zenith-bar-bin` on its first push.
+
+[Back to the README](../README.md)

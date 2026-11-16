@@ -2,6 +2,31 @@
 
 Zenith's look is made of named CSS variables (`--zb-*`) and stable CSS classes (`zb-*`). Both are a public contract: a variable or class listed here keeps its name and meaning, so your `style.css` keeps working across releases.
 
+## Gallery
+
+Every shot below is the same bar over the same wallpaper on Hyprland, changed only by config. The glass bars let the compositor's blur through; `minimal` is flush and opaque on purpose. [Performance](performance.md#the-readme-screenshot) says how they were taken.
+
+**Midnight Bloom** (default)
+![Midnight Bloom: smoked glass with a mint clock](../assets/gallery/midnight-bloom.png)
+
+**Tokyo Night**: `[theme] name = "tokyo-night"`
+![Tokyo Night: navy glass with a blue clock](../assets/gallery/tokyo-night.png)
+
+**Catppuccin Mocha**: `[theme] name = "catppuccin-mocha"`
+![Catppuccin Mocha: violet-tinted glass with a mauve clock](../assets/gallery/catppuccin-mocha.png)
+
+**Gruvbox Dark**: `[theme] name = "gruvbox-dark"`
+![Gruvbox Dark: warm brown glass with a green clock](../assets/gallery/gruvbox-dark.png)
+
+**Your own accent**: `[theme] accent = "#ff79c6"`, one line on top of any theme
+![Midnight Bloom with a pink accent on the clock and logo](../assets/gallery/custom-accent.png)
+
+**Preset `minimal`**: `zenith-bar init --preset minimal`, flush to the edge, no glow, no motion
+![The minimal preset: a flat, opaque bar touching the screen edge](../assets/gallery/preset-minimal.png)
+
+**Preset `classic`**: `zenith-bar init --preset classic`, the Zenith 1.x layout reborn in Tokyo Night
+![The classic preset: todos on the left, day, time, logo and date in the middle](../assets/gallery/preset-classic.png)
+
 ## Layers
 
 Stylesheets stack from lowest to highest priority. A later layer wins over an earlier one.
@@ -212,3 +237,5 @@ Inside `zb-clipboard-popover`:
   background: none;
 }
 ```
+
+[Back to the README](../README.md)
