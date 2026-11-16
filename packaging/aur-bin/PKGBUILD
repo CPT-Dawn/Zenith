@@ -19,6 +19,7 @@ depends=(
   'graphene'
   'gtk4>=1:4.22'
   'gtk4-layer-shell'
+  'libsoup3'
   'pango'
 )
 optdepends=('ttf-inter: the recommended UI font'

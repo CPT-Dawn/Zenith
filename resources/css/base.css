@@ -333,3 +333,137 @@ popover.zb-clipboard-popover > contents {
   background-color: var(--zb-module-bg-hover);
   color: var(--zb-text);
 }
+
+/* Runners: an icon and one dot per runner slot; the slots in a card */
+.zb-runners .zb-runners-icon {
+  color: var(--zb-text-muted);
+}
+
+.zb-runners.zb-busy .zb-runners-icon {
+  color: var(--zb-accent);
+}
+
+.zb-runners.zb-degraded .zb-runners-icon {
+  color: var(--zb-warm);
+}
+
+.zb-runners.zb-error .zb-runners-icon {
+  color: var(--zb-hot);
+}
+
+.zb-runner-dot {
+  min-width: 7px;
+  min-height: 7px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  transition: background-color var(--zb-transition-duration) var(--zb-transition-easing),
+    border-color var(--zb-transition-duration) var(--zb-transition-easing);
+}
+
+.zb-runner-dot.zb-running {
+  background-color: var(--zb-accent);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--zb-accent) 55%, transparent);
+}
+
+.zb-runner-dot.zb-idle {
+  border-color: color-mix(in srgb, var(--zb-text-muted) 70%, transparent);
+}
+
+.zb-runner-dot.zb-offline {
+  background-color: color-mix(in srgb, var(--zb-hot) 85%, transparent);
+}
+
+.zb-runner-dot.zb-missing {
+  border-color: color-mix(in srgb, var(--zb-hot) 70%, transparent);
+}
+
+.zb-runners-queued,
+.zb-runners-counts {
+  color: var(--zb-text-muted);
+  font-size: 0.85em;
+  font-feature-settings: "tnum";
+}
+
+popover.zb-runners-popover > contents {
+  padding: var(--zb-space-m);
+  border: 1px solid var(--zb-surface-border);
+  border-radius: var(--zb-bar-radius);
+  background-color: var(--zb-surface);
+  color: var(--zb-text);
+  font-family: var(--zb-font-family);
+  font-size: var(--zb-font-size);
+}
+
+.zb-runners-header {
+  padding: var(--zb-space-xs) var(--zb-space-s) var(--zb-space-m);
+}
+
+.zb-runners-title {
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-runners-summary,
+.zb-runners-labels,
+.zb-runners-elapsed,
+.zb-runners-note {
+  color: var(--zb-text-muted);
+  font-size: 0.85em;
+  font-feature-settings: "tnum";
+}
+
+.zb-runners-repo {
+  margin-top: var(--zb-space-s);
+  padding: var(--zb-space-s) var(--zb-space-s) var(--zb-space-xs);
+  border-top: 1px solid var(--zb-surface-border);
+}
+
+.zb-runners-repo-name {
+  color: var(--zb-text-dim);
+  font-size: 0.85em;
+}
+
+.zb-runners-open {
+  min-height: 0;
+  padding: 0 var(--zb-space-s);
+  border: none;
+  box-shadow: none;
+  background: none;
+  color: var(--zb-text-muted);
+  font-size: 0.85em;
+}
+
+.zb-runners-open:hover {
+  color: var(--zb-accent);
+}
+
+.zb-runners-popover list,
+.zb-runners-popover row {
+  background: none;
+}
+
+.zb-runners-row {
+  padding: var(--zb-space-s);
+  border-radius: var(--zb-module-radius);
+}
+
+.zb-runners-row:hover {
+  background-color: var(--zb-module-bg-hover);
+}
+
+.zb-runners-job.zb-running {
+  color: var(--zb-text);
+}
+
+.zb-runners-job.zb-idle {
+  color: var(--zb-text-muted);
+}
+
+.zb-runners-job.zb-offline,
+.zb-runners-note.zb-missing,
+.zb-runners-note.zb-error {
+  color: var(--zb-hot);
+}
+
+.zb-runners-note {
+  padding: var(--zb-space-s);
+}

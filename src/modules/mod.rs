@@ -20,6 +20,7 @@ pub mod clipboard;
 pub mod clock;
 pub mod logo;
 pub mod media;
+pub mod runners;
 pub mod system;
 pub mod todo;
 pub mod zoned_source;
@@ -34,10 +35,11 @@ pub enum ModuleId {
     Todo,
     Logo,
     Clipboard,
+    Runners,
 }
 
 impl ModuleId {
-    pub const ALL: [ModuleId; 7] = [
+    pub const ALL: [ModuleId; 8] = [
         ModuleId::Clock,
         ModuleId::Calendar,
         ModuleId::Media,
@@ -45,6 +47,7 @@ impl ModuleId {
         ModuleId::Todo,
         ModuleId::Logo,
         ModuleId::Clipboard,
+        ModuleId::Runners,
     ];
 
     pub fn as_str(self) -> &'static str {
@@ -56,6 +59,7 @@ impl ModuleId {
             ModuleId::Todo => "todo",
             ModuleId::Logo => "logo",
             ModuleId::Clipboard => "clipboard",
+            ModuleId::Runners => "runners",
         }
     }
 }

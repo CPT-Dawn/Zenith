@@ -134,7 +134,7 @@ Placement, geometry and motion of every bar.
 ### `[layout]`
 
 Which **Modules** appear in each **Section**, in order. Available modules:
-`logo`, `todo`, `clock`, `calendar`, `media`, `system`, `clipboard`. A module may appear only
+`logo`, `todo`, `clock`, `calendar`, `media`, `system`, `clipboard`, `runners`. A module may appear only
 once across all sections; leave it out of every section to disable it. Leaving
 `[layout]` out gives the default layout; once you write the table, any section
 you leave out is empty.
@@ -220,6 +220,33 @@ can start Hoarder before or after the bar.
 |---|---|---|---|
 | `search_command` | `"hoarder picker"` | `"~/bin/clips"` | Shell command run by the popover's "Search all…" row, which closes the popover first. |
 
+### `[runners]`
+
+Your GitHub Actions **self-hosted** runners, polled over GitHub's REST API. Not in
+the default layout: add `"runners"` to a section and list your repos. GitHub's own
+hosted runners (`ubuntu-latest`, …) aren't listed by the API, so they don't show.
+
+The bar shows one dot per runner **slot**: filled while it runs a job, hollow
+while idle, red when offline, a red ring when an `expected` slot isn't registered.
+`+2` counts jobs waiting for a runner. Ephemeral runners register under a new name
+for every job (`ci-1-20261116-221235`); registrations that differ only by such a
+trailing date or time are one slot, and a slot's leftover offline registrations
+count as **stale** instead of as extra runners. Hover for the totals. Click for a
+card listing every slot with its labels and the job it runs, with a live elapsed
+time; click a job to open it, or "Actions ↗" for the repo's Actions page.
+
+Each poll makes, per repo, one request for the runners, two for the active runs,
+and one per active run for its jobs. Replies are cached with their `ETag`, so an
+unchanged reply costs nothing against GitHub's rate limit (5,000 requests an hour).
+
+| Key | Default | Example | Description |
+|---|---|---|---|
+| `repos` | `[]` | `["CPT-Dawn/PeekaBus"]` | Repositories whose runners are shown, as `"owner/name"`. |
+| `expected` | `0` | `7` | How many runner slots you run, across all repos. Fewer registered slots show as missing. `0` turns the check off. |
+| `interval` | `30` | `60` | Seconds between polls, at least 10. |
+| `token_command` | `"gh auth token"` | `"pass github/token"` | Shell command printing a GitHub token that can read the repos' runners (repo admin, or a classic token with `repo`). Run once, and again after GitHub refuses the token, so a keyring that unlocks after login is picked up. |
+| `api_url` | `"https://api.github.com"` | `"https://ghe.example.com/api/v3"` | GitHub API base URL; change it for GitHub Enterprise Server. |
+
 ### `[logo]`
 
 | Key | Default | Example | Description |
@@ -241,10 +268,10 @@ The look. See [theming](theming.md) for what each override changes and for the
 ### Click actions
 
 Every module table (`[clock]`, `[calendar]`, `[media]`, `[system]`, `[todo]`,
-`[logo]`, `[clipboard]`) also takes these keys. Each is a shell command, run
+`[logo]`, `[clipboard]`, `[runners]`) also takes these keys. Each is a shell command, run
 detached so a slow command never freezes the bar. A configured command
 **replaces** the module's built-in action for that gesture (media play/pause,
-the calendar, todo and clipboard popovers, clipboard pause); an empty string
+the calendar, todo, clipboard and runners popovers, clipboard pause); an empty string
 disables the built-in action without running anything.
 
 | Key | Default | Example | Description |

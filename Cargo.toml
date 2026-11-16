@@ -37,6 +37,8 @@ hoarder-ipc = { git = "https://github.com/CPT-Dawn/Hoarder", tag = "v1.0.0" }
 # Bindings to libgio's Unix half (already linked): passing a pipe to the Daemon for
 # thumbnails and reading it back without blocking.
 gio-unix = "0.22.8"
+# libsoup (GTK's HTTP client, async on the main loop) for the runners module's GitHub polls.
+soup3 = "0.9.0"
 
 [build-dependencies]
 glib-build-tools = "0.22.8"

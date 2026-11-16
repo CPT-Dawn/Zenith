@@ -91,6 +91,7 @@ fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig
         system: raw.system,
         todo: raw.todo,
         clipboard: raw.clipboard,
+        runners: raw.runners,
         css_overrides,
     }
 }

@@ -166,6 +166,7 @@ Each module also carries `zb-<module>`:
 | `zb-todo` | Todo list |
 | `zb-logo` | Logo |
 | `zb-clipboard` | Clipboard history (Hoarder) |
+| `zb-runners` | GitHub Actions self-hosted runners |
 
 #### Media parts
 
@@ -179,6 +180,16 @@ Each module also carries `zb-<module>`:
 | Class | On |
 |---|---|
 | `zb-clipboard-icon` | The clipboard icon on the bar. |
+
+#### Runners parts
+
+| Class | On |
+|---|---|
+| `zb-runners-icon` | The runners icon on the bar. |
+| `zb-runners-dots` | The row of slot dots on the bar. |
+| `zb-runner-dot` | One slot's dot, on the bar and in the card, plus `zb-running`, `zb-idle`, `zb-offline` or `zb-missing`. |
+| `zb-runners-queued` | The `+n` count of jobs waiting for a runner. |
+| `zb-runners-counts` | `running/slots`, shown instead of dots past 16 slots. |
 
 ### State
 
@@ -194,6 +205,9 @@ Modules add state classes while a state holds:
 | `zb-clipboard-active` | Hoarder is recording clipboard history. |
 | `zb-clipboard-paused` | Hoarder's recording is paused (the icon shows a pause sign). |
 | `zb-clipboard-offline` | Hoarder isn't running, or the bar lost it (the icon is struck through). The module tries again quietly. |
+| `zb-busy` | At least one runner slot is running a job. |
+| `zb-degraded` | A runner slot is offline or missing, or a stale registration is left over. |
+| `zb-error` | The runners module can't get a token or reach GitHub; hover for why. |
 
 ### Todo popover
 
@@ -221,6 +235,19 @@ Inside `zb-clipboard-popover`:
 | `zb-clipboard-preview` | A Clip's preview text, on one line. |
 | `zb-clipboard-empty` | The text shown when there are no Clips, or no Hoarder. |
 | `zb-clipboard-search` | The "Search all…" button, which runs `[clipboard] search_command`. |
+
+### Runners popover
+
+Inside `zb-runners-popover`:
+
+| Class | On |
+|---|---|
+| `zb-runners-card` | The card's content. |
+| `zb-runners-header` | The top line: `zb-runners-title` and the `zb-runners-summary` totals. |
+| `zb-runners-repo` | A repo's heading: `zb-runners-repo-name` and the `zb-runners-open` button ("Actions ↗", with queued and stale counts). |
+| `zb-runners-list` | A repo's slots. |
+| `zb-runners-row` | One slot: its dot, `zb-runners-slot` name, `zb-runners-labels`, and `zb-runners-job` (plus the slot's state class) with `zb-runners-elapsed`. Click a running one to open its job. |
+| `zb-runners-note` | A line about missing slots (`zb-missing`) or trouble reaching GitHub (`zb-error`). |
 
 ## Example `style.css`
 

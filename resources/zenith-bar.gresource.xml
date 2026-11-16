@@ -20,5 +20,6 @@
     <file preprocess="xml-stripblanks">icons/scalable/actions/zb-clipboard-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/zb-clipboard-paused-symbolic.svg</file>
     <file preprocess="xml-stripblanks">icons/scalable/actions/zb-clipboard-offline-symbolic.svg</file>
+    <file preprocess="xml-stripblanks">icons/scalable/actions/zb-runners-symbolic.svg</file>
   </gresource>
 </gresources>
