@@ -11,6 +11,7 @@ use crate::modules::clipboard::source::ClipboardSource;
 use crate::modules::clock::source::ClockSource;
 use crate::modules::logo::source::LogoSource;
 use crate::modules::media::source::MediaSource;
+use crate::modules::runners::source::RunnersSource;
 use crate::modules::system::source::SystemSource;
 use crate::modules::todo::{self, source::TodoSource};
 
@@ -23,6 +24,7 @@ pub struct Sources {
     pub calendar: Option<Rc<CalendarSource>>,
     pub system: Option<Rc<SystemSource>>,
     pub clipboard: Option<Rc<ClipboardSource>>,
+    pub runners: Option<Rc<RunnersSource>>,
 }
 
 impl Sources {
@@ -38,6 +40,7 @@ impl Sources {
             system: on(ModuleId::System).then(|| SystemSource::start(config.system.clone())),
             clipboard: on(ModuleId::Clipboard)
                 .then(|| ClipboardSource::start(config.clipboard.clone())),
+            runners: on(ModuleId::Runners).then(|| RunnersSource::start(config.runners.clone())),
         }
     }
 
@@ -95,6 +98,13 @@ impl Sources {
             old.clipboard != new.clipboard,
             || ClipboardSource::start(new.clipboard.clone()),
             |s| s.reconfigure(new.clipboard.clone()),
+        );
+        follow(
+            &mut self.runners,
+            on(ModuleId::Runners),
+            old.runners != new.runners,
+            || RunnersSource::start(new.runners.clone()),
+            |s| s.reconfigure(new.runners.clone()),
         );
     }
 }

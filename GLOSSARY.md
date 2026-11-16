@@ -44,6 +44,14 @@ _Avoid_: Idle animation, background effect
 A published, measured ceiling on Zenith's resource use (idle CPU, wakeups, memory, startup time) that every release must meet.
 _Avoid_: Target, goal
 
+**Runner slot**:
+One long-lived place where a GitHub Actions self-hosted runner runs. An ephemeral runner registers under a new name for every job (`ci-1-20261116-221235`); every registration whose name differs only by such a trailing date or time belongs to the same slot. The `runners` module shows slots, not registrations.
+_Avoid_: Runner (for the slot), agent, worker
+
+**Stale registration**:
+An offline runner registration left behind by a slot that has a newer one, e.g. after its container was killed before it could deregister.
+_Avoid_: Ghost runner, dead runner
+
 ## Relationships
 
 - A **Bar** is shown on exactly one **Output**; an **Output** has at most one **Bar**.

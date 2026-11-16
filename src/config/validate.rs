@@ -202,6 +202,7 @@ pub fn values(
         ("calendar", raw.calendar.problems()),
         ("system", raw.system.problems()),
         ("media", raw.media.problems()),
+        ("runners", raw.runners.problems()),
     ];
     for (table, problems) in module_problems {
         for (key, message) in problems {

@@ -115,7 +115,7 @@ jobs:
       - name: Install tools
         run: |
           pacman -Syu --noconfirm --needed \
-            base-devel git rust gtk4 gtk4-layer-shell github-cli
+            base-devel git rust gtk4 gtk4-layer-shell libsoup3 github-cli
 
       - name: Checkout the tag
         uses: actions/checkout@v4

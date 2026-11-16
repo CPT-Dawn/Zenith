@@ -29,6 +29,7 @@ Smoked glass and a glowing clock, at zero idle CPU and about one wakeup a second
 - **A typo can't break it.** Config and `style.css` reload on save. A bad edit keeps the last good config running, and `zenith-bar check` names the line, column and fix.
 - **Restyle anything.** Your own `style.css` sits on top of documented `--zb-*` variables and `zb-*` classes, and a JSON Schema gives your editor autocomplete.
 - **Clipboard history on the bar.** With [Hoarder](https://github.com/CPT-Dawn/Hoarder), the `clipboard` module shows your recent copies, image thumbnails included. Click one to restore it.
+- **Your CI runners at a glance.** The `runners` module shows a dot per GitHub Actions self-hosted runner (running, idle, offline) and the jobs waiting for one. Click for what each runner is doing and for how long.
 
 ## Install
 

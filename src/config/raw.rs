@@ -10,6 +10,7 @@ use super::theme::ThemeConfig;
 use crate::modules::calendar::CalendarConfig;
 use crate::modules::clipboard::ClipboardConfig;
 use crate::modules::media::MediaConfig;
+use crate::modules::runners::RunnersConfig;
 use crate::modules::todo::TodoConfig;
 use crate::modules::{clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
 
@@ -26,4 +27,5 @@ pub struct RawConfig {
     pub system: SystemConfig,
     pub todo: TodoConfig,
     pub clipboard: ClipboardConfig,
+    pub runners: RunnersConfig,
 }

@@ -106,6 +106,9 @@ fn popover(source: &Rc<TodoSource>) -> gtk4::Popover {
     let popover = gtk4::Popover::builder()
         .has_arrow(false)
         .css_classes(["zb-popover", "zb-todo-popover"])
+        // Set, so the card's expanding rows don't stretch the module on the bar.
+        .hexpand(false)
+        .vexpand(false)
         .build();
 
     let entry = gtk4::Entry::builder()

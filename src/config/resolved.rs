@@ -7,6 +7,7 @@ use super::theme::ThemeConfig;
 use crate::modules::calendar::CalendarConfig;
 use crate::modules::clipboard::ClipboardConfig;
 use crate::modules::media::MediaConfig;
+use crate::modules::runners::RunnersConfig;
 use crate::modules::todo::TodoConfig;
 use crate::modules::{ModuleId, clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
 
@@ -22,6 +23,7 @@ pub struct ResolvedConfig {
     pub system: SystemConfig,
     pub todo: TodoConfig,
     pub clipboard: ClipboardConfig,
+    pub runners: RunnersConfig,
     /// Generated `:root { --zb-…: … }` block layered above the theme.
     pub css_overrides: String,
 }
@@ -47,6 +49,7 @@ impl ResolvedConfig {
             ModuleId::System => &self.system.actions,
             ModuleId::Todo => &self.todo.actions,
             ModuleId::Clipboard => &self.clipboard.actions,
+            ModuleId::Runners => &self.runners.actions,
         }
     }
 }

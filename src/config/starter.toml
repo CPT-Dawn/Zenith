@@ -26,7 +26,7 @@ focal = "clock"
 
 [layout]
 # Modules per section, in order. A module may appear only once.
-# Available: logo, todo, clock, calendar, media, system, clipboard.
+# Available: logo, todo, clock, calendar, media, system, clipboard, runners.
 left = ["logo", "todo"]
 center = ["clock", "calendar"]
 right = ["media", "system"]
@@ -80,6 +80,18 @@ hot = 85
 # to show it: left click lists recent Clips, right click pauses recording.
 # Shell command run by the popover's "Search all…" row.
 search_command = "hoarder picker"
+
+[runners]
+# GitHub Actions self-hosted runners: one dot per slot (filled = running a
+# job, hollow = idle, red = offline or missing), +n for queued jobs. Add
+# "runners" to [layout] and list your repos to show it. Click for the jobs.
+repos = []
+# How many runner slots you run; fewer registered show as missing. 0 = off.
+expected = 0
+# Seconds between polls (at least 10).
+interval = 30
+# Shell command printing a GitHub token that can read the repos' runners.
+token_command = "gh auth token"
 
 [theme]
 # Built-in theme: "midnight-bloom", "tokyo-night", "catppuccin-mocha" or

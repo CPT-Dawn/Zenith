@@ -31,7 +31,7 @@ jobs:
       - name: Install tools
         run: |
           pacman -Syu --noconfirm --needed \
-            base-devel git git-cliff namcap rust gtk4 gtk4-layer-shell
+            base-devel git git-cliff namcap rust gtk4 gtk4-layer-shell libsoup3
           # makepkg refuses to run as root.
           useradd --create-home builder
 

@@ -9,6 +9,38 @@ use gtk4::gdk;
 use gtk4::prelude::*;
 use gtk4_layer_shell::{Edge, LayerShell};
 
+/// How long after a popover closes a click on its module counts as the closing click.
+const REOPEN_GUARD_US: i64 = 300_000;
+
+/// Open `popover` on a primary click of `anchor`, after `before_open`. The press that
+/// closed the popover (it lands on the module too) doesn't open it again.
+pub fn open_on_click(
+    anchor: &impl IsA<gtk4::Widget>,
+    popover: &gtk4::Popover,
+    before_open: impl Fn() + 'static,
+) {
+    let closed_at = std::rc::Rc::new(std::cell::Cell::new(0i64));
+    popover.connect_closed({
+        let closed_at = closed_at.clone();
+        move |_| closed_at.set(gtk4::glib::monotonic_time())
+    });
+    let click = gtk4::GestureClick::builder()
+        .button(gdk::BUTTON_PRIMARY)
+        .build();
+    let weak = popover.downgrade();
+    click.connect_released(move |_, _, _, _| {
+        let Some(popover) = weak.upgrade() else {
+            return;
+        };
+        if gtk4::glib::monotonic_time() - closed_at.get() > REOPEN_GUARD_US {
+            before_open();
+            place(&popover);
+            popover.popup();
+        }
+    });
+    anchor.add_controller(click);
+}
+
 /// The gap for a flush bar (`margin = 0`), so the card never touches it.
 const MIN_GAP: i32 = 6;
 
