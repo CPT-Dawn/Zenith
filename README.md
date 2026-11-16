@@ -70,7 +70,10 @@ zenith-bar
 
    ```lua
    hl.on("hyprland.start", function() hl.exec_cmd("zenith-bar") end)
-   hl.layer_rule({ name = "zenith-bar-blur", match = { namespace = "^zenith-bar$" }, blur = true, ignore_alpha = 0.3 })
+   hl.layer_rule({
+       name = "zenith-bar-blur", match = { namespace = "^zenith-bar$" },
+       blur = true, ignore_alpha = 0.3,
+   })
    ```
 
    The `hyprland.conf`, Sway, niri and river versions are in [installation](docs/installation.md#compositor-notes).
