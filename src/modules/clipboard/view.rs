@@ -73,6 +73,9 @@ fn popover(source: &Rc<ClipboardSource>) -> (gtk4::Popover, Rc<dyn Fn()>) {
     let popover = gtk4::Popover::builder()
         .has_arrow(false)
         .css_classes(["zb-popover", "zb-clipboard-popover"])
+        // Set, so the card's expanding rows don't stretch the module on the bar.
+        .hexpand(false)
+        .vexpand(false)
         .build();
 
     let rows = gtk4::ListBox::builder()
