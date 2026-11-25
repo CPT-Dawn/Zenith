@@ -335,19 +335,23 @@ popover.zb-clipboard-popover > contents {
 }
 
 /* Runners: an icon and one dot per runner slot; the slots in a card */
-.zb-runners .zb-runners-icon {
+.zb-runners .zb-runners-icon,
+.zb-cockpit .zb-cockpit-icon {
   color: var(--zb-text-muted);
 }
 
-.zb-runners.zb-busy .zb-runners-icon {
+.zb-runners.zb-busy .zb-runners-icon,
+.zb-cockpit.zb-busy .zb-cockpit-icon {
   color: var(--zb-accent);
 }
 
-.zb-runners.zb-degraded .zb-runners-icon {
+.zb-runners.zb-degraded .zb-runners-icon,
+.zb-cockpit.zb-degraded .zb-cockpit-icon {
   color: var(--zb-warm);
 }
 
-.zb-runners.zb-error .zb-runners-icon {
+.zb-runners.zb-error .zb-runners-icon,
+.zb-cockpit.zb-error .zb-cockpit-icon {
   color: var(--zb-hot);
 }
 
@@ -384,7 +388,8 @@ popover.zb-clipboard-popover > contents {
   font-feature-settings: "tnum";
 }
 
-popover.zb-runners-popover > contents {
+popover.zb-runners-popover > contents,
+popover.zb-cockpit-popover > contents {
   padding: var(--zb-space-m);
   border: 1px solid var(--zb-surface-border);
   border-radius: var(--zb-bar-radius);
@@ -437,7 +442,9 @@ popover.zb-runners-popover > contents {
 }
 
 .zb-runners-popover list,
-.zb-runners-popover row {
+.zb-runners-popover row,
+.zb-cockpit-popover list,
+.zb-cockpit-popover row {
   background: none;
 }
 
@@ -466,4 +473,126 @@ popover.zb-runners-popover > contents {
 
 .zb-runners-note {
   padding: var(--zb-space-s);
+}
+
+/* Cockpit: the runners plus feed chips on the bar; feed cards in the popover.
+   Tones: ok = accent, busy = the running-runner colour, warn, critical, muted. */
+.zb-tone-ok,
+.zb-tone-busy {
+  color: var(--zb-accent);
+}
+
+.zb-tone-warn {
+  color: var(--zb-warm);
+}
+
+.zb-tone-critical {
+  color: var(--zb-hot);
+}
+
+.zb-tone-muted {
+  color: var(--zb-text-muted);
+}
+
+.zb-cockpit-chip {
+  padding: 0 var(--zb-space-s);
+  border-radius: 999px;
+  background-color: color-mix(in srgb, currentColor 12%, transparent);
+  font-size: 0.85em;
+  font-feature-settings: "tnum";
+}
+
+.zb-cockpit-chip-label {
+  color: var(--zb-text-dim);
+}
+
+.zb-cockpit-chip-text {
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-cockpit-chip.zb-cockpit-failed {
+  background-color: transparent;
+  border: 1px solid color-mix(in srgb, var(--zb-text-muted) 50%, transparent);
+}
+
+.zb-cockpit-card {
+  padding: var(--zb-space-s) var(--zb-space-s) var(--zb-space-m);
+}
+
+.zb-cockpit-card + .zb-cockpit-card,
+.zb-cockpit-feed-error + .zb-cockpit-card {
+  border-top: 1px solid var(--zb-surface-border);
+}
+
+.zb-cockpit-header {
+  padding-bottom: var(--zb-space-s);
+}
+
+.zb-cockpit-title {
+  font-weight: var(--zb-font-weight-strong);
+}
+
+.zb-cockpit-note,
+.zb-cockpit-label,
+.zb-cockpit-countdown,
+.zb-cockpit-empty {
+  color: var(--zb-text-muted);
+  font-size: 0.85em;
+  font-feature-settings: "tnum";
+}
+
+.zb-cockpit-stale,
+.zb-cockpit-error,
+.zb-cockpit-feed-error {
+  color: var(--zb-warm);
+  font-size: 0.85em;
+}
+
+.zb-cockpit-feed-error {
+  padding: var(--zb-space-xs) var(--zb-space-s) var(--zb-space-s);
+}
+
+.zb-cockpit-value,
+.zb-cockpit-text {
+  font-size: 0.9em;
+  font-feature-settings: "tnum";
+}
+
+.zb-cockpit-meter,
+.zb-cockpit-meter trough,
+.zb-cockpit-meter progress {
+  min-height: 6px;
+  border: none;
+  border-radius: 999px;
+}
+
+.zb-cockpit-meter trough {
+  min-width: 90px;
+  background-color: var(--zb-surface-border);
+}
+
+.zb-cockpit-meter.zb-tone-ok progress,
+.zb-cockpit-meter.zb-tone-busy progress {
+  background-color: var(--zb-accent);
+}
+
+.zb-cockpit-meter.zb-tone-warn progress {
+  background-color: var(--zb-warm);
+}
+
+.zb-cockpit-meter.zb-tone-critical progress {
+  background-color: var(--zb-hot);
+}
+
+.zb-cockpit-meter.zb-tone-muted progress {
+  background-color: var(--zb-text-muted);
+}
+
+.zb-cockpit-link:hover {
+  color: var(--zb-accent);
+}
+
+.zb-cockpit-scroller,
+.zb-cockpit-scroller > viewport {
+  background: none;
 }

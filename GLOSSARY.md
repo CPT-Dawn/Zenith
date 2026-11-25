@@ -44,8 +44,24 @@ _Avoid_: Idle animation, background effect
 A published, measured ceiling on Zenith's resource use (idle CPU, wakeups, memory, startup time) that every release must meet.
 _Avoid_: Target, goal
 
+**Cockpit**:
+The module that gathers what you keep an eye on: the runner fleet and every **Feed**, as **Glance** chips on the bar and cards in its popover. Replaces the `runners` module, which stays one release as a deprecated alias.
+_Avoid_: Dashboard, panel, hub
+
+**Feed**:
+A user-configured command whose stdout is one JSON document (contract v1) that the **Cockpit** renders. Zenith knows nothing about what a feed watches.
+_Avoid_: Plugin, provider, integration
+
+**Glance**:
+The short items a **Feed** offers for the bar ("Codex 87%"), shown as chips after the runner dots; at most six on a bar.
+_Avoid_: Badge, summary
+
+**Tone**:
+How a feed value should look: `ok`, `busy`, `warn`, `critical` or `muted`. Each maps to a theme token; an unknown tone reads as `muted`.
+_Avoid_: Severity, status, colour
+
 **Runner slot**:
-One long-lived place where a GitHub Actions self-hosted runner runs. An ephemeral runner registers under a new name for every job (`ci-1-20261116-221235`); every registration whose name differs only by such a trailing date or time belongs to the same slot. The `runners` module shows slots, not registrations.
+One long-lived place where a GitHub Actions self-hosted runner runs. An ephemeral runner registers under a new name for every job (`ci-1-20261116-221235`); every registration whose name differs only by such a trailing date or time belongs to the same slot. The **Cockpit** shows slots, not registrations.
 _Avoid_: Runner (for the slot), agent, worker
 
 **Stale registration**:
@@ -58,4 +74,5 @@ _Avoid_: Ghost runner, dead runner
 - A **Bar** has three **Sections**; a **Module** appears in at most one **Section**.
 - A **Preset** names exactly one **Theme**; a **Theme** can be used by many **Presets**.
 - A **Theme** has at most one **Focal element**.
+- A **Cockpit** has any number of **Feeds**; each **Feed** has **Glance** items and sections, each coloured by a **Tone**.
 - Every **Bar** shows the same **Modules**, which share a single data source per **Module** regardless of how many **Bars** exist.

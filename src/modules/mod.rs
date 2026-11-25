@@ -18,6 +18,7 @@ use std::time::Duration;
 pub mod calendar;
 pub mod clipboard;
 pub mod clock;
+pub mod cockpit;
 pub mod logo;
 pub mod media;
 pub mod runners;
@@ -35,11 +36,13 @@ pub enum ModuleId {
     Todo,
     Logo,
     Clipboard,
+    Cockpit,
+    /// Deprecated alias of `cockpit` with only the runner card; goes in the next release.
     Runners,
 }
 
 impl ModuleId {
-    pub const ALL: [ModuleId; 8] = [
+    pub const ALL: [ModuleId; 9] = [
         ModuleId::Clock,
         ModuleId::Calendar,
         ModuleId::Media,
@@ -47,6 +50,7 @@ impl ModuleId {
         ModuleId::Todo,
         ModuleId::Logo,
         ModuleId::Clipboard,
+        ModuleId::Cockpit,
         ModuleId::Runners,
     ];
 
@@ -59,6 +63,7 @@ impl ModuleId {
             ModuleId::Todo => "todo",
             ModuleId::Logo => "logo",
             ModuleId::Clipboard => "clipboard",
+            ModuleId::Cockpit => "cockpit",
             ModuleId::Runners => "runners",
         }
     }

@@ -8,6 +8,7 @@ use super::sources::Sources;
 use crate::config::{Position, ResolvedConfig, Section};
 use crate::modules::calendar;
 use crate::modules::clipboard;
+use crate::modules::cockpit;
 use crate::modules::media;
 use crate::modules::runners;
 use crate::modules::todo;
@@ -94,6 +95,7 @@ fn view(id: ModuleId, sources: &Sources) -> Option<gtk4::Widget> {
             .as_ref()
             .map(|s| system::view::build(&s.state())),
         ModuleId::Clipboard => sources.clipboard.as_ref().map(clipboard::view::build),
+        ModuleId::Cockpit => sources.cockpit.as_ref().map(cockpit::view::build),
         ModuleId::Runners => sources.runners.as_ref().map(runners::view::build),
     }
 }

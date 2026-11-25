@@ -193,6 +193,110 @@
       },
       "type": "object"
     },
+    "CockpitConfig": {
+      "additionalProperties": false,
+      "description": "The `[cockpit]` table: the runner fleet's keys (as `[runners]` had them) and the feeds.",
+      "properties": {
+        "api_url": {
+          "default": "https://api.github.com",
+          "description": "GitHub API base URL; change it for GitHub Enterprise Server.",
+          "type": "string"
+        },
+        "expected": {
+          "default": 0,
+          "description": "How many runner slots you run, across all repos. Fewer registered slots show as\nmissing. 0 turns the check off.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "feeds": {
+          "description": "Commands that print a cockpit feed (JSON, contract v1). Each adds chips to the\nbar and cards to the popover.",
+          "items": {
+            "$ref": "#/definitions/FeedConfig"
+          },
+          "type": "array"
+        },
+        "interval": {
+          "default": 30,
+          "description": "Seconds between polls (at least 10). Unchanged replies don't count against\nGitHub's rate limit.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "on_click": {
+          "default": null,
+          "description": "Shell command run on left click, instead of the module's built-in action.\nAn empty string disables the built-in action without running anything.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_right_click": {
+          "default": null,
+          "description": "Shell command run on right click, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_down": {
+          "default": null,
+          "description": "Shell command run on scroll down, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "on_scroll_up": {
+          "default": null,
+          "description": "Shell command run on scroll up, instead of the module's built-in action.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "repos": {
+          "default": [],
+          "description": "Repositories whose self-hosted runners are shown, as \"owner/name\".",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "token_command": {
+          "default": "gh auth token",
+          "description": "Shell command that prints a GitHub token. It needs read access to the repos'\nrunners (admin on the repo, or a classic token with `repo`).",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "FeedConfig": {
+      "additionalProperties": false,
+      "description": "One `[[cockpit.feeds]]` entry.",
+      "properties": {
+        "command": {
+          "default": "",
+          "description": "Shell command, run with `sh -c`. Its stdout is one JSON feed document.",
+          "type": "string"
+        },
+        "interval": {
+          "default": 15,
+          "description": "Seconds from the end of one run to the start of the next (at least 5).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "timeout": {
+          "default": 30,
+          "description": "Seconds a run may take before it is killed and counted as failed (at least 1).",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
     "LayoutConfig": {
       "additionalProperties": false,
       "description": "Leaving `[layout]` out gives the default layout; once it is written, any\nsection left out is empty. A module may appear only once across all sections.",
@@ -641,6 +745,9 @@
     "clock": {
       "$ref": "#/definitions/ClockConfig"
     },
+    "cockpit": {
+      "$ref": "#/definitions/CockpitConfig"
+    },
     "layout": {
       "$ref": "#/definitions/LayoutConfig"
     },
@@ -651,7 +758,12 @@
       "$ref": "#/definitions/MediaConfig"
     },
     "runners": {
-      "$ref": "#/definitions/RunnersConfig"
+      "allOf": [
+        {
+          "$ref": "#/definitions/RunnersConfig"
+        }
+      ],
+      "description": "Deprecated: the old name of `[cockpit]`, without feeds."
     },
     "system": {
       "$ref": "#/definitions/SystemConfig"

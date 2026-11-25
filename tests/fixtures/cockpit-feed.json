@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "generated": "2026-11-25T15:29:09.304Z",
+  "glance": [
+    {
+      "id": "claude",
+      "label": "Claude",
+      "text": "5%",
+      "tone": "ok",
+      "tooltip": "Claude: 5h 5%"
+    },
+    {
+      "id": "codex",
+      "label": "Codex",
+      "text": "87%",
+      "tone": "critical",
+      "tooltip": "Codex: 5h 0%, week 87%"
+    },
+    {
+      "id": "agy",
+      "label": "agy",
+      "text": "64%",
+      "tone": "warn",
+      "tooltip": "agy: 5h 0%, week 42%, 5h 0%, week 64%"
+    }
+  ],
+  "sections": [
+    {
+      "id": "claude",
+      "title": "Claude",
+      "rows": [
+        {
+          "kind": "meter",
+          "label": "5h",
+          "value": 0.05,
+          "text": "5%",
+          "tone": "ok",
+          "until": "2026-11-25T18:40:00.000Z"
+        }
+      ]
+    },
+    {
+      "id": "codex",
+      "title": "Codex",
+      "rows": [
+        {
+          "kind": "meter",
+          "label": "5h",
+          "value": 0,
+          "text": "0%",
+          "tone": "ok",
+          "until": "2026-11-25T20:29:00.000Z"
+        },
+        {
+          "kind": "meter",
+          "label": "week",
+          "value": 0.87,
+          "text": "87%",
+          "tone": "critical",
+          "until": "2026-11-28T02:00:56.000Z"
+        }
+      ],
+      "note": "plus · 1 reset left"
+    },
+    {
+      "id": "agy",
+      "title": "agy",
+      "rows": [
+        {
+          "kind": "meter",
+          "label": "gemini 5h",
+          "value": 0,
+          "text": "0%",
+          "tone": "ok",
+          "until": "2026-11-25T20:29:08.000Z"
+        },
+        {
+          "kind": "meter",
+          "label": "gemini week",
+          "value": 0.42,
+          "text": "42%",
+          "tone": "ok",
+          "until": "2026-11-30T22:32:03.000Z"
+        },
+        {
+          "kind": "meter",
+          "label": "claude+gpt 5h",
+          "value": 0,
+          "text": "0%",
+          "tone": "ok",
+          "until": "2026-11-25T20:29:08.000Z"
+        },
+        {
+          "kind": "meter",
+          "label": "claude+gpt week",
+          "value": 0.64,
+          "text": "64%",
+          "tone": "warn",
+          "until": "2026-11-30T01:54:01.000Z"
+        }
+      ]
+    },
+    {
+      "id": "factory",
+      "title": "Factory",
+      "rows": [
+        {
+          "kind": "text",
+          "label": "lab",
+          "text": "0 leased · 3 free",
+          "tone": "muted"
+        },
+        {
+          "kind": "text",
+          "label": "agy-gemini",
+          "text": "0/2 running",
+          "tone": "ok"
+        },
+        {
+          "kind": "text",
+          "label": "agy-claude",
+          "text": "0/2 running",
+          "tone": "ok"
+        },
+        {
+          "kind": "text",
+          "label": "codex",
+          "text": "0/2 running",
+          "tone": "ok"
+        },
+        {
+          "kind": "text",
+          "label": "claude",
+          "text": "0/2 running",
+          "tone": "ok"
+        },
+        {
+          "kind": "text",
+          "label": "leads",
+          "text": "none",
+          "tone": "muted"
+        },
+        {
+          "kind": "text",
+          "label": "today",
+          "text": "65 reviews · 22% clean · 6 leads",
+          "tone": "muted"
+        }
+      ]
+    },
+    {
+      "id": "week",
+      "title": "Last 7 days",
+      "rows": [
+        {
+          "kind": "text",
+          "label": "sessions",
+          "text": "50 attended · 50 lead · 70 headless · 484 subagent · 185 codex · 118 agy",
+          "tone": "muted"
+        },
+        {
+          "kind": "text",
+          "label": "output",
+          "text": "23.0M tokens",
+          "tone": "muted"
+        },
+        {
+          "kind": "text",
+          "label": "CI",
+          "text": "83% passing of 868",
+          "tone": "warn"
+        }
+      ],
+      "note": "as of 2026-11-25 14:41Z"
+    }
+  ]
+}

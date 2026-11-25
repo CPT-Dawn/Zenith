@@ -9,6 +9,7 @@ use crate::modules::ModuleId;
 use crate::modules::calendar::source::CalendarSource;
 use crate::modules::clipboard::source::ClipboardSource;
 use crate::modules::clock::source::ClockSource;
+use crate::modules::cockpit::source::CockpitSource;
 use crate::modules::logo::source::LogoSource;
 use crate::modules::media::source::MediaSource;
 use crate::modules::runners::source::RunnersSource;
@@ -24,6 +25,8 @@ pub struct Sources {
     pub calendar: Option<Rc<CalendarSource>>,
     pub system: Option<Rc<SystemSource>>,
     pub clipboard: Option<Rc<ClipboardSource>>,
+    pub cockpit: Option<Rc<CockpitSource>>,
+    /// The deprecated `runners` module: the cockpit's runner fleet alone.
     pub runners: Option<Rc<RunnersSource>>,
 }
 
@@ -40,7 +43,9 @@ impl Sources {
             system: on(ModuleId::System).then(|| SystemSource::start(config.system.clone())),
             clipboard: on(ModuleId::Clipboard)
                 .then(|| ClipboardSource::start(config.clipboard.clone())),
-            runners: on(ModuleId::Runners).then(|| RunnersSource::start(config.runners.clone())),
+            cockpit: on(ModuleId::Cockpit).then(|| CockpitSource::start(config.cockpit.clone())),
+            runners: on(ModuleId::Runners)
+                .then(|| RunnersSource::start(config.cockpit.runners.clone())),
         }
     }
 
@@ -100,11 +105,18 @@ impl Sources {
             |s| s.reconfigure(new.clipboard.clone()),
         );
         follow(
+            &mut self.cockpit,
+            on(ModuleId::Cockpit),
+            old.cockpit != new.cockpit,
+            || CockpitSource::start(new.cockpit.clone()),
+            |s| s.reconfigure(new.cockpit.clone()),
+        );
+        follow(
             &mut self.runners,
             on(ModuleId::Runners),
-            old.runners != new.runners,
-            || RunnersSource::start(new.runners.clone()),
-            |s| s.reconfigure(new.runners.clone()),
+            old.cockpit.runners != new.cockpit.runners,
+            || RunnersSource::start(new.cockpit.runners.clone()),
+            |s| s.reconfigure(new.cockpit.runners.clone()),
         );
     }
 }

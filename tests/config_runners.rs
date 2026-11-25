@@ -7,10 +7,10 @@ fn runners_are_off_until_they_are_in_the_layout() {
     let config = resolve("").expect("defaults are valid");
 
     assert!(!config.layout.contains(ModuleId::Runners));
-    assert_eq!(config.runners.repos, Vec::<String>::new());
-    assert_eq!(config.runners.interval, 30);
-    assert_eq!(config.runners.token_command, "gh auth token");
-    assert_eq!(config.runners.api_url, "https://api.github.com");
+    assert_eq!(config.cockpit.runners.repos, Vec::<String>::new());
+    assert_eq!(config.cockpit.runners.interval, 30);
+    assert_eq!(config.cockpit.runners.token_command, "gh auth token");
+    assert_eq!(config.cockpit.runners.api_url, "https://api.github.com");
 }
 
 #[test]
@@ -33,12 +33,21 @@ on_right_click = ""
         config.layout.left,
         vec![ModuleId::Clipboard, ModuleId::Runners]
     );
-    assert_eq!(config.runners.repos, ["CPT-Dawn/PeekaBus", "acme/web.site"]);
-    assert_eq!(config.runners.expected, 7);
-    assert_eq!(config.runners.interval, 60);
-    assert_eq!(config.runners.token_command, "pass github/token");
-    assert_eq!(config.runners.api_url, "https://ghe.example.com/api/v3");
-    assert_eq!(config.runners.actions.on_right_click.as_deref(), Some(""));
+    assert_eq!(
+        config.cockpit.runners.repos,
+        ["CPT-Dawn/PeekaBus", "acme/web.site"]
+    );
+    assert_eq!(config.cockpit.runners.expected, 7);
+    assert_eq!(config.cockpit.runners.interval, 60);
+    assert_eq!(config.cockpit.runners.token_command, "pass github/token");
+    assert_eq!(
+        config.cockpit.runners.api_url,
+        "https://ghe.example.com/api/v3"
+    );
+    assert_eq!(
+        config.cockpit.runners.actions.on_right_click.as_deref(),
+        Some("")
+    );
 }
 
 fn messages(text: &str) -> Vec<String> {

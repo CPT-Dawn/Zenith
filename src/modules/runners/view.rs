@@ -20,22 +20,10 @@ pub fn build(source: &Rc<RunnersSource>) -> gtk4::Widget {
     let root = gtk4::Box::new(gtk4::Orientation::Horizontal, 7);
     let icon = gtk4::Image::from_icon_name("zb-runners-symbolic");
     icon.add_css_class("zb-runners-icon");
-    let dots = gtk4::Box::new(gtk4::Orientation::Horizontal, 4);
-    dots.add_css_class("zb-runners-dots");
-    dots.set_valign(gtk4::Align::Center);
-    let counts = gtk4::Label::new(None);
-    counts.add_css_class("zb-runners-counts");
-    let queued = gtk4::Label::new(None);
-    queued.add_css_class("zb-runners-queued");
     root.append(&icon);
-    root.append(&dots);
-    root.append(&counts);
-    root.append(&queued);
+    root.append(&glance(source));
 
     bind(&root, &source.state(), |_, _| {});
-    let fleet = source.fleet();
-    let subscription = fleet.subscribe(move |fleet| draw_bar(fleet, &dots, &counts, &queued));
-    root.connect_destroy(move |_| fleet.unsubscribe(subscription));
 
     let popover = popover(source);
     popover.set_parent(&root);
@@ -43,6 +31,42 @@ pub fn build(source: &Rc<RunnersSource>) -> gtk4::Widget {
 
     root.connect_destroy(move |_| popover.unparent());
     root.upcast()
+}
+
+/// The fleet on the bar: slot dots (or counts) and the queued count, following the
+/// fleet for as long as the box lives. The box hides itself when it has nothing to show.
+pub fn glance(source: &Rc<RunnersSource>) -> gtk4::Box {
+    let root = gtk4::Box::new(gtk4::Orientation::Horizontal, 7);
+    root.add_css_class("zb-runners-glance");
+    let dots = gtk4::Box::new(gtk4::Orientation::Horizontal, 4);
+    dots.add_css_class("zb-runners-dots");
+    dots.set_valign(gtk4::Align::Center);
+    let counts = gtk4::Label::new(None);
+    counts.add_css_class("zb-runners-counts");
+    let queued = gtk4::Label::new(None);
+    queued.add_css_class("zb-runners-queued");
+    root.append(&dots);
+    root.append(&counts);
+    root.append(&queued);
+
+    let fleet = source.fleet();
+    let weak = root.downgrade();
+    let subscription = fleet.subscribe(move |fleet| {
+        draw_bar(fleet, &dots, &counts, &queued);
+        if let Some(root) = weak.upgrade() {
+            root.set_visible(dots.is_visible() || counts.is_visible() || queued.is_visible());
+        }
+    });
+    root.connect_destroy(move |_| fleet.unsubscribe(subscription));
+    root
+}
+
+/// Whether a fleet has anything to show: a repo, a missing slot, or trouble.
+/// With no repos configured it has none, and the cockpit leaves its runner card out.
+pub fn shows(fleet: &Fleet) -> bool {
+    !fleet.repos.is_empty()
+        || fleet.missing > 0
+        || !matches!(fleet.health, Health::Ok | Health::Waiting)
 }
 
 fn draw_bar(fleet: &Fleet, dots: &gtk4::Box, counts: &gtk4::Label, queued: &gtk4::Label) {
@@ -91,7 +115,7 @@ fn state_class(state: &SlotState) -> &'static str {
 }
 
 /// Elapsed-time labels on the open card, with the start time each counts from.
-type Clocks = Rc<RefCell<Vec<(gtk4::Label, jiff::Timestamp)>>>;
+pub type Clocks = Rc<RefCell<Vec<(gtk4::Label, jiff::Timestamp)>>>;
 
 /// While open, the card follows the fleet; nothing of it exists while closed. Only the
 /// elapsed times tick (once a second, in place), so hover and clicks are never reset.
@@ -150,7 +174,9 @@ fn popover(source: &Rc<RunnersSource>) -> gtk4::Popover {
     popover
 }
 
-fn card(
+/// The runner card: every slot with its job, per repo. `clocks` collects the elapsed
+/// labels for the caller's once-a-second ticker.
+pub fn card(
     fleet: &Fleet,
     source: &Rc<RunnersSource>,
     popover: &gtk4::Popover,

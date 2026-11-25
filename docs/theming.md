@@ -166,7 +166,8 @@ Each module also carries `zb-<module>`:
 | `zb-todo` | Todo list |
 | `zb-logo` | Logo |
 | `zb-clipboard` | Clipboard history (Hoarder) |
-| `zb-runners` | GitHub Actions self-hosted runners |
+| `zb-cockpit` | The cockpit: runners and feed chips |
+| `zb-runners` | Deprecated alias of the cockpit, runners only (goes in the next release) |
 
 #### Media parts
 
@@ -181,7 +182,21 @@ Each module also carries `zb-<module>`:
 |---|---|
 | `zb-clipboard-icon` | The clipboard icon on the bar. |
 
+#### Cockpit parts
+
+| Class | On |
+|---|---|
+| `zb-cockpit-icon` | The cockpit icon on the bar. |
+| `zb-runners-glance` | The runner dots and queued count, on the cockpit and the deprecated `runners` module. Hidden when no repos are watched. |
+| `zb-cockpit-glance` | The row of feed chips. |
+| `zb-cockpit-chip` | One chip, plus its tone class: `zb-cockpit-chip-label` then `zb-cockpit-chip-text`. |
+| `zb-cockpit-failed` | On the muted `!` chip of a feed whose last run failed; hover for why. |
+
+Tone classes colour chips, meters and rows: `zb-tone-ok` (accent), `zb-tone-busy` (the running-runner colour), `zb-tone-warn` (`--zb-warm`), `zb-tone-critical` (`--zb-hot`) and `zb-tone-muted` (`--zb-text-muted`).
+
 #### Runners parts
+
+On the cockpit and on the deprecated `runners` module (whose icon is `zb-runners-icon`):
 
 | Class | On |
 |---|---|
@@ -205,9 +220,9 @@ Modules add state classes while a state holds:
 | `zb-clipboard-active` | Hoarder is recording clipboard history. |
 | `zb-clipboard-paused` | Hoarder's recording is paused (the icon shows a pause sign). |
 | `zb-clipboard-offline` | Hoarder isn't running, or the bar lost it (the icon is struck through). The module tries again quietly. |
-| `zb-busy` | At least one runner slot is running a job. |
+| `zb-busy` | At least one runner slot is running a job (cockpit and runners). |
 | `zb-degraded` | A runner slot is offline or missing, or a stale registration is left over. |
-| `zb-error` | The runners module can't get a token or reach GitHub; hover for why. |
+| `zb-error` | The cockpit (or runners module) can't get a GitHub token or reach GitHub; hover for why. |
 
 ### Todo popover
 
@@ -236,9 +251,28 @@ Inside `zb-clipboard-popover`:
 | `zb-clipboard-empty` | The text shown when there are no Clips, or no Hoarder. |
 | `zb-clipboard-search` | The "Search all…" button, which runs `[clipboard] search_command`. |
 
+### Cockpit popover
+
+Inside `zb-cockpit-popover`, in a `zb-cockpit-scroller`, a `zb-cockpit-view` holds one card per feed section, then the runner card:
+
+| Class | On |
+|---|---|
+| `zb-cockpit-card` | A card: each feed section, and the runner card (which keeps its `zb-runners-*` classes). |
+| `zb-cockpit-header` | A section's top line: `zb-cockpit-title`, `zb-cockpit-stale` ("⚠ 10m old") and the muted `zb-cockpit-note`. |
+| `zb-cockpit-rows` | The rows of a section. |
+| `zb-cockpit-label` | A row's label. |
+| `zb-cockpit-meter` | A meter's pill bar (a `progressbar` with `trough` and `progress`), plus its tone class. |
+| `zb-cockpit-value` | A meter's text, plus its tone class. |
+| `zb-cockpit-countdown` | A meter's live countdown ("3h36m"). |
+| `zb-cockpit-text` | A text row's text, plus its tone class. |
+| `zb-cockpit-link` | A text row that opens its URL on click. |
+| `zb-cockpit-error` | A section's error line. |
+| `zb-cockpit-feed-error` | A line saying a feed's last run failed. |
+| `zb-cockpit-empty` | Shown when there are no repos and no feeds. |
+
 ### Runners popover
 
-Inside `zb-runners-popover`:
+The runner card, inside `zb-runners-popover` on the deprecated `runners` module and as the last card of the cockpit:
 
 | Class | On |
 |---|---|

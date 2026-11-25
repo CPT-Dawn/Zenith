@@ -1230,6 +1230,7 @@ dependencies = [
  "gtk4-layer-shell",
  "hoarder-ipc",
  "jiff",
+ "libc",
  "log",
  "pretty_assertions",
  "rustix",

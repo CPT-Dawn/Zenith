@@ -144,6 +144,9 @@ impl Runtime {
             }
             Outcome::Changed(new) => *new,
         };
+        for warning in &new.warnings {
+            log::warn!("{}", warning.render(&name));
+        }
 
         let plan = reload::plan(&self.config, &new);
         self.sources.reconfigure(&self.config, &new);
@@ -175,14 +178,18 @@ fn load_config(path: &Path) -> ResolvedConfig {
         log::error!("{}: using defaults", path.display());
         String::new()
     });
-    config::resolve(&text).unwrap_or_else(|diagnostics| {
+    let config = config::resolve(&text).unwrap_or_else(|diagnostics| {
         let name = path.display().to_string();
         for diagnostic in diagnostics {
             log::error!("{}", diagnostic.render(&name));
         }
         log::error!("{name} has errors; using defaults");
         config::resolve("").expect("defaults are valid")
-    })
+    });
+    for warning in &config.warnings {
+        log::warn!("{}", warning.render(&path.display().to_string()));
+    }
+    config
 }
 
 /// Read the config off the main loop (ADR-0002) and hand `done` its text: empty for

@@ -19,7 +19,11 @@ pub fn check(options: &Options) -> u8 {
     };
 
     match config::resolve(&text) {
-        Ok(_) => {
+        Ok(config) => {
+            for warning in &config.warnings {
+                let at = format!("{}:{}", warning.line, warning.column);
+                eprintln!("{shown}:{at}: warning: {}", warning.message);
+            }
             println!("{shown} is valid");
             0
         }

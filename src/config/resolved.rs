@@ -1,13 +1,14 @@
 //! The validated, typed config the UI consumes.
 
+use super::Diagnostic;
 use super::actions::ClickActions;
 use super::bar::{Monitors, Motion, Position};
 use super::layout::Section;
 use super::theme::ThemeConfig;
 use crate::modules::calendar::CalendarConfig;
 use crate::modules::clipboard::ClipboardConfig;
+use crate::modules::cockpit::CockpitConfig;
 use crate::modules::media::MediaConfig;
-use crate::modules::runners::RunnersConfig;
 use crate::modules::todo::TodoConfig;
 use crate::modules::{ModuleId, clock::ClockConfig, logo::LogoConfig, system::SystemConfig};
 
@@ -23,9 +24,13 @@ pub struct ResolvedConfig {
     pub system: SystemConfig,
     pub todo: TodoConfig,
     pub clipboard: ClipboardConfig,
-    pub runners: RunnersConfig,
+    /// `[cockpit]`, or the deprecated `[runners]` (as a cockpit without feeds) when
+    /// that is the table written. The `runners` module uses its runner keys.
+    pub cockpit: CockpitConfig,
     /// Generated `:root { --zb-…: … }` block layered above the theme.
     pub css_overrides: String,
+    /// Deprecations: valid, but worth telling the user (`check` prints them).
+    pub warnings: Vec<Diagnostic>,
 }
 
 impl ResolvedConfig {
@@ -49,7 +54,7 @@ impl ResolvedConfig {
             ModuleId::System => &self.system.actions,
             ModuleId::Todo => &self.todo.actions,
             ModuleId::Clipboard => &self.clipboard.actions,
-            ModuleId::Runners => &self.runners.actions,
+            ModuleId::Cockpit | ModuleId::Runners => &self.cockpit.runners.actions,
         }
     }
 }

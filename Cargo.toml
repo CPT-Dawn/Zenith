@@ -39,6 +39,8 @@ hoarder-ipc = { git = "https://github.com/CPT-Dawn/Hoarder", tag = "v1.0.0" }
 gio-unix = "0.22.8"
 # libsoup (GTK's HTTP client, async on the main loop) for the runners module's GitHub polls.
 soup3 = "0.9.0"
+# setpgid/kill, so a timed-out cockpit feed command is killed with its children.
+libc = "0.2.184"
 
 [build-dependencies]
 glib-build-tools = "0.22.8"

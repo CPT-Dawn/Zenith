@@ -52,10 +52,15 @@ pub fn resolve(text: &str) -> Result<ResolvedConfig, Vec<Diagnostic>> {
         return Err(diagnostics);
     }
 
-    Ok(build(&document, raw))
+    let warnings = validate::deprecations(text, &document);
+    Ok(build(&document, raw, warnings))
 }
 
-fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig {
+fn build(
+    document: &toml_edit::Document<&str>,
+    raw: RawConfig,
+    warnings: Vec<Diagnostic>,
+) -> ResolvedConfig {
     let ids = |names: &[String]| names.iter().filter_map(|n| n.parse().ok()).collect();
     let layout = Layout {
         left: ids(&raw.layout.left),
@@ -80,6 +85,16 @@ fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig
     };
     let css_overrides = theme::override_block(&bar, &raw.theme);
 
+    // Writing both tables is an error, so at most one of them is set.
+    let cockpit = if validate::lookup(document, &["runners"]).is_some() {
+        crate::modules::cockpit::CockpitConfig {
+            runners: raw.runners,
+            feeds: Vec::new(),
+        }
+    } else {
+        raw.cockpit
+    };
+
     ResolvedConfig {
         bar,
         layout,
@@ -91,7 +106,8 @@ fn build(document: &toml_edit::Document<&str>, raw: RawConfig) -> ResolvedConfig
         system: raw.system,
         todo: raw.todo,
         clipboard: raw.clipboard,
-        runners: raw.runners,
+        cockpit,
         css_overrides,
+        warnings,
     }
 }
