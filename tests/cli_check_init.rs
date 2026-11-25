@@ -179,3 +179,27 @@ fn init_with_force_replaces_the_config() {
     assert_eq!(output.status.code(), Some(0));
     assert!(std::fs::read_to_string(&config).unwrap().contains("[bar]"));
 }
+
+#[test]
+fn check_warns_about_the_deprecated_runners_names_but_passes() {
+    let scratch = Scratch::new("check-runners");
+    let config = scratch.file("config.toml");
+    std::fs::write(
+        &config,
+        "[layout]\nleft = [\"runners\"]\n\n[runners]\nexpected = 1\n",
+    )
+    .unwrap();
+
+    let output = zenith_bar(&["check"], &config);
+
+    let path = config.display();
+    assert!(output.status.success());
+    assert_eq!(stdout(&output), format!("{path} is valid\n"));
+    assert_eq!(
+        stderr(&output),
+        format!(
+            "{path}:2:9: warning: module `runners` is deprecated and goes in the next release; use `cockpit`\n\
+             {path}:4:2: warning: [runners] is deprecated and goes in the next release; rename it to [cockpit]\n"
+        )
+    );
+}

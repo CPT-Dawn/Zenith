@@ -237,6 +237,16 @@ async fn poll_once(weak: &Weak<RunnersSource>, generation: u64) -> Result<Fleet,
     let alive = || weak.upgrade().filter(|s| s.current(generation));
     let gone = || Health::Waiting;
 
+    // No repos, nothing to ask GitHub: don't run token_command at all. The cockpit
+    // keeps an idle runner fleet this way when only feeds are configured.
+    {
+        let source = alive().ok_or_else(gone)?;
+        let inner = source.inner.borrow();
+        if inner.config.repos.is_empty() {
+            return Ok(model::fleet(&[], inner.config.expected));
+        }
+    }
+
     let token = {
         let source = alive().ok_or_else(gone)?;
         let cached = source.inner.borrow().token.clone();

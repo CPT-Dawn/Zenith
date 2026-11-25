@@ -24,6 +24,44 @@ pub fn document(text: &str, document: &Document<&str>) -> Vec<Diagnostic> {
     );
     layout(text, document, &mut out);
     actions(text, document, &mut out);
+    if let (Some(_), Some(runners)) = (
+        lookup(document, &["cockpit"]),
+        lookup(document, &["runners"]),
+    ) {
+        let span = document.as_table().key("runners").and_then(|k| k.span());
+        out.push(Diagnostic::at(
+            text,
+            span.or_else(|| runners.span()),
+            "[runners] is the old name of [cockpit]; move its keys into [cockpit]",
+        ));
+    }
+    out
+}
+
+/// Deprecated names that still work for now: the `runners` module and `[runners]`.
+pub fn deprecations(text: &str, document: &Document<&str>) -> Vec<Diagnostic> {
+    let mut out = Vec::new();
+    for section in Section::ALL.map(Section::as_str) {
+        let Some(array) = lookup(document, &["layout", section]).and_then(Item::as_array) else {
+            continue;
+        };
+        for value in array.iter().filter(|v| v.as_str() == Some("runners")) {
+            out.push(Diagnostic::at(
+                text,
+                value.span(),
+                "module `runners` is deprecated and goes in the next release; use `cockpit`",
+            ));
+        }
+    }
+    if lookup(document, &["runners"]).is_some() {
+        let span = document.as_table().key("runners").and_then(|k| k.span());
+        out.push(Diagnostic::at(
+            text,
+            span,
+            "[runners] is deprecated and goes in the next release; rename it to [cockpit]",
+        ));
+    }
+    out.sort_by_key(|d| (d.line, d.column));
     out
 }
 
@@ -64,7 +102,15 @@ fn layout(text: &str, document: &Document<&str>, out: &mut Vec<Diagnostic>) {
                             .suggest(closest(name, names)),
                     );
                 }
-                Ok(id) => match seen.iter().find(|(seen_id, _)| *seen_id == id) {
+                Ok(id) => match seen
+                    .iter()
+                    .find(|(seen_id, _)| *seen_id == id || alias(*seen_id) == alias(id))
+                {
+                    Some((seen_id, _)) if *seen_id != id => out.push(Diagnostic::at(
+                        text,
+                        span,
+                        "`runners` is the old name of `cockpit`; keep only `cockpit`",
+                    )),
                     Some((_, first)) => out.push(Diagnostic::at(
                         text,
                         span,
@@ -74,6 +120,14 @@ fn layout(text: &str, document: &Document<&str>, out: &mut Vec<Diagnostic>) {
                 },
             }
         }
+    }
+}
+
+/// `runners` and `cockpit` show the same fleet, so only one may be on the bar.
+fn alias(id: ModuleId) -> ModuleId {
+    match id {
+        ModuleId::Runners => ModuleId::Cockpit,
+        other => other,
     }
 }
 
@@ -98,6 +152,24 @@ fn unknown_keys(
                     path.push(key.to_string());
                     unknown_keys(text, root, child, child_table, path, out);
                     path.pop();
+                }
+                // An array of tables (`[[cockpit.feeds]]` or inline): check each entry.
+                let entries: Vec<&dyn TableLike> = match item {
+                    Item::ArrayOfTables(tables) => {
+                        tables.iter().map(|t| t as &dyn TableLike).collect()
+                    }
+                    Item::Value(toml_edit::Value::Array(array)) => array
+                        .iter()
+                        .filter_map(|v| v.as_inline_table().map(|t| t as &dyn TableLike))
+                        .collect(),
+                    _ => Vec::new(),
+                };
+                if let Some(items) = resolve_ref(root, child).get("items") {
+                    for (i, entry) in entries.into_iter().enumerate() {
+                        path.push(format!("{key}[{i}]"));
+                        unknown_keys(text, root, items, entry, path, out);
+                        path.pop();
+                    }
                 }
             }
             None => {
@@ -204,6 +276,16 @@ pub fn values(
         ("media", raw.media.problems()),
         ("runners", raw.runners.problems()),
     ];
+    let owned = |problems: Vec<(&'static str, String)>| {
+        problems
+            .into_iter()
+            .map(|(k, m)| (k.to_string(), m))
+            .collect::<Vec<_>>()
+    };
+    let module_problems = module_problems
+        .into_iter()
+        .map(|(table, problems)| (table, owned(problems)))
+        .chain([("cockpit", raw.cockpit.problems())]);
     for (table, problems) in module_problems {
         for (key, message) in problems {
             let path: Vec<&str> = std::iter::once(table).chain(key.split('.')).collect();
@@ -217,6 +299,9 @@ pub fn values(
 /// Where to point for `path`: the key itself if written, else its nearest written
 /// ancestor table's first key (a derived value depends on its siblings), else that table.
 fn written_span(document: &Document<&str>, path: &[&str]) -> Option<std::ops::Range<usize>> {
+    if let Some(span) = indexed_span(document, path) {
+        return Some(span);
+    }
     if let Some(span) = lookup(document, path).and_then(Item::span) {
         return Some(span);
     }
@@ -227,6 +312,26 @@ fn written_span(document: &Document<&str>, path: &[&str]) -> Option<std::ops::Ra
             .and_then(|k| k.span())
             .or_else(|| lookup(document, &path[..n]).and_then(Item::span))
     })
+}
+
+/// For a path through an array of tables (`cockpit.feeds.1.interval`): the key in
+/// that entry, else the entry's first key.
+fn indexed_span(document: &Document<&str>, path: &[&str]) -> Option<std::ops::Range<usize>> {
+    let at = path.iter().position(|k| k.parse::<usize>().is_ok())?;
+    let index: usize = path[at].parse().ok()?;
+    let entry: &dyn TableLike = match lookup(document, &path[..at])? {
+        Item::ArrayOfTables(tables) => tables.get(index)?,
+        Item::Value(toml_edit::Value::Array(array)) => array.get(index)?.as_inline_table()?,
+        _ => return None,
+    };
+    let first = || entry.iter().next().and_then(|(k, _)| entry.key(k)?.span());
+    match path.get(at + 1) {
+        Some(key) => entry
+            .get(key)
+            .and_then(|item| item.span().or_else(|| entry.key(key)?.span()))
+            .or_else(first),
+        None => first(),
+    }
 }
 
 /// The item at `path`, if the user wrote it.

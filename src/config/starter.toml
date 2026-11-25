@@ -26,7 +26,7 @@ focal = "clock"
 
 [layout]
 # Modules per section, in order. A module may appear only once.
-# Available: logo, todo, clock, calendar, media, system, clipboard, runners.
+# Available: logo, todo, clock, calendar, media, system, clipboard, cockpit.
 left = ["logo", "todo"]
 center = ["clock", "calendar"]
 right = ["media", "system"]
@@ -81,10 +81,12 @@ hot = 85
 # Shell command run by the popover's "Search all…" row.
 search_command = "hoarder picker"
 
-[runners]
-# GitHub Actions self-hosted runners: one dot per slot (filled = running a
-# job, hollow = idle, red = offline or missing), +n for queued jobs. Add
-# "runners" to [layout] and list your repos to show it. Click for the jobs.
+[cockpit]
+# Your CI runners and anything a feed command reports, at a glance. Add
+# "cockpit" to [layout], then list repos and/or feeds. GitHub Actions
+# self-hosted runners show as one dot per slot (filled = running a job,
+# hollow = idle, red = offline or missing), +n for queued jobs. Click for
+# the cockpit: a card per feed section, then the runners and their jobs.
 repos = []
 # How many runner slots you run; fewer registered show as missing. 0 = off.
 expected = 0
@@ -92,6 +94,12 @@ expected = 0
 interval = 30
 # Shell command printing a GitHub token that can read the repos' runners.
 token_command = "gh auth token"
+# Feeds: commands that print a JSON feed (see docs/configuration.md). Each
+# adds chips to the bar and cards to the cockpit. For example:
+# [[cockpit.feeds]]
+# command = "my-feed"   # run with sh -c; stdout is one JSON document
+# interval = 15         # seconds between runs (at least 5)
+# timeout = 30          # seconds before a run is killed
 
 [theme]
 # Built-in theme: "midnight-bloom", "tokyo-night", "catppuccin-mocha" or

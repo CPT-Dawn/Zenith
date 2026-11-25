@@ -45,6 +45,16 @@ v1's keys are not accepted (unknown keys are errors). Rough equivalents:
 
 v1's `.zenith-*` classes are gone. v2 has stable `zb-*` classes and `--zb-*` variables, documented in [theming](theming.md). They are a public contract, so a v2 `style.css` keeps working across releases. Most v1 tweaks become a one-line `[theme]` override (`accent`, `surface_opacity`, `module_radius`) with no CSS at all.
 
+## From 2.4: `runners` becomes `cockpit`
+
+The `runners` module grew into the `cockpit`, which adds [feeds](configuration.md#cockpit-feeds) next to the same runner card. 2.4 configs keep working for one more release; `zenith-bar check` warns until you rename two things:
+
+| 2.4 | Now |
+|---|---|
+| `"runners"` in `[layout]` | `"cockpit"` |
+| `[runners]` | `[cockpit]`, same keys, plus `[[cockpit.feeds]]` |
+| `.zb-runners` (the module) in `style.css` | `.zb-cockpit`; the runner card's `zb-runners-*` part classes are unchanged |
+
 ## Where it started
 
 The original bar, for the record. v2 is a clean rewrite of this look, at a fraction of the cost (see [v1 and v2 side by side](performance.md#v1-and-v2-side-by-side)).

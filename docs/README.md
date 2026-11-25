@@ -10,6 +10,6 @@ Zenith's guides. The [README](../README.md) gets you running; these pages are th
 | [Performance](performance.md) | The benchmark harness, the hardware, every result and the CI budgets |
 | [Migrating from 1.x](migrating-from-v1.md) | What changed in the v2 rewrite, old config keys and CSS, and 1.x screenshots |
 | [Releasing](releasing.md) | Cutting a release: version bump, changelog, signed tag, AUR publish (maintainers) |
-| [Architecture decisions](adr/) | Why GTK4, one main loop, no ambient animation, and the cairo renderer |
+| [Architecture decisions](adr/) | Why GTK4, one main loop, no ambient animation, the cairo renderer, and cockpit feeds |
 
 [Back to the README](../README.md)

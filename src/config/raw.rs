@@ -9,6 +9,7 @@ use super::layout::LayoutConfig;
 use super::theme::ThemeConfig;
 use crate::modules::calendar::CalendarConfig;
 use crate::modules::clipboard::ClipboardConfig;
+use crate::modules::cockpit::CockpitConfig;
 use crate::modules::media::MediaConfig;
 use crate::modules::runners::RunnersConfig;
 use crate::modules::todo::TodoConfig;
@@ -27,5 +28,7 @@ pub struct RawConfig {
     pub system: SystemConfig,
     pub todo: TodoConfig,
     pub clipboard: ClipboardConfig,
+    pub cockpit: CockpitConfig,
+    /// Deprecated: the old name of `[cockpit]`, without feeds.
     pub runners: RunnersConfig,
 }
