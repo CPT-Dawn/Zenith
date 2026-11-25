@@ -7,6 +7,16 @@ uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 v2 is a clean break from v1. Releases before 2.0.0 predate conventional
 commits; their notes live on the GitHub Releases page.
 
+## [2.5.0] - 2026-11-25
+
+### Features
+
+- **cockpit:** Give the runners a cockpit with room for your own gauges
+
+### Documentation
+
+- **agents:** Teach the robots about blockers and AGENTS.md
+
 ## [2.4.0] - 2026-11-16
 
 ### Features
